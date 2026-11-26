@@ -1,7 +1,7 @@
 name: Deploy
 
 # Ships main to the Azure VM after CI passes on it (and on demand). Builds here, because the VM has 1 GB of RAM;
-# the VM only installs the bundle (deploy/vm/pitchswipe-activate), health-checks it and rolls back on failure.
+# the VM only installs the bundle (infra/vm/pitchswipe-activate), health-checks it and rolls back on failure.
 on:
   workflow_run:
     workflows: [CI]

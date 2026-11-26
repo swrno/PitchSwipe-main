@@ -132,7 +132,7 @@ accounts and a real database.
 - **Mobile:** a Capacitor 8 shell for Android and iOS that loads the live site, with native haptics and
   edge-to-edge status bars.
 - **Deploys:** every push to `main` runs CI. When it passes, GitHub Actions builds the app, installs it on the VM,
-  health-checks it and rolls back automatically if the check fails ([deploy/vm/README.md](deploy/vm/README.md)).
+  health-checks it and rolls back automatically if the check fails ([infra/vm/README.md](infra/vm/README.md)).
 
 More detail is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the product spec and designs are in
 [`goal/`](goal/README.md).
