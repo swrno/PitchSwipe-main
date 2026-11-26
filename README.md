@@ -11,18 +11,18 @@ decides which version wins, and the people who liked it join your waitlist. Swip
 a little for every honest answer.
 
 [![Live site](https://img.shields.io/badge/live-noor--api.centralindia.cloudapp.azure.com-111111?style=flat-square&labelColor=c8f35e)](https://noor-api.centralindia.cloudapp.azure.com)
-[![Latest release](https://img.shields.io/github/v/release/swrno/PitchSwipe?style=flat-square&label=release&labelColor=c8f35e&color=111111)](https://github.com/swrno/PitchSwipe/releases/latest)
-[![Deploy](https://img.shields.io/github/actions/workflow/status/swrno/PitchSwipe/deploy.yml?branch=main&style=flat-square&label=deploy&labelColor=c8f35e&color=111111)](https://github.com/swrno/PitchSwipe/actions/workflows/deploy.yml)
+[![Latest release](https://img.shields.io/github/v/release/swrno/PitchSwipe-main?style=flat-square&label=release&labelColor=c8f35e&color=111111)](https://github.com/swrno/PitchSwipe-main/releases/latest)
+[![Deploy](https://img.shields.io/github/actions/workflow/status/swrno/PitchSwipe-main/deploy.yml?branch=main&style=flat-square&label=deploy&labelColor=c8f35e&color=111111)](https://github.com/swrno/PitchSwipe-main/actions/workflows/deploy.yml)
 [![Android 7.0 or newer](https://img.shields.io/badge/Android-7.0%2B-111111?style=flat-square&labelColor=c8f35e)](#download)
 
 ## Download
 
-<a href="https://github.com/swrno/PitchSwipe/releases/latest"><img src="docs/images/qr-latest-release.svg" width="144" align="right" alt="QR code that opens the latest PitchSwipe release on GitHub"></a>
+<a href="https://github.com/swrno/PitchSwipe-main/releases/latest"><img src="docs/images/qr-latest-release.svg" width="144" align="right" alt="QR code that opens the latest PitchSwipe release on GitHub"></a>
 
 **Web:** open **[noor-api.centralindia.cloudapp.azure.com](https://noor-api.centralindia.cloudapp.azure.com)**
 in any browser. On a phone you can add it to your home screen; it installs as an app.
 
-**Android:** download the APK from the **[latest release](https://github.com/swrno/PitchSwipe/releases/latest)**,
+**Android:** download the APK from the **[latest release](https://github.com/swrno/PitchSwipe-main/releases/latest)**,
 listed under Assets. On a computer, scan the code with your phone to open the release there. To install, open the
 APK on your phone and allow your browser or file manager to install unknown apps when Android asks. The app needs
 Android 7.0 or newer and an internet connection: it opens the live site inside a native shell.
@@ -175,7 +175,7 @@ Actions tab, or push a tag like `ios-v0.1.0`. [docs/mobile.md](docs/mobile.md) c
 
 ## Releases
 
-Each release on the [releases page](https://github.com/swrno/PitchSwipe/releases) has the Android APK, the iOS
+Each release on the [releases page](https://github.com/swrno/PitchSwipe-main/releases) has the Android APK, the iOS
 Simulator build and the unsigned iOS device build. Release notes are in [docs/releases](docs/releases).
 
 ## Licence

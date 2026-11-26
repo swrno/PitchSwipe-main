@@ -17,17 +17,19 @@ Nothing secret is written here. Keys, passwords and the server env are handed ov
 | Database | MongoDB 7 on the same VM, localhost only, auth on, nightly backups |
 | Accounts | Firebase Authentication, project `pitchswipe-cadfd` |
 | Experiments | Flagsmith Cloud, project **PitchSwipe** |
-| Code and deploys | GitHub `swrno/PitchSwipe` (private); every push to `main` that passes CI deploys itself |
-| Apps | Release v0.1.0 on the (private) [releases page](https://github.com/swrno/PitchSwipe/releases): an Android APK, an iOS Simulator build, and an unsigned `.ipa` that will not install on an iPhone until it is signed |
+| Code and deploys | GitHub `swrno/PitchSwipe-main` (public, the final submission repo); every push to `main` that passes CI deploys itself. The earlier private repo `swrno/PitchSwipe` keeps the history up to 26 Nov 2026; its deploy workflow is disabled so it can no longer ship to the server |
+| Apps | Android APK and iOS builds are published on the [releases page](https://github.com/swrno/PitchSwipe-main/releases). The iOS `.ipa` is unsigned and will not install on an iPhone until it is signed |
 
 ## Access you need
 
 Ask the current owner for each of these. Nothing here can be done from the repo alone.
 
-1. **GitHub:** collaborator on `swrno/PitchSwipe` (the owner adds you under Settings -> Collaborators). It is a
+1. **GitHub:** collaborator on `swrno/PitchSwipe-main` (the owner adds you under Settings -> Collaborators). It is a
    personal-account repo, so collaborators get read and write but cannot be made admins. To manage Actions secrets,
    variables and repo settings yourself, have the owner transfer the repo to you or to an organization where you
    are an owner.
+   After a transfer, update the repo name in the `github.repository == 'swrno/PitchSwipe-main'` guard in
+   `.github/workflows/deploy.yml`, or deploys silently stop; the Actions variables and secrets move with the repo.
 2. **The server:** an SSH key on the VM. See [Logging in to the server](#logging-in-to-the-server).
 3. **Firebase:** member of project `pitchswipe-cadfd` (Firebase console -> Project settings -> Users and
    permissions -> Add member, role Owner or Editor).
@@ -46,9 +48,10 @@ Ask the current owner for each of these. Nothing here can be done from the repo 
 | User | `azureuser` (has sudo, no password needed) |
 | Login | SSH keys only. Password login is off, and root cannot log in with a password |
 
-The VM also has a `deploy` user, used only by GitHub Actions (key comment `github-actions-deploy@pitchswipe`, in
-`/home/deploy/.ssh/authorized_keys`). Its only root right is `sudo /usr/local/bin/pitchswipe-activate`. Do not use it
-or change its key, or deploys stop.
+The VM also has a `deploy` user, used only by GitHub Actions. Its keys are in `/home/deploy/.ssh/authorized_keys`:
+`github-actions-deploy@pitchswipe-main` is the one this repo's `DEPLOY_SSH_KEY` secret holds; the older
+`github-actions-deploy@pitchswipe` belonged to the retired private repo and can be deleted. Its only root right is
+`sudo /usr/local/bin/pitchswipe-activate`. Do not use it, and do not remove the `-main` key, or deploys stop.
 
 ### 1. Get your key onto the server
 
@@ -191,11 +194,10 @@ Every variable is explained in [.env.example](../.env.example). To change a serv
 `/etc/pitchswipe.env` on the server, run `sudo systemctl restart pitchswipe`, check `/api/health`, and update your
 private copy.
 
-**Not set yet:**
+**AI and what is not set yet:**
 
-- **AI key on the server.** The app now runs on a free Groq key (`GROQ_API_KEY`; main model `openai/gpt-oss-120b`,
-  fallback `openai/gpt-oss-20b`, see `.env.example`). The owner's private copy of the env has it; add the same line to
-  `/etc/pitchswipe.env` and restart once the Groq code is deployed. It powers AI drafting, the Ask assistant, insight
+- **AI key.** Set: the app runs on a free Groq key (`GROQ_API_KEY` in `/etc/pitchswipe.env`; main model
+  `openai/gpt-oss-120b`, fallback `openai/gpt-oss-20b`, see `.env.example`). It powers AI drafting, the Ask assistant, insight
   wording, comment themes and voice-note translation. Without it, AI drafting says it needs a key, Ask uses a scripted
   planner over the real data, insights use code templates, and swipers type the English for voice notes themselves.
   `npm run doctor` also warns if Groq retires one of the two models.

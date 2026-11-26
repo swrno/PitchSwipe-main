@@ -7,6 +7,8 @@ Nothing secret is written here.
 
 ## Where the code is
 
+- **Since 26 Nov 2026 the code lives in [`swrno/PitchSwipe-main`](https://github.com/swrno/PitchSwipe-main)**, the final
+  submission repo, which deploys to the server. What follows was written for the earlier private repo.
 - Branch `fix/founder-feedback` on `swrno/PitchSwipe`, with a pull request into `main`. 10 commits on top of the merge
   of PR #43 (`01a2ec8`):
   1. Keep headline and price when switching test type
@@ -78,12 +80,18 @@ Nothing secret is written here.
 
 ## To go live
 
-1. Check the pull request's CI, then merge it into `main` (it deploys itself after CI passes).
-2. On the server, make `/etc/pitchswipe.env` match `server.env` (the only new line is `GROQ_API_KEY=...`), then
+Done on 26 Nov 2026: these changes are in `swrno/PitchSwipe-main`, which is live, and `/etc/pitchswipe.env` has
+`GROQ_API_KEY`. The old repo's Deploy workflow is disabled, so merging anything there no longer deploys.
+
+For future changes:
+
+1. Open a pull request on `swrno/PitchSwipe-main`, check its CI, then merge it into `main`; it deploys itself after CI
+   passes on `main`.
+2. If the change needs a new server setting, update `/etc/pitchswipe.env` on the server and run
    `sudo systemctl restart pitchswipe`. `server.env` is the standard copy of the server env: keep it in the password
    manager and update it whenever the server changes.
-3. Check `https://noor-api.centralindia.cloudapp.azure.com/api/health` shows the new commit, and run `npm run doctor`
-   on the server.
+3. Check `https://noor-api.centralindia.cloudapp.azure.com/api/health` shows the new commit. `npm run doctor` runs in
+   a local checkout with the same values (the server has only the built app, not the scripts).
 
 ## For the hackathon demo
 
