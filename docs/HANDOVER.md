@@ -161,7 +161,7 @@ the Actions tab. Details under "Uptime check" in [infra/vm/README.md](../infra/v
 `/usr/local/bin/pitchswipe-backup` runs every night at 02:15 UTC (`/etc/cron.d/pitchswipe-backup`) and logs under the
 tag `pitchswipe-backup` (`journalctl -t pitchswipe-backup`). It writes
 `/var/backups/pitchswipe/pitchswipe-<UTC time>.archive.gz` and keeps the newest 7. List them with
-`sudo ls -lt /var/backups/pitchswipe`. The script and its cron file are not in the repo yet.
+`sudo ls -lt /var/backups/pitchswipe`. The script and its cron file are in the repo as `infra/vm/pitchswipe-backup` and `infra/vm/pitchswipe-backup.cron`.
 
 **Off-site copy (needs a one-time install).** `.github/workflows/offsite-backup.yml` copies the newest backup off
 the VM every day at 03:30 UTC, encrypted with gpg (AES256) using the `BACKUP_PASSPHRASE` secret, and keeps it as a

@@ -1,0 +1,1 @@
+15 2 * * * root /usr/local/bin/pitchswipe-backup 2>&1 | logger -t pitchswipe-backup
