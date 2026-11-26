@@ -1,0 +1,97 @@
+name: Off-site backup
+
+# Copies the newest nightly MongoDB backup off the VM, encrypted, as a workflow artifact kept for 30 days.
+# The VM writes its backup at 02:15 UTC; this runs at 03:30 UTC (and on demand). The archive is streamed from
+# `sudo /usr/local/bin/pitchswipe-backup-export` (infra/vm) straight into gpg, so the unencrypted backup never
+# touches the runner's disk. The repo is public: anyone signed in to GitHub can download the artifact, which is why
+# it is encrypted. Without BACKUP_PASSPHRASE the run fails and uploads nothing. Restore steps: infra/vm/README.md.
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offsite-backup
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  copy:
+    # The repo is public, so forks get this workflow too, and they have no secrets.
+    if: github.repository == 'swrno/PitchSwipe-main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check settings
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          HOST: ${{ vars.DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          missing=0
+          if [[ -z "$BACKUP_PASSPHRASE" ]]; then
+            echo "::error::The BACKUP_PASSPHRASE secret is not set. Refusing to copy the backup: it is never uploaded unencrypted."
+            missing=1
+          fi
+          [[ -n "$DEPLOY_SSH_KEY" ]] || { echo "::error::The DEPLOY_SSH_KEY secret is not set."; missing=1; }
+          [[ -n "$DEPLOY_KNOWN_HOSTS" ]] || { echo "::error::The DEPLOY_KNOWN_HOSTS secret is not set."; missing=1; }
+          [[ -n "$HOST" ]] || { echo "::error::The DEPLOY_HOST variable is not set."; missing=1; }
+          exit "$missing"
+
+      - name: SSH and passphrase setup
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          umask 077
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # gpg reads the passphrase from the first line of this file.
+          printf '%s' "$BACKUP_PASSPHRASE" > "$RUNNER_TEMP/backup-passphrase"
+
+      - name: Fetch and encrypt
+        id: copy
+        env:
+          HOST: ${{ vars.DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          stamp="$(date -u +%Y-%m-%dT%H%MZ)"
+          out="$RUNNER_TEMP/pitchswipe-backup-${stamp}.archive.gz.gpg"
+          # pipefail: a refused export (no backup, too old, incomplete) or a dropped connection fails this step even
+          # though gpg itself would happily encrypt an empty or partial stream.
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes "deploy@${HOST}" \
+              sudo /usr/local/bin/pitchswipe-backup-export \
+            | gpg --batch --yes --symmetric --cipher-algo AES256 --compress-algo none --pinentry-mode loopback \
+                --passphrase-file "$RUNNER_TEMP/backup-passphrase" --output "$out"
+          test -s "$out" || { echo "::error::The encrypted file is empty."; exit 1; }
+          # Round trip in memory: the copy decrypts with the passphrase and holds a complete gzip archive.
+          gpg --batch --quiet --decrypt --pinentry-mode loopback --passphrase-file "$RUNNER_TEMP/backup-passphrase" "$out" \
+            | gzip -t
+          echo "encrypted copy: $(basename "$out"), $(stat -c %s "$out") bytes"
+          echo "path=$out" >> "$GITHUB_OUTPUT"
+          echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchswipe-backup-${{ steps.copy.outputs.stamp }}
+          path: ${{ steps.copy.outputs.path }}
+          retention-days: 30
+          if-no-files-found: error
+          # Already compressed and encrypted.
+          compression-level: 0
+
+      - name: Clean up key and passphrase
+        if: always()
+        run: rm -f ~/.ssh/deploy_key "$RUNNER_TEMP/backup-passphrase"

@@ -1,0 +1,52 @@
+name: Uptime
+
+# Checks the live site every 30 minutes (and on demand). Fails unless /api/health reports real mode with the
+# database up and the Firebase Admin credentials parsing. A failed scheduled run makes GitHub email the person the
+# schedule belongs to (infra/vm/README.md, "Uptime check").
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  health:
+    # The repo is public, so forks get this workflow too; only this repo checks the live site.
+    if: github.repository == 'swrno/PitchSwipe-main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check /api/health
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${APP_URL}" ]]; then
+            echo "::error::The APP_URL repository variable is not set."
+            exit 1
+          fi
+          url="${APP_URL%/}/api/health"
+          # 3 attempts, 10 s apart: one slow answer or a restart during a deploy is not an outage.
+          for attempt in 1 2 3; do
+            # No -f: a 503 body says which part is down, so it is worth printing. "|| true" keeps the retry loop
+            # alive when curl itself fails (timeout, DNS, TLS); -w still prints "000" then.
+            response="$(curl -sS --max-time 20 -w '\n%{http_code}' "$url" || true)"
+            code="${response##*$'\n'}"
+            body="${response%$'\n'*}"
+            echo "attempt ${attempt}: GET /api/health -> ${code} ${body:0:300}"
+            if [[ "$code" == "200" ]] \
+              && jq -e '.ok == true and .db == "up" and .firebaseAdmin == true and .demo == false' >/dev/null 2>&1 <<<"$body"; then
+              echo "healthy"
+              exit 0
+            fi
+            [[ "$attempt" == 3 ]] || sleep 10
+          done
+          echo "::error::/api/health did not report ok=true, db=up, firebaseAdmin=true, demo=false after 3 attempts."
+          exit 1

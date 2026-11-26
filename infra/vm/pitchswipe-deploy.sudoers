@@ -1,0 +1,8 @@
+# /etc/sudoers.d/pitchswipe-deploy (install steps: "Off-site backup" in infra/vm/README.md; check with visudo -cf
+# before installing). The deploy user's key is used by GitHub Actions; it may run exactly these commands as root.
+#
+# pitchswipe-activate: installs a release (.github/workflows/deploy.yml). Unchanged.
+deploy ALL=(root) NOPASSWD: /usr/local/bin/pitchswipe-activate
+# pitchswipe-backup-export: streams the newest nightly backup (.github/workflows/offsite-backup.yml). The empty ""
+# means no arguments are allowed.
+deploy ALL=(root) NOPASSWD: /usr/local/bin/pitchswipe-backup-export ""

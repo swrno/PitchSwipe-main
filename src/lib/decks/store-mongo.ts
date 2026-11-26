@@ -132,7 +132,7 @@ export function createMongoStore(): Store {
     async updateProduct(ownerId, id, input) {
       if (!idOk(id)) return null;
       await connectDb();
-      const row = (await Product.findOneAndUpdate({ _id: id, ownerId }, { $set: input }, { new: true }).lean()) as unknown as Row | null;
+      const row = (await Product.findOneAndUpdate({ _id: id, ownerId }, { $set: input }, { returnDocument: "after" }).lean()) as unknown as Row | null;
       return row ? toProduct(row) : null;
     },
 
@@ -174,18 +174,18 @@ export function createMongoStore(): Store {
         row = (await Deck.findOneAndUpdate(
           { _id: id, ownerId, ...freeDraft(editingAt) },
           { $set: { ...fields, editingAt } },
-          { new: true },
+          { returnDocument: "after" },
         ).lean()) as unknown as Row | null;
         if (!row) return null;
         try {
           await replaceCards(id, cards);
         } finally {
           // Only this write's own marker (a stale one may have been taken over by a later write).
-          row = ((await Deck.findOneAndUpdate({ _id: id, ownerId, editingAt }, { $set: { editingAt: null } }, { new: true }).lean()) ??
+          row = ((await Deck.findOneAndUpdate({ _id: id, ownerId, editingAt }, { $set: { editingAt: null } }, { returnDocument: "after" }).lean()) ??
             row) as unknown as Row;
         }
       } else {
-        row = (await Deck.findOneAndUpdate({ _id: id, ownerId }, { $set: fields }, { new: true }).lean()) as unknown as Row | null;
+        row = (await Deck.findOneAndUpdate({ _id: id, ownerId }, { $set: fields }, { returnDocument: "after" }).lean()) as unknown as Row | null;
         if (!row) return null;
       }
       if (patch.productId && patch.productId !== str(before.productId)) {
@@ -202,7 +202,7 @@ export function createMongoStore(): Store {
       const row = await Deck.findOneAndUpdate(
         { _id: id, ownerId, ...freeDraft(now) },
         { $set: { publishingAt: now } },
-        { new: true },
+        { returnDocument: "after" },
       ).lean();
       return row !== null;
     },
