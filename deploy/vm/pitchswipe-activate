@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# Installs one built PitchSwipe release on the VM and switches traffic to it. Run as root (the deploy user may run
+# only this script through sudo, see deploy/vm/README.md).
+#
+#   pitchswipe-activate <bundle.tar.gz> <git-sha>
+#
+# The bundle is what .github/workflows/deploy.yml builds: .next (no cache), public, package.json, package-lock.json,
+# next.config.ts. Steps: unpack into releases/<sha>, install production dependencies (copied from the live release
+# when the lockfile is unchanged), point `current` at it, restart, health-check, and roll back if the check fails.
+# Keeps the last 3 releases.
+set -euo pipefail
+
+BUNDLE="${1:-}"
+SHA="${2:-}"
+APP=/opt/pitchswipe
+RELEASES="$APP/releases"
+CURRENT="$APP/current"
+HEALTH_URL="http://127.0.0.1:3000/swipe"
+# A page can render while every API route fails to load its server modules (Firebase Admin, Mongo). This read-only
+# route loads them; any answer below 500 means they loaded.
+API_HEALTH_URL="http://127.0.0.1:3000/api/claims/wallet?swiperGuid=00000000-0000-4000-8000-000000000000"
+# The app's own check: 200 with {"ok":true,...} once the server modules load and (in real mode) MongoDB answers.
+STATUS_URL="http://127.0.0.1:3000/api/health"
+
+[[ "$SHA" =~ ^[0-9a-f]{7,40}$ ]] || { echo "activate: second argument must be a git sha" >&2; exit 2; }
+# Resolve the real path first, so "incoming/../../x.tar.gz" or a symlink cannot point outside the upload folder.
+BUNDLE="$(realpath -e -- "$BUNDLE" 2>/dev/null || true)"
+[[ -f "$BUNDLE" && "$(dirname -- "$BUNDLE")" == /home/deploy/incoming && "$BUNDLE" == *.tar.gz ]] || { echo "activate: bundle must be a .tar.gz in /home/deploy/incoming" >&2; exit 2; }
+
+SHORT="${SHA:0:12}"
+TARGET="$RELEASES/$SHORT"
+PREVIOUS="$(readlink -f "$CURRENT" || true)"
+
+echo "activate: unpacking $SHORT"
+rm -rf "$TARGET.tmp"
+mkdir -p "$TARGET.tmp"
+tar -xzf "$BUNDLE" -C "$TARGET.tmp" --no-same-owner
+chown -R pitchswipe:pitchswipe "$TARGET.tmp"
+
+# Production dependencies: reuse the live ones when the lockfile is identical (saves minutes and memory on this VM).
+if [[ -n "$PREVIOUS" && -d "$PREVIOUS/node_modules" ]] && cmp -s "$PREVIOUS/package-lock.json" "$TARGET.tmp/package-lock.json"; then
+  echo "activate: lockfile unchanged, copying node_modules"
+  cp -a "$PREVIOUS/node_modules" "$TARGET.tmp/node_modules"
+else
+  echo "activate: installing production dependencies"
+  sudo -u pitchswipe -H bash -c "cd '$TARGET.tmp' && npm ci --omit=dev --no-audit --no-fund --loglevel=error"
+fi
+
+rm -rf "$TARGET"
+mv "$TARGET.tmp" "$TARGET"
+ln -sfn "$TARGET" "$CURRENT.new" && mv -Tf "$CURRENT.new" "$CURRENT"
+echo "activate: restarting"
+systemctl restart pitchswipe
+
+healthy=false
+for _ in $(seq 1 30); do
+  sleep 2
+  # `|| true`: while the app is still starting, curl exits non-zero (connection refused) and `set -e` would end the
+  # script here, skipping the rollback below. -w still prints "000" in that case.
+  page="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$HEALTH_URL" || true)"
+  api="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$API_HEALTH_URL" || true)"
+  status="$(curl -s -w '\n%{http_code}' --max-time 10 "$STATUS_URL" || true)"
+  status_code="${status##*$'\n'}"
+  status_body="${status%$'\n'*}"
+  if [[ "$page" == "200" && "$api" =~ ^[234][0-9][0-9]$ && "$status_code" == "200" ]] \
+    && grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' <<<"$status_body"; then
+    healthy=true
+    break
+  fi
+done
+[[ "$healthy" == true ]] || echo "activate: last check: /swipe $page, wallet $api, /api/health $status_code ${status_body:0:200}" >&2
+
+if ! $healthy; then
+  echo "activate: health check failed for $SHORT" >&2
+  journalctl -u pitchswipe -n 30 --no-pager >&2 || true
+  if [[ -n "$PREVIOUS" && -d "$PREVIOUS" && "$PREVIOUS" != "$TARGET" ]]; then
+    echo "activate: rolling back to $(basename "$PREVIOUS")" >&2
+    ln -sfn "$PREVIOUS" "$CURRENT.new" && mv -Tf "$CURRENT.new" "$CURRENT"
+    systemctl restart pitchswipe
+  fi
+  exit 1
+fi
+
+echo "$SHORT" > "$APP/DEPLOYED"
+rm -f "$BUNDLE"
+# Keep the 3 newest releases (the live one is always among them).
+ls -1dt "$RELEASES"/*/ 2>/dev/null | tail -n +4 | while read -r old; do
+  [[ "$(readlink -f "$old")" == "$(readlink -f "$CURRENT")" ]] || rm -rf "$old"
+done
+echo "activate: $SHORT is live"

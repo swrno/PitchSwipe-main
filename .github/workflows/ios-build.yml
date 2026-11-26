@@ -1,0 +1,80 @@
+name: iOS build
+
+# Compiles the Capacitor iOS shell on a GitHub macOS runner (Xcode is preinstalled there; no Mac needed).
+# The app loads the deployed site (vars.APP_URL), like the Android shell.
+#
+# Outputs (workflow artifacts):
+#   PitchSwipe-simulator.zip  App.app for the iOS Simulator (drag onto a booted simulator).
+#   PitchSwipe-unsigned.ipa   device build WITHOUT a signature. An iPhone will not install it until it is signed
+#                             with an Apple Developer certificate and provisioning profile (see docs/mobile.md).
+#
+# Run it from Actions -> iOS build -> Run workflow, or push a tag like ios-v0.1.0.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["ios-v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      CAP_SERVER_URL: ${{ vars.APP_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Sync the native project (server URL baked in)
+        run: |
+          test -n "$CAP_SERVER_URL" || { echo "::error::Repo variable APP_URL is not set"; exit 1; }
+          npx cap sync ios
+          grep -q "\"url\": \"$CAP_SERVER_URL\"" ios/App/App/capacitor.config.json
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project ios/App/App.xcodeproj -scheme App
+
+      - name: Build for the iOS Simulator
+        run: |
+          xcodebuild build \
+            -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphonesimulator -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO
+          APP=$(find build/sim/Build/Products -maxdepth 2 -name "App.app" -type d | head -1)
+          test -d "$APP"
+          (cd "$(dirname "$APP")" && ditto -c -k --keepParent App.app "$GITHUB_WORKSPACE/PitchSwipe-simulator.zip")
+
+      - name: Build for devices (unsigned)
+        run: |
+          xcodebuild build \
+            -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -destination "generic/platform=iOS" \
+            -derivedDataPath build/device CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          APP=$(find build/device/Build/Products -maxdepth 2 -name "App.app" -type d | head -1)
+          test -d "$APP"
+          mkdir -p Payload && cp -R "$APP" Payload/
+          zip -qry PitchSwipe-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PitchSwipe-ios-${{ github.sha }}
+          path: |
+            PitchSwipe-simulator.zip
+            PitchSwipe-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30

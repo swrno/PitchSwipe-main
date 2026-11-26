@@ -1,0 +1,106 @@
+name: Deploy
+
+# Ships main to the Azure VM after CI passes on it (and on demand). Builds here, because the VM has 1 GB of RAM;
+# the VM only installs the bundle (deploy/vm/pitchswipe-activate), health-checks it and rolls back on failure.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; a newer push waits instead of cancelling a deploy halfway.
+concurrency:
+  group: deploy-vm
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Only a successful CI run of a push to main (not a PR), or a manual run on main.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      # Browser config is baked in at build time. Public values only (repo Variables, not Secrets).
+      NEXT_PUBLIC_APP_URL: ${{ vars.APP_URL }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.APP_URL }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ vars.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      NEXT_PUBLIC_FLAGSMITH_ENV_KEY: ${{ vars.NEXT_PUBLIC_FLAGSMITH_ENV_KEY }}
+      # Shown on /contact and the legal pages. Unset: they say the address will be published before launch.
+      NEXT_PUBLIC_SUPPORT_EMAIL: ${{ vars.NEXT_PUBLIC_SUPPORT_EMAIL }}
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npx next build
+        env:
+          NODE_ENV: production
+          # Baked in by next.config.ts and reported as "version" by /api/health.
+          GIT_SHA: ${{ env.SHA }}
+
+      - name: Bundle
+        run: |
+          tar -czf "pitchswipe-${SHA}.tar.gz" --exclude=.next/cache .next public package.json package-lock.json next.config.ts
+          ls -lh "pitchswipe-${SHA}.tar.gz"
+
+      - name: SSH setup
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Upload and activate
+        env:
+          HOST: ${{ vars.DEPLOY_HOST }}
+        run: |
+          SSH="ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes"
+          scp -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes "pitchswipe-${SHA}.tar.gz" "deploy@${HOST}:/home/deploy/incoming/"
+          $SSH "deploy@${HOST}" sudo /usr/local/bin/pitchswipe-activate "/home/deploy/incoming/pitchswipe-${SHA}.tar.gz" "${SHA}"
+
+      - name: Check from outside
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${{ vars.APP_URL }}/swipe")
+          echo "GET /swipe -> $code"
+          test "$code" = "200"
+          # An API route that loads the server modules: anything below 500 means they loaded.
+          api=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${{ vars.APP_URL }}/api/claims/wallet?swiperGuid=00000000-0000-4000-8000-000000000000")
+          echo "GET /api/claims/wallet -> $api"
+          test "$api" -lt 500
+          # The app's own check: 200 and {"ok":true,...}. The body holds only states and the commit sha.
+          health=$(curl -s -w '\n%{http_code}' --max-time 20 "${{ vars.APP_URL }}/api/health")
+          health_code="${health##*$'\n'}"
+          health_body="${health%$'\n'*}"
+          echo "GET /api/health -> $health_code $health_body"
+          test "$health_code" = "200"
+          grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' <<<"$health_body"
+          grep -q "\"version\":\"${SHA}\"" <<<"$health_body" || echo "::warning::/api/health does not report version ${SHA}"
+
+      - name: Clean up key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

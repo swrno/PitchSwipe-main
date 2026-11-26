@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # 22.18 is the lowest Node that satisfies every dependency: firebase-admin and @capacitor/cli need >=22,
+      # eslint needs ^22.13, and the test suites import .ts files through Node's built-in type stripping (on by default from 22.18).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.18"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npx eslint src services scripts
+
+      # Verified locally: the build needs no environment variables (no secrets, no NEXT_PUBLIC_* values).
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Test
+        run: npm test

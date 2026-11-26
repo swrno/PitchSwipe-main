@@ -1,0 +1,24 @@
+[Unit]
+Description=PitchSwipe (Next.js)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pitchswipe
+Group=pitchswipe
+WorkingDirectory=/opt/pitchswipe/current
+EnvironmentFile=/etc/pitchswipe.env
+ExecStart=/opt/pitchswipe/current/node_modules/.bin/next start -p 3000 -H 127.0.0.1
+Restart=always
+RestartSec=3
+# Small VM: cap the heap so the box keeps room for nginx and ssh.
+Environment=NODE_OPTIONS=--max-old-space-size=512
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/pitchswipe
+
+[Install]
+WantedBy=multi-user.target
