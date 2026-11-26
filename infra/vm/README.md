@@ -17,7 +17,7 @@ internet :80  -> nginx -> 301 to https (except /.well-known/acme-challenge/)
 | `/etc/pitchswipe.env` | server env (root:pitchswipe 640). Secrets live here, never in the repo |
 | `/etc/systemd/system/pitchswipe.service` | the app service (`pitchswipe.service` here) |
 | `/etc/nginx/sites-available/pitchswipe` | reverse proxy (`pitchswipe.nginx` here) |
-| `/etc/cron.d/pitchswipe` | the two scheduled jobs from `vercel.json` (`pitchswipe-cron` here) |
+| `/etc/cron.d/pitchswipe` | the two scheduled jobs: assistant watcher every 5 minutes, audio cleanup daily (`pitchswipe-cron` here) |
 | `/usr/local/bin/pitchswipe-activate` | installs a release (`pitchswipe-activate` here) |
 
 ## How a deploy happens

@@ -137,6 +137,20 @@ accounts and a real database.
 More detail is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the product spec and designs are in
 [`docs/spec/`](docs/spec/README.md) and [`docs/designs/`](docs/designs/README.md).
 
+## Repository layout
+
+The Next.js app lives at the repository root; everything else sits in a few top-level folders.
+
+```
+.github/      CI, deploy-to-VM and iOS build workflows
+docs/         architecture, deploy and handover notes; spec/ (product spec, build plan), designs/, marketing/, releases/
+infra/        server setup: vm/ holds the nginx, systemd, cron and release-activate files for the Azure VM
+mobile/       Capacitor shell: android/ and ios/ native projects, www/ offline fallback page
+public/       static files served by the app (icons, demo card images, service worker, offline page)
+scripts/      test runner, seed data, index sync, service doctor, Flagsmith lifecycle check, icon tools
+src/          the app: app/ routes and API, components/, lib/ (domain logic; lib/ai/engine is the AI rules engine), models/, types/, fixtures/
+```
+
 ## Build from source
 
 You need Node.js 22 or newer and npm.
