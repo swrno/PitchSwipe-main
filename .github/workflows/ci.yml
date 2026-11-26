@@ -33,7 +33,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Lint
-        run: npx eslint src services scripts
+        run: npx eslint src scripts
 
       # Verified locally: the build needs no environment variables (no secrets, no NEXT_PUBLIC_* values).
       - name: Build

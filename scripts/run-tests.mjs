@@ -44,7 +44,7 @@ export const SUITES = [
     name: "decks",
     args: ["--import", "./src/lib/decks/tests/register.mjs", "--test", ...filesIn("src/lib/decks/tests", /\.test\.mjs$/)],
   },
-  { name: "services/ai", cwd: "services/ai", args: ["--test"] },
+  { name: "ai-engine", cwd: "src/lib/ai/engine", args: ["--test"] },
 ];
 
 /** Reads the node:test summary lines ("ℹ pass 12" in the spec reporter, "# pass 12" in TAP). Returns null if missing. */

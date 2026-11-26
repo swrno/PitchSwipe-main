@@ -1,14 +1,14 @@
-# src/lib/ai: TypeScript adapter over services/ai (WP12)
+# src/lib/ai: TypeScript adapter over the AI engine (WP12)
 
-`services/ai` is plain ESM JavaScript (no types; `allowJs` is off). This folder is the only place the app touches it.
-Import from `@/lib/ai`, never from `services/ai`. Types for the JS exports live in `services-ai.d.ts` (hand-written; add to it when you use another export).
+`engine/` (formerly `services/ai`) is plain ESM JavaScript (no types; `allowJs` is off) with its own README and tests. This folder is the only place the app touches it.
+Import from `@/lib/ai`, never from `engine/`. Types for the JS exports live in `services-ai.d.ts` (hand-written; add to it when you use another export).
 
 ## Public API (`@/lib/ai`)
 
 | Export | What it is |
 |---|---|
-| `ai` | Typed handle on the services/ai module: `createMockProvider`, `createLlmProviderFromEnv`, `createSourceTable`, `checkDraft`, `checkFilled`, `placeholderKeys`, `fillPlaceholders`, `classifyExperiment`, `classifySegment`, `buildInsight`, `applyPageLimits`, `TAG_LABELS`, `THRESHOLDS`. |
-| `getLlmProvider({ mock: { task, respond }, env?, fetchImpl? })` | `LLM_API_KEY` set: the env provider (never run live yet; stub in services/ai). Otherwise the deterministic mock answering `task` with `respond`. |
+| `ai` | Typed handle on the engine module: `createMockProvider`, `createLlmProviderFromEnv`, `createSourceTable`, `checkDraft`, `checkFilled`, `placeholderKeys`, `fillPlaceholders`, `classifyExperiment`, `classifySegment`, `buildInsight`, `applyPageLimits`, `TAG_LABELS`, `THRESHOLDS`. |
+| `getLlmProvider({ mock: { task, respond }, env?, fetchImpl? })` | `LLM_API_KEY` set: the env provider (never run live yet; stub in `engine/`). Otherwise the deterministic mock answering `task` with `respond`. |
 | `buildFactTable(facts)` | Source table. A fact is `{ key, value, display }`; `display` is the exact text printed and must contain `value`. |
 | `checkAndFill(wording, table, allowedKeys?)` | Rules 1 and 2 of spec 05 section 6.5 for any model text: only `{fact.key}` placeholders, no typed digits; code fills them and re-checks every number in the result. Returns `{ ok, text }` or `{ ok: false, stage, problems }`. Failed text is hidden, never repaired. |
 | `factSlug(label)` | Placeholder-safe key part ("Uttar Pradesh" becomes `uttar_pradesh`). |

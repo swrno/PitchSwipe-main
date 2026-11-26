@@ -26,7 +26,7 @@ One responsive Next.js (App Router) app, TypeScript, Tailwind, Framer Motion. Mo
 | `src/lib/assistant` | "Test decided" watcher, approve and ship | WP8 |
 | `src/lib/demand-curve` | Price demand curve | WP10 |
 | `src/lib/export`, `src/components/export` | Download results | WP11 |
-| `services/ai/` | Framework-agnostic AI services and rules engine | WP12 |
+| `src/lib/ai/engine/` | Framework-agnostic AI services and rules engine (plain ESM JavaScript, own tests) | WP12 |
 | `src/lib/ai` | App-side AI provider and tool loop | WP12 |
 | `src/lib/ask`, `src/components/ask` | Ask your results chat | WP13 |
 | `src/lib/share`, `src/components/share` | Sharing and audience UI | WP14 |
@@ -74,7 +74,7 @@ node --import ./scripts/register-ts.mjs --test src/lib/claims/tests/claims.test.
 node --import ./scripts/register-ts.mjs --test src/lib/quality/tests/quality.test.mjs
 node --import ./scripts/register-ts.mjs --test src/lib/share/tests/share.test.mjs
 node --import ./scripts/register-ts.mjs --test src/lib/swipe/tests/swipe.test.mjs
-(cd services/ai && node --test)
+(cd src/lib/ai/engine && node --test)
 ```
 
 `src/lib/decks/tests/` has its own hooks (`hooks.mjs`, `register.mjs`); see that folder before running `decks.test.mjs` and `service.test.mjs`. Some of these files depend on other branches being merged, so a failure may mean a missing dependency. Checks: `npm run typecheck`, `npm run lint`.

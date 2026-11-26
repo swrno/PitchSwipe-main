@@ -8,7 +8,7 @@ export type MockResponder = (request: LlmRequest) => string;
  * The LLM provider for this process.
  *  - a live key set: Groq (GROQ_API_KEY, groq-provider.ts) or Claude (LLM_API_KEY, anthropic-provider.ts); see llm-env.ts.
  *  - otherwise: the deterministic mock. `mock` answers the given task name; any other task
- *    falls back to the services/ai canned answers.
+ *    falls back to the engine's canned answers.
  * Tests pass their own provider and never reach this.
  */
 export function getLlmProvider(options: {

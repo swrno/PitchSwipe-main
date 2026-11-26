@@ -1,4 +1,4 @@
-# services/ai — WP12 AI services
+# src/lib/ai/engine — WP12 AI services (formerly services/ai)
 
 Framework-agnostic, dependency-free ES modules. The Next.js app (WP0) imports from `src/index.js`.
 
@@ -32,8 +32,8 @@ The env provider is a stub: request and response shape are implemented, but it h
 ## Tests
 
 ```bash
-cd services/ai
-npm test
+cd src/lib/ai/engine
+npm test      # or from the repo root: npm test -- ai-engine
 ```
 
 No real LLM calls happen in tests.
