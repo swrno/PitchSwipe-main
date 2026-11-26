@@ -1,0 +1,51 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+build/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+*.tsbuildinfo
+
+# secrets: never commit real env values
+.env
+.env.*
+!.env.example
+.env*.local
+# server env copies handed over privately (docs/HANDOVER.md "Secrets")
+server.env
+*.env
+
+# vercel
+.vercel
+
+# capacitor native build outputs / local machine files (native project sources ARE committed)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/captures/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/app/src/main/res/xml/config.xml
+android/capacitor-cordova-android-plugins/
+*.apk
+*.aab
+ios/App/Pods/
+ios/App/build/
+ios/App/output/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/capacitor-cordova-ios-plugins/
+ios/DerivedData/
+DerivedData/
+xcuserdata/
+.swiftpm/

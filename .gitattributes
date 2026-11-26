@@ -1,0 +1,25 @@
+# Normalise text to LF in the repository and in working trees, on every OS.
+# Windows checkouts used to convert files such as demo-site/voice-khata/index.html to CRLF,
+# which broke the sites snippet-equality test.
+* text=auto eol=lf
+
+# Binary files: never touch line endings.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.icns binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.mp3 binary
+*.mp4 binary
+*.jar binary
+*.keystore binary
+*.jks binary
+
+# Windows-only scripts keep CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
