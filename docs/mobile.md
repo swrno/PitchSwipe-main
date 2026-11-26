@@ -142,6 +142,8 @@ recognizer on most Android phones, Apple's on iOS).
 - The app loads the live site, so the plugin has to be **in the installed app** (added by `cap sync`)
   and the web code calls it through the Capacitor bridge (`window.Capacitor.Plugins.SpeechRecognition`,
   read at call time in `src/lib/claims/native-dictation.ts`). A new app build is needed before users get it.
+- Rollout order: deploy the web code first. It is safe for app builds without the plugin, which show the
+  message below. Then ship the new app build.
 - The web code picks the engine: in the app, if this build has the plugin and `available()` says yes,
   the phone listens; the browser path is never used in the app. An app build without the plugin says
   "Voice notes are not in this version of the app. Type your comment instead."; a phone with no
@@ -162,7 +164,13 @@ recognizer on most Android phones, Apple's on iOS).
 
 ### Device test checklist (a real Android phone)
 
-Install a debug build made after this change (`./gradlew assembleDebug`) and, signed in with a verified email:
+The voice engine is in the web code, and the app loads it from `CAP_SERVER_URL`. So first, either deploy
+this branch's web code to the site the app loads, or point the app at a dev server running it (see
+[Dev profile](#dev-profile-android-emulator-against-local-next-dev)). Otherwise the app runs the old web code
+and says "Voice notes are not in the app yet", which looks like a plugin failure but is not. Then run
+`CAP_SERVER_URL=... npm run cap:sync` (it also writes the git-ignored `capacitor.plugins.json` that registers
+the plugin, so a fresh checkout needs it) and `./gradlew assembleDebug` (see [Build and run](#build-and-run)).
+Install that build and, signed in with a verified email:
 
 - [ ] Tap "Or say it out loud": Android asks for the microphone once. Deny it: the app says the microphone or
       speech recognition is blocked and to allow it in the phone's settings. Allow it in Settings and try again.
