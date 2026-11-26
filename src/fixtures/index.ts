@@ -1,5 +1,5 @@
 /**
- * Demo data from goal/spec/08-build-reference.md §13. Every number and label is
+ * Demo data from docs/spec/08-build-reference.md §13. Every number and label is
  * copied exactly. Derived numbers (join rates, shares) are computed by code in
  * src/lib/results, never typed in here.
  */

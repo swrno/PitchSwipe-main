@@ -2,7 +2,7 @@
 
 Framework-agnostic, dependency-free ES modules. The Next.js app (WP0) imports from `src/index.js`.
 
-Spec: `goal/spec/05-insights-and-ai.md` §6 (rules in §6.5). Demo data: `goal/spec/08-build-reference.md` §13.
+Spec: `docs/spec/05-insights-and-ai.md` §6 (rules in §6.5). Demo data: `docs/spec/08-build-reference.md` §13.
 
 ## Layout
 

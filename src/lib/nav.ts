@@ -8,8 +8,8 @@ export interface NavItem {
 
 /**
  * The four app destinations, in the order of the phone bottom tab bar
- * (designs/phone/33-swipe-home.jpg): Swipe · Wallet · My decks · Profile.
- * The web sidebar shows the same four plus "New deck" (designs/web/03-my-decks.jpg).
+ * (docs/designs/phone/33-swipe-home.jpg): Swipe · Wallet · My decks · Profile.
+ * The web sidebar shows the same four plus "New deck" (docs/designs/web/03-my-decks.jpg).
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/swipe", label: "Swipe", icon: Layers },

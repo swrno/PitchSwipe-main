@@ -97,5 +97,5 @@ Confirm-a-lead test via Flagsmith segments · Does PitchSwipe predict real sales
 - [ ] "Simulated/Unproven" AI results never counted; "Demo earnings" labelled; no real money moves.
 - [ ] Nothing is free text for roles/industries/states.
 - [ ] No lockout: low quality score only stops counting/paying.
-- [ ] Phone and web layouts match `designs/`.
+- [ ] Phone and web layouts match `../designs/` (`docs/designs/`).
 - [ ] Secrets server-side only; Flagsmith client key is the only key in the snippet/browser.

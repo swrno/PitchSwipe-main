@@ -9,7 +9,7 @@
  * flag's value (WP8). Elements marked data-pitchswipe="<flag>" get that value as text.
  *
  * Plain fetch instead of the Flagsmith JS SDK: no CDN dependency, works from file:// and any
- * static host, and the same code runs in demo-site/voice-khata/index.html (a test keeps them equal).
+ * static host, and the same code runs in docs/marketing/demo-site/voice-khata/index.html (a test keeps them equal).
  */
 
 export const PLACEHOLDER_KEY = "YOUR_CLIENT_KEY";

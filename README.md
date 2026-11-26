@@ -135,7 +135,7 @@ accounts and a real database.
   health-checks it and rolls back automatically if the check fails ([infra/vm/README.md](infra/vm/README.md)).
 
 More detail is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the product spec and designs are in
-[`goal/`](goal/README.md).
+[`docs/spec/`](docs/spec/README.md) and [`docs/designs/`](docs/designs/README.md).
 
 ## Build from source
 

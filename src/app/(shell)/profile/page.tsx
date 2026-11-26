@@ -7,7 +7,7 @@ import { isDemoMode } from "@/lib/decks/store";
 export const metadata: Metadata = { title: "Profile" };
 export const dynamic = "force-dynamic";
 
-// No Profile mockup exists in designs (see designs/README.md "Gaps"). Built from spec 03 §5.12 in the swipe home's style.
+// No Profile mockup exists in designs (see docs/designs/README.md "Gaps"). Built from spec 03 §5.12 in the swipe home's style.
 // Demo mode shows the fixture swiper read-only; real mode only ever shows the signed-in user's own data.
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;

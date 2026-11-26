@@ -1,4 +1,4 @@
-// Demo data from goal/spec/08-build-reference.md §13 (Voice Khata, founder Arjun Sen).
+// Demo data from docs/spec/08-build-reference.md §13 (Voice Khata, founder Arjun Sen).
 // Test fixtures only. Numbers copied exactly from the spec; see test/demo-numbers.test.js for the checks.
 
 // §13.2 headline test, group rows (order: Swipers, Said yes, Joined).

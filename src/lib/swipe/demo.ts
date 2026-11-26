@@ -1,6 +1,6 @@
 /**
  * Demo decks for the swipe feed when MongoDB is not configured. Copy and numbers come from
- * goal/spec/08-build-reference.md and the designs (phone 34, 35, 39, 40), via src/fixtures.
+ * docs/spec/08-build-reference.md and the designs (phone 34, 35, 39, 40), via src/fixtures.
  */
 import { FOUNDER, HEADLINE_TEST, LANGUAGE_TEST_COPY } from "@/fixtures";
 import type { SwipeDeck } from "./types";

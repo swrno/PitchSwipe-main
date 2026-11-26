@@ -12,7 +12,7 @@ HTML and bundled into the app. Consequences:
   Retry screen) so the WebView never starts blank. It is shown only if the remote URL
   cannot be loaded or none was configured when you ran `cap sync`.
 
-The product spec (`goal/spec/01-product.md`) targets one responsive PWA. This shell is an
+The product spec (`docs/spec/01-product.md`) targets one responsive PWA. This shell is an
 additional, optional distribution channel.
 
 **Status: the native projects were generated and `cap sync` succeeds. Nothing in this

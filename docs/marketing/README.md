@@ -9,6 +9,9 @@ kept for reference only and is not deployed.
 
 - `index.html`: the old landing draft (hero, founders, how the test works, swipers, pricing, waitlist, footer)
 - `styles.css`: its styling (mobile first, 16px side gutter)
+- `demo-site/voice-khata/index.html`: a made-up founder website (Voice Khata) with the PitchSwipe snippet, used to
+  show "ship to your website" in the demo. `src/lib/sites/tests/sites.test.ts` checks that its snippet matches
+  `src/lib/sites/snippet.ts`. Nothing in the app reads it.
 
 Differences in the app version: the waitlist form is gone (the calls to action go to sign up and to /swipe; in demo
 mode the founder buttons go straight to /decks/new, so the page renders per request), the swipers section leads with

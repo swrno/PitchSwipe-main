@@ -1,5 +1,5 @@
 /**
- * Mongoose models for the data model in goal/spec/06 §8.2 (v2).
+ * Mongoose models for the data model in docs/spec/06 §8.2 (v2).
  *
  * Importing this module does NOT connect to MongoDB. Connection happens only
  * when a server path calls connectDb() from src/lib/db.ts.

@@ -1,5 +1,5 @@
 /**
- * Types mirroring the data model in goal/spec/06 §8.2 (v2).
+ * Types mirroring the data model in docs/spec/06 §8.2 (v2).
  * Field names must not be renamed. Mongoose schemas live in src/models.
  * `_id` is a string here (serialised ObjectId).
  */

@@ -1,6 +1,6 @@
 # Deploying PitchSwipe
 
-Target stack (spec `goal/spec/06`): Vercel (Next.js app and crons), MongoDB Atlas, Firebase Authentication, Flagsmith. Nothing here has been run against real accounts by the repo's authors; the repo only provides the plumbing listed under "What the repo does".
+Target stack (spec `docs/spec/06`): Vercel (Next.js app and crons), MongoDB Atlas, Firebase Authentication, Flagsmith. Nothing here has been run against real accounts by the repo's authors; the repo only provides the plumbing listed under "What the repo does".
 
 ## What the repo does, and what you do
 
@@ -144,7 +144,7 @@ $env:CAP_SERVER_URL = "https://<your-production-domain>"; npm run cap:sync
 
 The Mongo store adapters (publish claim, edit lock, conditional delete, new deck/response fields) have an opt-in integration test against a real server, not run by CI or `npm test`: `MONGODB_TEST_URI=mongodb://127.0.0.1:27017/pitchswipe_it_local npm run test:mongo`, or in PowerShell `$env:MONGODB_TEST_URI="mongodb://127.0.0.1:27017/pitchswipe_it_local"; npm run test:mongo` (it skips without the variable, refuses any database not named `pitchswipe_it_*`, and drops that database when done).
 
-`.gitattributes` forces LF line endings. Without it a Windows checkout with `core.autocrlf=true` converts files such as `demo-site/voice-khata/index.html` to CRLF and the sites snippet-equality test fails.
+`.gitattributes` forces LF line endings. Without it a Windows checkout with `core.autocrlf=true` converts files such as `docs/marketing/demo-site/voice-khata/index.html` to CRLF and the sites snippet-equality test fails.
 
 ## 10. First deploy checklist
 
