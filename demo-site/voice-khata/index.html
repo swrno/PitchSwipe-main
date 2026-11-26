@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice Khata: a voice ledger for shops</title>
+  <meta name="description" content="Say who bought on credit. Voice Khata records it, tracks dues and reminds buyers politely.">
+  <style>
+    :root { --ink:#0a0a0a; --muted:#52525b; --line:#e4e4e7; --green:#15803d; --green-soft:#dcfce7; --bg:#fafafa; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+    .page { max-width: 960px; margin: 0 auto; padding: 20px 20px 64px; }
+    nav { display:flex; align-items:center; justify-content:space-between; padding: 8px 0 40px; }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:700; font-size:20px; }
+    .logo { width:40px; height:40px; border-radius:12px; background:var(--green); display:grid; place-items:center; }
+    .logo svg { width:22px; height:22px; }
+    nav .links { color:var(--muted); font-size:15px; display:flex; gap:20px; }
+    h1 { font-size: clamp(34px, 6vw, 60px); line-height:1.04; letter-spacing:-0.035em; margin:0 0 20px; max-width: 14em; padding: 6px 10px; margin-left:-10px; border-radius:16px; transition: background .4s ease; }
+    h1.flash { background: var(--green-soft); }
+    .lede { font-size: 19px; line-height:1.55; color:var(--muted); max-width: 34em; margin: 0 0 32px; }
+    .cta { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+    .btn { background:var(--ink); color:#fff; font-weight:700; font-size:17px; padding:16px 26px; border-radius:14px; border:0; cursor:pointer; }
+    .price { font-weight:700; font-size:18px; }
+    .features { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-top:56px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:20px; }
+    .card h3 { margin:0 0 6px; font-size:17px; }
+    .card p { margin:0; color:var(--muted); font-size:15px; line-height:1.5; }
+    .demo { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); background:var(--ink); color:#fff; border-radius:16px; padding:10px 12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center; box-shadow:0 8px 30px rgba(0,0,0,.25); font-size:14px; max-width: calc(100vw - 24px); }
+    .demo b { font-weight:600; opacity:.8; }
+    .demo button { border:0; border-radius:10px; padding:9px 14px; font-weight:700; cursor:pointer; background:#27272a; color:#fff; font-size:14px; }
+    .demo button[aria-pressed="true"] { background:#22c55e; color:#052e16; }
+    .demo button:focus-visible, .btn:focus-visible { outline:3px solid #86efac; outline-offset:2px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav>
+      <div class="brand">
+        <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg></span>
+        Voice Khata
+      </div>
+      <div class="links"><span>Pricing</span><span>Login</span></div>
+    </nav>
+
+    <main>
+      <h1 data-pitchswipe="deck_voice-khata-headline">Speak your sales. The ledger writes itself.</h1>
+      <p class="lede">Say who bought on credit. Voice Khata records it, tracks dues and reminds buyers politely.</p>
+      <div class="cta">
+        <button class="btn" type="button" data-pitchswipe="deck_voice-khata-launch-reward">Get 3 months free at launch</button>
+        <span class="price" data-pitchswipe="deck_voice-khata-price">Rs 299 / mo</span>
+      </div>
+
+      <section class="features" aria-label="What it does">
+        <div class="card"><h3>Speak, don't type</h3><p>Works in Hindi, Gujarati, Marathi and English. Hands stay free for customers.</p></div>
+        <div class="card"><h3>Dues, tracked</h3><p>See who owes what, sorted by who is most overdue.</p></div>
+        <div class="card"><h3>Polite reminders</h3><p>Buyers get a friendly nudge on WhatsApp. No awkward calls.</p></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Demo controls for the video. Not part of the snippet; they call the same apply() the snippet uses
+       when Flagsmith returns a new value, so the swap you see is the real code path. -->
+  <div class="demo" role="group" aria-label="Demo controls">
+    <b>Demo</b>
+    <button type="button" id="demo-a" aria-pressed="true">Before: Headline A</button>
+    <button type="button" id="demo-b" aria-pressed="false">After you approve: Headline B</button>
+  </div>
+
+  <!--
+    PitchSwipe snippet. To use it for real, replace YOUR_CLIENT_KEY with your PUBLIC Flagsmith client key
+    (never a server key) and the site id with the one PitchSwipe shows on the Connect website screen.
+    With the placeholder key the page makes no Flagsmith request; use the demo buttons above.
+    Regenerated from src/lib/sites/snippet.ts; a unit test checks they match.
+  -->
+  <!-- pitchswipe:snippet:start -->
+<script>
+/* PitchSwipe: shows the winning text on elements marked data-pitchswipe="<flag name>".
+   Uses only the public client key. Your current text stays as the fallback. */
+(function () {
+  var C = { env: "YOUR_CLIENT_KEY", flags: "https://edge.api.flagsmith.com/api/v1/flags/", ping: "https://pitchswipe.example/api/sites/ping?s=site-voice-khata", live: false, poll: 30 * 1000 };
+  var last = "";
+  function apply(values) {
+    var els = document.querySelectorAll("[data-pitchswipe]"), report = [], i, el, flag, v;
+    for (i = 0; i < els.length; i++) {
+      el = els[i];
+      flag = el.getAttribute("data-pitchswipe");
+      if (el.__psOrig === undefined) el.__psOrig = el.textContent;
+      v = values && values[flag];
+      if (typeof v === "string" && v !== "") { if (el.textContent !== v) el.textContent = v; }
+      else if (values && el.textContent !== el.__psOrig) el.textContent = el.__psOrig;
+      report.push({ flag: flag, value: String(el.textContent).trim().slice(0, 500) });
+    }
+    send(report);
+  }
+  function send(report) {
+    var body = JSON.stringify({ elements: report.slice(0, 50) });
+    if (body === last) return;
+    last = body;
+    try {
+      fetch(C.ping, { method: "POST", headers: { "content-type": "text/plain" }, body: body, keepalive: true, credentials: "omit" }).catch(function () {});
+    } catch (e) {}
+  }
+  function load() {
+    if (!C.live) return apply(null);
+    fetch(C.flags, { headers: { "X-Environment-Key": C.env }, credentials: "omit" })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (list) {
+        var map = {}, i, f;
+        for (i = 0; i < list.length; i++) {
+          f = list[i];
+          if (f && f.enabled !== false && f.feature && typeof f.feature_state_value === "string") map[f.feature.name] = f.feature_state_value;
+        }
+        apply(map);
+      })
+      .catch(function () { apply(null); });
+  }
+  function start() { load(); if (C.live) setInterval(function () { if (!document.hidden) load(); }, C.poll); }
+  window.pitchswipe = { apply: apply, refresh: load };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+  <!-- pitchswipe:snippet:end -->
+
+  <script>
+    (function () {
+      var FLAG = "deck_voice-khata-headline";
+      var B = "Stop chasing payments. Get paid on time.";
+      var h1 = document.querySelector("h1");
+      var a = document.getElementById("demo-a"), b = document.getElementById("demo-b");
+      function flash() { h1.classList.add("flash"); setTimeout(function () { h1.classList.remove("flash"); }, 2600); }
+      function show(isB) {
+        var values = {};
+        if (isB) values[FLAG] = B;
+        if (window.pitchswipe) window.pitchswipe.apply(values);
+        a.setAttribute("aria-pressed", String(!isB));
+        b.setAttribute("aria-pressed", String(isB));
+        if (isB) flash();
+      }
+      a.addEventListener("click", function () { show(false); });
+      b.addEventListener("click", function () { show(true); });
+      // ?shipped=1 opens the page already showing B, handy when recording.
+      if (/[?&]shipped=1/.test(location.search)) setTimeout(function () { show(true); }, 400);
+    })();
+  </script>
+</body>
+</html>
