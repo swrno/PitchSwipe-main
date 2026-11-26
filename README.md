@@ -146,9 +146,9 @@ More detail is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the product 
 The Next.js app lives at the repository root; everything else sits in a few top-level folders.
 
 ```
-.github/      CI, deploy-to-VM and iOS build workflows
+.github/      CI, deploy-to-VM, iOS build, uptime check and off-site backup workflows
 docs/         architecture, deploy and handover notes; spec/ (product spec, build plan), designs/, marketing/, releases/, images/ (README screenshots)
-infra/        server setup: vm/ holds the nginx, systemd, cron and release-activate files for the Azure VM
+infra/        server setup: vm/ holds the nginx, systemd, cron, sudoers, release-activate and backup-export files for the Azure VM
 mobile/       Capacitor shell: android/ and ios/ native projects, www/ offline fallback page
 public/       static files served by the app (icons, demo card images, service worker, offline page)
 scripts/      test runner, seed data, index sync, service doctor, Flagsmith lifecycle check, icon tools
