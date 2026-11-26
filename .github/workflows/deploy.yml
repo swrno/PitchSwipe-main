@@ -19,10 +19,13 @@ concurrency:
 
 jobs:
   deploy:
-    # Only a successful CI run of a push to main (not a PR), or a manual run on main.
+    # Only a successful CI run of a push to main (not a PR), or a manual run on main, and only in this repo: the repo
+    # is public, so forks get this workflow too, and they have no deploy secrets.
     if: >-
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+      github.repository == 'swrno/PitchSwipe-main' && (
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+        (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment:

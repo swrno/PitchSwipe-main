@@ -7,6 +7,8 @@ Nothing secret is written here.
 
 ## Where the code is
 
+- **Since 26 Nov 2026 the code lives in [`swrno/PitchSwipe-main`](https://github.com/swrno/PitchSwipe-main)**, the final
+  submission repo, which deploys to the server. What follows was written for the earlier private repo.
 - Branch `fix/founder-feedback` on `swrno/PitchSwipe`, with a pull request into `main`. 10 commits on top of the merge
   of PR #43 (`01a2ec8`):
   1. Keep headline and price when switching test type

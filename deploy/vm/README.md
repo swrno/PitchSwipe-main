@@ -30,7 +30,7 @@ internet :80  -> nginx -> 301 to https (except /.well-known/acme-challenge/)
 
 Manual run: Actions -> Deploy -> Run workflow (on `main`).
 
-GitHub settings it needs: secrets `DEPLOY_SSH_KEY` (the deploy user's private key) and `DEPLOY_KNOWN_HOSTS` (the VM's host key); variables `DEPLOY_HOST` and `APP_URL`. Browser config is built in, so `NEXT_PUBLIC_FIREBASE_*`, `NEXT_PUBLIC_FLAGSMITH_ENV_KEY` and `NEXT_PUBLIC_SUPPORT_EMAIL` are repo **variables** too (they are public values). Server secrets (Mongo, Firebase Admin, LLM, ...) go in `/etc/pitchswipe.env` on the VM only.
+GitHub settings it needs (on `swrno/PitchSwipe-main`): secrets `DEPLOY_SSH_KEY` (a private key whose public half is in `/home/deploy/.ssh/authorized_keys`, comment `github-actions-deploy@pitchswipe-main`) and `DEPLOY_KNOWN_HOSTS` (the VM's host key); variables `DEPLOY_HOST` and `APP_URL`. Browser config is built in, so `NEXT_PUBLIC_FIREBASE_*`, `NEXT_PUBLIC_FLAGSMITH_ENV_KEY` and `NEXT_PUBLIC_SUPPORT_EMAIL` are repo **variables** too (they are public values). Server secrets (Mongo, Firebase Admin, LLM, ...) go in `/etc/pitchswipe.env` on the VM only.
 
 ## Updating the nginx config or the activate script
 
