@@ -32,6 +32,16 @@ Manual run: Actions -> Deploy -> Run workflow (on `main`).
 
 GitHub settings it needs (on `swrno/PitchSwipe-main`): secrets `DEPLOY_SSH_KEY` (a private key whose public half is in `/home/deploy/.ssh/authorized_keys`, comment `github-actions-deploy@pitchswipe-main`) and `DEPLOY_KNOWN_HOSTS` (the VM's host key); variables `DEPLOY_HOST` and `APP_URL`. Browser config is built in, so `NEXT_PUBLIC_FIREBASE_*`, `NEXT_PUBLIC_FLAGSMITH_ENV_KEY` and `NEXT_PUBLIC_SUPPORT_EMAIL` are repo **variables** too (they are public values). Server secrets (Mongo, Firebase Admin, LLM, ...) go in `/etc/pitchswipe.env` on the VM only.
 
+## Uptime check
+
+`.github/workflows/uptime.yml` calls `${APP_URL}/api/health` every 30 minutes (and on demand: Actions -> Uptime -> Run workflow). A run passes only when the answer is HTTP 200 with `"ok":true`, `"db":"up"`, `"firebaseAdmin":true` and `"demo":false`, so it also fails when the site has fallen back to demo mode. It tries 3 times, 10 s apart, before failing, so one slow answer or a deploy restart does not count as an outage. It runs only in `swrno/PitchSwipe-main` (not in forks), needs only the `APP_URL` variable, and has read-only permissions.
+
+Who hears about a failure: GitHub emails a failed **scheduled** run to one person, the user who created the workflow file; after that, the user who last changed its `cron:` line, or who last re-enabled the workflow. It does not email everyone who watches the repo. That person needs Actions notifications switched on (GitHub -> Settings -> Notifications -> Actions; on by default). To move the alerts to someone else, have them make a commit that changes the `cron:` line, or disable and re-enable the workflow themselves.
+
+GitHub switches scheduled workflows **off** in a public repo after 60 days without repository activity (pushes, merged pull requests, ...). The Actions tab then shows the workflow as disabled; re-enable it with Actions -> Uptime -> Enable workflow (which also makes you the person who gets the failure emails).
+
+GitHub starts scheduled runs on a best-effort basis: a run can start late, and under heavy load one can be skipped. Treat this as a coarse alarm, not a minute-by-minute monitor.
+
 ## Updating the nginx config or the activate script
 
 A deploy ships only the built app. `pitchswipe.nginx` and `pitchswipe-activate` are copied to the VM by hand when they change:

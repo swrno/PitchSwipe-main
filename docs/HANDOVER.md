@@ -145,6 +145,14 @@ mongosh --host 127.0.0.1 -u admin --authenticationDatabase admin pitchswipe   # 
 To reach the database from your own machine (for example `npm run db:sync-indexes`), open a tunnel; the steps are
 under "Indexes" in [infra/vm/README.md](../infra/vm/README.md).
 
+### Uptime check
+
+A GitHub workflow (`.github/workflows/uptime.yml`) checks `/api/health` every 30 minutes and fails unless the site is
+in real mode with the database up and Firebase Admin working. A failed scheduled run is emailed to one person: whoever
+created the workflow file or last changed its `cron:` line (or last re-enabled it), not to everyone watching the repo.
+GitHub switches scheduled workflows off in a public repo after 60 days without repository activity; re-enable it on
+the Actions tab. Details under "Uptime check" in [infra/vm/README.md](../infra/vm/README.md).
+
 ### Backups
 
 `/usr/local/bin/pitchswipe-backup` runs every night at 02:15 UTC (`/etc/cron.d/pitchswipe-backup`) and logs under the
@@ -292,8 +300,9 @@ that database at the end. It does not check the host, so only ever point it at a
 - **Store releases:** Android release signing and a Play Console account. PR #29 (open, never run) adds a manual
   Android build-and-release workflow that signs builds once four `ANDROID_KEY*` secrets exist. iOS needs an Apple
   Developer account and signing. The app id `app.pitchswipe.mobile` is a placeholder.
-- **Operations:** backups are on the VM only (no off-site copy) and a restore has never been rehearsed; no uptime
-  alerting; 1 GB RAM is tight; the site runs on the Azure DNS name, not a custom domain.
+- **Operations:** backups are on the VM only (no off-site copy) and a restore has never been rehearsed; uptime
+  alerting is a GitHub workflow that emails one person (see [Uptime check](#uptime-check)), not a paging service;
+  1 GB RAM is tight; the site runs on the Azure DNS name, not a custom domain.
 - **Legal and product:** the terms and privacy notice are unreviewed drafts; no licence chosen; swiper earnings are
   demo earnings; about 14 quality thresholds in `src/lib/quality/rules.ts` and nearby still need the owner's
   confirmation.
