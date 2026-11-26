@@ -1,0 +1,463 @@
+@import "tailwindcss";
+
+/*
+ * Visual language: a dark canvas with bold colour-block cards (lime, sun, lilac, coral, sky), heavy rounded
+ * headings, pill buttons and 24px card corners. Dark is the default theme; [data-theme="light"] on <html>
+ * switches to the light one (src/lib/feel/theme.ts, applied before first paint by the script in layout.tsx).
+ *
+ * The block colours (--lime ... --sky, with --ink for text on them) are the same in both themes: they are
+ * surfaces, not text colours. --accent is the text-safe "positive / money" colour of each theme.
+ */
+:root {
+  --lime: #c8f35e;
+  --sun: #ffd84d;
+  --lilac: #b9a0ff;
+  --coral: #ff8a66;
+  --sky: #6ea2fd;
+  --cream: #f6efe4;
+  /* Text and buttons on a colour block. */
+  --ink: #111111;
+  --ink-foreground: #ffffff;
+
+  --background: #000000;
+  --foreground: #f5f4f7;
+  --card: #161616;
+  --card-foreground: #f5f4f7;
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a1ab;
+  --border: #2c2c2c;
+  --input: #333333;
+  --primary: #f5f4f7;
+  --primary-foreground: #0b0b0b;
+  --secondary: #262626;
+  --secondary-foreground: #f5f4f7;
+  --accent: #c8f35e;
+  --accent-foreground: #111111;
+  --accent-soft: rgb(200 243 94 / 0.14);
+  /* Highlight: the active nav item, focus rings, links. */
+  --highlight: #b9a0ff;
+  --highlight-foreground: #111111;
+  --warning: #ff8a66;
+  --warning-soft: rgb(255 138 102 / 0.14);
+  --info: #6ea2fd;
+  --destructive: #ff6b6b;
+  --ring: #b9a0ff;
+  /* The page behind cards on wide screens. */
+  --canvas: #000000;
+  color-scheme: dark;
+
+  --radius: 1rem;
+  --sidebar-width: 13.5rem;
+  /*
+   * Safe-area insets. In the Android app, Capacitor's SystemBars draws edge to edge and writes the real insets
+   * to --safe-area-inset-* on <html> (an Android WebView's env() is not reliable there). Everywhere else env().
+   */
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  /* The tab bar's full height, gesture-bar inset included (the bar pads its icons up by --safe-bottom). */
+  --tabbar-height: calc(4.25rem + var(--safe-bottom));
+  /* DM Sans for text, Outfit for headings and big numbers; Hindi falls through to Anek Devanagari. */
+  --app-font: "DM Sans", "Anek Devanagari", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --display-font: "Outfit", "Anek Devanagari", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Kept for callers of the stretch utilities; Outfit has no width axis, so these are no-ops now. */
+  --display-stretch: 100%;
+  --heading-stretch: 100%;
+
+  /* Motion: one easing for things settling into place, one spring feel for things the user moved. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+}
+
+/* Light theme: warm off-white page, white cards, ink text. Block colours stay as they are. */
+:root[data-theme="light"] {
+  --background: #f6f5f1;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --muted: #ecebe6;
+  --muted-foreground: #5d5b63;
+  --border: #e2e0d9;
+  --input: #d9d7d0;
+  --primary: #111111;
+  --primary-foreground: #ffffff;
+  --secondary: #ecebe6;
+  --secondary-foreground: #111111;
+  /* Lime is unreadable as text on white: the light theme's positive colour is a deep green. */
+  --accent: #3b7a0c;
+  --accent-foreground: #ffffff;
+  --accent-soft: #eaf5d8;
+  --highlight: #6d4aff;
+  --highlight-foreground: #ffffff;
+  --warning: #c2410c;
+  --warning-soft: #fdeee6;
+  --info: #2f67d8;
+  --destructive: #c62828;
+  --ring: #6d4aff;
+  --canvas: #f6f5f1;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-lime: var(--lime);
+  --color-sun: var(--sun);
+  --color-lilac: var(--lilac);
+  --color-coral: var(--coral);
+  --color-sky: var(--sky);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-canvas: var(--canvas);
+  --font-display: var(--display-font);
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-destructive: var(--destructive);
+  --color-ring: var(--ring);
+
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--app-font);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Phones: keyboard focus and in-page jumps stop clear of the fixed bottom tab bar (WCAG 2.4.11). */
+  @media (width < 48rem) {
+    html {
+      scroll-padding-bottom: calc(var(--tabbar-height) + 1rem);
+    }
+  }
+
+  body {
+    /* Keeps content out from under the status bar in the app; 0 in a normal browser tab. */
+    padding-top: var(--safe-top);
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--app-font);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--display-font);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  h1 {
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Respect the system setting: no decorative motion, state changes still happen. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      /* Staggered entrances must not hold content hidden either. */
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/*
+ * A phone screen that draws its own header row (the swipe card: back, logo, wallet) hides the shell's brand bar.
+ * Unlayered on purpose: it must beat the `flex` utility on the bar.
+ */
+.brand-bar:has(~ main [data-hide-brand-bar]) {
+  display: none;
+}
+
+/* Money and counts: digits of equal width, so an amount does not shift as it changes. */
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Narrow cut for big numbers and one-line labels that should read like a headline. */
+/* Big numbers and one-line labels that should read like a headline: the display face. */
+@utility stretch-display {
+  font-family: var(--display-font);
+  letter-spacing: -0.02em;
+}
+
+/* A colour-block surface ("tile"): big radius, its own ink text. Pair with bg-lime / bg-sun / bg-lilac / bg-coral / bg-sky. */
+@utility tile {
+  border-radius: 1.5rem;
+  color: var(--ink);
+}
+
+/* Press feedback for anything tappable that is not a <Button>. */
+@utility pressable {
+  transition: transform var(--dur-fast) var(--ease-out);
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+/*
+ * Entrance motion. Each runs once when the element mounts and always ends on the real layout and values
+ * (fill-mode both). Reduced motion shortens every animation to nothing (see the base layer), so the end
+ * state shows at once.
+ */
+@keyframes ps-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes ps-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ps-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes ps-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes ps-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes ps-ring {
+  from {
+    stroke-dasharray: 0 var(--ring-c);
+  }
+}
+@keyframes ps-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+/* Sections of a screen rise in one after another: put this on the screen's wrapper. Only on mount. */
+@utility rise-children {
+  & > * {
+    animation: ps-rise var(--dur-slow) var(--ease-out) both;
+  }
+  & > :nth-child(2) {
+    animation-delay: 45ms;
+  }
+  & > :nth-child(3) {
+    animation-delay: 90ms;
+  }
+  & > :nth-child(4) {
+    animation-delay: 135ms;
+  }
+  & > :nth-child(5) {
+    animation-delay: 180ms;
+  }
+  & > :nth-child(n + 6) {
+    animation-delay: 220ms;
+  }
+}
+
+/* A bar that fills to its real width once (progress bars). The width is set inline; this only reveals it. */
+@utility grow-x {
+  transform-origin: left center;
+  animation: ps-grow-x 700ms var(--ease-out) both;
+  animation-delay: 150ms;
+}
+
+@layer components {
+  /* Chart parts draw in once, in order: bars and ranges, then the line, then points and labels. */
+  .chart-bar {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: ps-grow-y 600ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+  .chart-range {
+    animation: ps-fade 400ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+  .chart-line {
+    stroke-dasharray: 1;
+    animation: ps-draw 700ms var(--ease-in-out) both;
+    animation-delay: 200ms;
+  }
+  .chart-point {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ps-pop 350ms var(--ease-out) both;
+    animation-delay: calc(250ms + var(--i, 0) * 140ms);
+  }
+  .chart-label {
+    animation: ps-fade 300ms var(--ease-out) both;
+    animation-delay: calc(450ms + var(--i, 0) * 70ms);
+  }
+
+  .score-ring-fill {
+    animation: ps-ring 900ms var(--ease-out) both;
+    animation-delay: 150ms;
+  }
+
+  /* Green underline under a key word in a heading (designs: "Get paid for it."). */
+  /* A key word marked with a lime highlighter stroke behind its lower half. */
+  .accent-underline {
+    background-image: linear-gradient(var(--lime), var(--lime));
+    background-repeat: no-repeat;
+    background-size: 100% 0.32em;
+    background-position: 0 92%;
+    padding: 0 0.06em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  :root[data-theme="light"] .accent-underline {
+    background-size: 100% 0.42em;
+  }
+}
+
+/* A full-screen page inside <body>, which already pads for the status bar: fills the rest of the screen without scrolling by the inset. */
+@utility min-h-app {
+  min-height: calc(100dvh - var(--safe-top));
+}
+
+/*
+ * Landing motion (src/components/landing/landing-motion.tsx).
+ * Scroll reveal: content is visible by default. Only once the motion script has run (html.reveal-ready) do
+ * [data-reveal] elements start hidden and slide in as they enter the viewport, so crawlers, no-JS visitors and
+ * reduced-motion users always see everything. Set --i on siblings for the stagger order.
+ */
+.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px) scale(0.98);
+  transition:
+    opacity 700ms var(--ease-out),
+    transform 800ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+.reveal-ready [data-reveal][data-shown] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Marquee: the track holds the items twice and slides by half its width, so the loop is seamless. */
+@keyframes ps-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: ps-marquee var(--marquee-duration, 40s) linear infinite;
+}
+.marquee[data-reverse] .marquee-track {
+  animation-direction: reverse;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* The characters bob gently. Uses `translate`, so it never fights a rotate or scale set with `transform`. */
+@keyframes ps-float {
+  50% {
+    translate: 0 -8px;
+  }
+}
+.float {
+  animation: ps-float 4.5s var(--ease-in-out) infinite;
+  animation-delay: var(--float-delay, 0s);
+}
+
+/* Hero card: rests, then leans into a "yes" swipe while a heart stamp pops, then settles back. */
+@keyframes ps-hero-swipe {
+  0%,
+  52%,
+  100% {
+    transform: none;
+  }
+  62%,
+  74% {
+    transform: translateX(22px) rotate(6deg);
+  }
+}
+@keyframes ps-hero-stamp {
+  0%,
+  56%,
+  86%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  64%,
+  76% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.hero-swipe {
+  transform-origin: 50% 100%;
+  animation: ps-hero-swipe 6s var(--ease-in-out) infinite;
+  animation-delay: 1.2s;
+}
+.hero-stamp {
+  opacity: 0;
+  animation: ps-hero-stamp 6s var(--ease-out) infinite;
+  animation-delay: 1.2s;
+}
+
+/* No looping decoration for reduced motion (the base rule only shortens animations; these must stop outright). */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .float,
+  .hero-swipe,
+  .hero-stamp {
+    animation: none !important;
+  }
+  .marquee-track {
+    flex-wrap: wrap;
+    width: auto;
+  }
+}
