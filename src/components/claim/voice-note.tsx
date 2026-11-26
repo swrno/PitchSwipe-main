@@ -13,7 +13,15 @@ import {
 } from "@/lib/claims/client";
 import { useAuth } from "@/lib/auth/provider";
 import { MAX_COMMENT_CHARS, MAX_VOICE_SECONDS, VOICE_TRANSLATE_CLIENT_TIMEOUT_MS, formatClock } from "@/lib/claims/rules";
-import { useDictation, useVoiceSupport, voiceStatusLine, type DictationTake } from "@/lib/claims/dictation";
+import {
+  NOT_IN_APP,
+  NO_SPEECH_SERVICE,
+  useDictation,
+  useVoiceEngine,
+  useVoiceSupport,
+  voiceStatusLine,
+  type DictationTake,
+} from "@/lib/claims/dictation";
 import {
   DEFAULT_VOICE_LANGUAGE,
   VOICE_LANGUAGES,
@@ -88,7 +96,8 @@ function noEnglishNote(error: unknown): string {
 
 /**
  * S8b: "Or say it - up to 30 s". The browser's own speech recognizer turns speech into text while the swiper talks
- * (src/lib/claims/dictation.ts), in the language they picked. Only that text goes to /api/voice/transcribe for an
+ * (src/lib/claims/dictation.ts), in the language they picked; inside the Android and iOS apps the phone's own speech
+ * service does it instead (src/lib/claims/native-dictation.ts), and no audio is kept there. Only that text goes to /api/voice/transcribe for an
  * English version. The swiper reviews and edits both, then the reviewed text is handed up. The audio is only kept
  * when they tick "Let <founder> play my voice note". Voice notes need a verified email, as the server requires; if
  * the server says no, the words go to the typed comment through `onKeepAsText` instead of being lost.
@@ -111,6 +120,8 @@ export function VoiceNote({
 }) {
   const { user, configured } = useAuth();
   const support = useVoiceSupport();
+  // In the app the phone's own speech service listens, so the copy says "phone" where the browser says "browser".
+  const inApp = useVoiceEngine() === "native";
   const fromBrowser = React.useSyncExternalStore(noopSubscribe, browserLanguage, () => DEFAULT_VOICE_LANGUAGE);
   const [picked, setPicked] = React.useState<VoiceLanguageCode | null>(null);
   const lang = picked ?? fromBrowser;
@@ -251,10 +262,14 @@ export function VoiceNote({
 
   if (!listening && stage === "idle") {
     // Sign-in state is checked only where sign-in exists (not on the demo, where the server allows voice notes).
+    // Still asking the phone whether it has a speech service (a moment): show nothing yet.
+    if (support === "checking") return status;
     const blocked =
       support === "app"
-        ? "Voice notes are not in the app yet. Type your comment instead."
-        : support === "browser"
+        ? NOT_IN_APP
+        : support === "no-speech"
+          ? NO_SPEECH_SERVICE
+          : support === "browser"
           ? "Voice notes need Chrome, Edge or Safari. Type your comment instead."
           : configured && !user
             ? SIGN_IN_FIRST
@@ -318,18 +333,25 @@ export function VoiceNote({
               <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-destructive text-white">
                 <Mic aria-hidden className="size-5" />
               </span>
-              <div aria-hidden className="flex h-10 flex-1 items-center gap-[3px]">
-                {levels.map((l, i) => (
-                  <span key={i} className="w-[3px] rounded-full bg-accent" style={{ height: `${Math.round(l * 100)}%` }} />
-                ))}
-              </div>
+              {inApp ? (
+                // No level meter in the app: the phone's recognizer holds the microphone, so we never get its sound.
+                <div aria-hidden className="h-10 flex-1" />
+              ) : (
+                <div aria-hidden className="flex h-10 flex-1 items-center gap-[3px]">
+                  {levels.map((l, i) => (
+                    <span key={i} className="w-[3px] rounded-full bg-accent" style={{ height: `${Math.round(l * 100)}%` }} />
+                  ))}
+                </div>
+              )}
               {dictation.phase === "waiting" ? null : (
                 <span className="text-lg font-extrabold tabular-nums">{formatClock(dictation.seconds)}</span>
               )}
             </div>
             <p className="mt-2 text-right text-sm text-muted-foreground">
               {dictation.phase === "waiting"
-                ? "Waiting for the microphone. Allow it if your browser asks."
+                ? inApp
+                  ? "Waiting for the microphone. Allow it if your phone asks."
+                  : "Waiting for the microphone. Allow it if your browser asks."
                 : dictation.phase === "stopping"
                   ? "Finishing..."
                   : `Listening · ${Math.max(0, Math.ceil(MAX_VOICE_SECONDS - dictation.seconds))} s left`}
@@ -377,7 +399,7 @@ export function VoiceNote({
               <p className="text-sm font-bold text-accent">Spoken in {draft.language}</p>
               <p className="text-sm text-muted-foreground tabular-nums">Voice note · {formatClock(draft.durationSec)}</p>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">Check the words. Fix anything the browser misheard.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Check the words. Fix anything the {inApp ? "phone" : "browser"} misheard.</p>
             <div className="mt-3 space-y-3 rounded-xl bg-muted p-3">
               <label className="block text-sm font-semibold text-muted-foreground">
                 What you said
