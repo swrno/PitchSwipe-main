@@ -72,8 +72,8 @@ The screenshots show demo data, which the app labels as such.
   only stops your swipes counting until it recovers.
 - Swipe the card with your thumb or tap the buttons, with haptics on supported phones.
 - Leave a comment by typing, or say it out loud in English or one of ten Indian languages (Chrome, Edge or
-  Safari). Your browser turns speech into text, and Claude translates it to English for the founder. You check
-  both before sending.
+  Safari, or the Android app). Your browser, or in the app your phone's own speech service, turns speech into text,
+  and Claude translates it to English for the founder. You check both before sending.
 
 ### The app
 
@@ -86,9 +86,10 @@ The screenshots show demo data, which the app labels as such.
 
 - Founders only ever see totals and groups of 10 or more people, never who answered.
 - Accounts use Firebase Authentication; everything else is stored in our own MongoDB database on the server.
-- Voice notes (signed in, verified email) are turned into text by your browser's own speech service. Only the
-  text is sent to us (and to Anthropic for the English translation). The audio is uploaded only if you let the founder play it, and is
-  deleted after 30 days by a daily job; the text stays.
+- Voice notes (signed in, verified email) are turned into text by your browser's own speech service, or in the app
+  by the phone's own speech service (usually Google's on Android). Only the text is sent to us (and, for the English translation,
+  to the AI provider the server is set up with: Groq today, or Anthropic). On the website the audio is uploaded only if you let the founder play it, and is
+  deleted after 30 days by a daily job; the text stays. In the app no audio is kept at all.
 - Deleting your account deletes your profile, wallet and reward claims, and anonymises your answers on other
   founders' decks so their results stay correct.
 - The [privacy notice](https://noor-api.centralindia.cloudapp.azure.com/privacy) and
@@ -107,8 +108,11 @@ accounts and a real database.
   Without a key, that feature says so (a voice note asks the swiper to type the English) and the rest of the app
   works.
 - The Android app is a debug build that opens the live site. A release-signed build for the Play Store is not
-  set up yet. Voice notes are not in the Android or iOS app yet (the app's WebView has no speech recognizer); the
-  app asks the swiper to type the comment.
+  set up yet. Voice notes in the Android app (on the phone's speech service) are built but not yet tested on a real
+  phone, and reach users only with a new app build; older builds ask the swiper to type the comment. They keep no
+  audio, so the founder cannot play them.
+- Voice notes are not in the iOS app: the speech plugin (7.0.1) has no Swift Package Manager support, which the iOS
+  project uses, so it is not linked there. The iOS app asks the swiper to type the comment.
 - The iOS app is compiled but not signed, so it cannot be installed on an iPhone yet.
 - The terms and privacy notice need a legal review, and the support contact is not published yet.
 

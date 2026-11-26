@@ -106,9 +106,10 @@ export default function PrivacyPage() {
           <li>A typed comment of up to {MAX_COMMENT_CHARS} characters.</li>
           <li>
             A voice note of up to {MAX_VOICE_SECONDS} seconds, in the language you pick, if you are signed in with a
-            verified email. Voice notes are not in the Android or iOS app yet. Your browser&apos;s own speech
-            service turns your speech into text (for example Google in Chrome, or Apple in Safari), under that
-            company&apos;s terms. We do not receive the recording to do this.
+            verified email. On the website, your browser&apos;s own speech service turns your speech into text (for
+            example Google in Chrome, or Apple in Safari), under that company&apos;s terms. In our apps, your
+            phone&apos;s own speech service does it instead: usually Google&apos;s on Android, Apple&apos;s on iPhone (the
+            iPhone app does not offer voice notes yet). We do not receive the recording to do this.
           </li>
           <li>
             For a language other than English, only the text is sent to our AI provider (Groq) to translate it into English.
@@ -117,7 +118,9 @@ export default function PrivacyPage() {
           <li>
             <strong>The audio itself is uploaded and kept only if you tick &quot;Let the founder play my voice note&quot;</strong>{" "}
             (off by default). Kept audio is deleted automatically {AUDIO_RETENTION_DAYS} days after it was recorded; the
-            text and translation stay with your answer. You can delete a voice note before you send it.
+            text and translation stay with your answer. You can delete a voice note before you send it.{" "}
+            <strong>In the apps no audio is kept at all</strong>: the phone&apos;s speech service listens, so there is
+            no recording to keep, and the founder cannot play it.
           </li>
         </ul>
         <h3>Reward claims</h3>
@@ -211,9 +214,11 @@ export default function PrivacyPage() {
             claimed the reward.
           </li>
           <li>
-            <strong>Your browser&apos;s speech service</strong> (not one we choose): when you record a voice note, your
-            browser may send your speech to its maker (for example Google for Chrome, Apple for Safari, Microsoft for Edge)
-            to turn it into text. That company&apos;s privacy terms apply to it.
+            <strong>Your browser&apos;s or phone&apos;s speech service</strong> (not one we choose): when you record a
+            voice note, your browser may send your speech to its maker (for example Google for Chrome, Apple for Safari,
+            Microsoft for Edge) to turn it into text. In our apps the phone&apos;s own speech service does this (usually Google on
+            Android, Apple on iPhone), and may send your speech to that company. That company&apos;s privacy terms apply
+            to it.
           </li>
           <li>
             <strong>Groq</strong> (running OpenAI&apos;s open-weight gpt-oss models): powers founder tools such as drafting

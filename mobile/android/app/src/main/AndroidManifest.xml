@@ -38,6 +38,14 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Voice notes (MediaRecorder / getUserMedia in the WebView) -->
+    <!-- Voice notes: the phone's speech service listens through @capacitor-community/speech-recognition -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Android 11+ package visibility: lets the app find the phone's speech recognition service
+         (without it SpeechRecognizer.isRecognitionAvailable() is false and voice notes stay off). -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
 </manifest>

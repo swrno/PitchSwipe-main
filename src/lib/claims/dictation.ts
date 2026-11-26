@@ -4,8 +4,20 @@
  * Voice notes on the browser's own speech recognizer (Web Speech API: Chrome, Edge, Safari). Words appear live as
  * they are heard. A MediaRecorder runs on a microphone stream next to it, so we know the length, can stop at the
  * cap, and keep the audio for the founder only if the swiper allows it. No audio is sent anywhere to get the text.
+ *
+ * Inside the Android and iOS apps the WebView has no recognizer, so the same hook uses the phone's own speech service
+ * through a Capacitor plugin instead (src/lib/claims/native-dictation.ts). There the recognizer holds the microphone,
+ * so no audio is recorded or kept.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  inNativeApp,
+  nativePlatform,
+  nativeSpeechPlugin,
+  probeNativeSpeech,
+  startNativeDictation,
+  type NativeDictation,
+} from "./native-dictation";
 
 /* Minimal types for the parts of the Web Speech API we use (not in every TypeScript DOM lib). */
 interface SpeechAlternativeLike {
@@ -47,32 +59,84 @@ function recognizer(): SpeechRecognizerCtor | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-/** True inside the Capacitor Android or iOS app. Its WebView has no working speech recognizer. */
-function inNativeApp(): boolean {
-  if (typeof window === "undefined") return false;
-  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
-  return cap?.isNativePlatform?.() === true;
+/**
+ * Whether (and if not, why not) a voice note can be taken here.
+ *  - "ok": yes (the browser's recognizer, or the phone's speech service in the app).
+ *  - "checking": in the app, still asking the phone whether it has a speech service.
+ *  - "app": in an app build without the speech plugin (an older Android build; the iOS app until the plugin can be
+ *    linked there, see docs/mobile.md).
+ *  - "no-speech": in the app, but the phone has no speech service the plugin can use.
+ *  - "browser": this browser has no recognizer or microphone.
+ */
+export type VoiceSupport = "ok" | "checking" | "app" | "no-speech" | "browser";
+
+/** Which engine takes the voice note: the browser's Web Speech API, or the phone's own speech service in the app. */
+export type VoiceEngine = "web" | "native";
+
+/**
+ * The engine choice, as a pure function. In the app the browser path is never used (the WebView has no recognizer);
+ * the plugin decides. `nativeAvailable` is the plugin's answer to available(), or null while that is pending.
+ */
+export function chooseVoiceSupport(env: {
+  native: boolean;
+  plugin: boolean;
+  nativeAvailable: boolean | null;
+  browserOk: boolean;
+}): VoiceSupport {
+  if (env.native) {
+    if (!env.plugin) return "app";
+    if (env.nativeAvailable === null) return "checking";
+    return env.nativeAvailable ? "ok" : "no-speech";
+  }
+  return env.browserOk ? "ok" : "browser";
 }
 
-/** "ok": can take a voice note. "app": inside the native app. "browser": this browser has no recognizer or microphone. */
-export type VoiceSupport = "ok" | "app" | "browser";
+/* In the app: does this phone have a speech service? Asked once per page load. */
+let nativeAvailable: boolean | null = null;
+let probing = false;
+const supportListeners = new Set<() => void>();
+
+function subscribeSupport(listener: () => void) {
+  supportListeners.add(listener);
+  const plugin = nativeAvailable === null && !probing ? nativeSpeechPlugin() : null;
+  if (plugin) {
+    probing = true;
+    void probeNativeSpeech(plugin).then((ok) => {
+      nativeAvailable = ok;
+      probing = false;
+      supportListeners.forEach((l) => l());
+    });
+  }
+  return () => {
+    supportListeners.delete(listener);
+  };
+}
 
 function voiceSupport(): VoiceSupport {
-  if (inNativeApp()) return "app";
-  const ok = recognizer() !== null && typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getUserMedia === "function";
-  return ok ? "ok" : "browser";
+  return chooseVoiceSupport({
+    native: inNativeApp(),
+    plugin: nativeSpeechPlugin() !== null,
+    nativeAvailable,
+    browserOk: recognizer() !== null && typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getUserMedia === "function",
+  });
+}
+
+/** Whether (and if not, why not) a voice note can be taken here. "browser" on the server. */
+export function useVoiceSupport(): VoiceSupport {
+  return useSyncExternalStore(subscribeSupport, voiceSupport, () => "browser");
+}
+
+/** Whether a voice note can be taken here (the browser's recognizer and microphone, or the phone's speech service). */
+export function useVoiceSupported(): boolean {
+  return useVoiceSupport() === "ok";
 }
 
 const noopSubscribe = () => () => {};
+const voiceEngine = (): VoiceEngine => (inNativeApp() ? "native" : "web");
 
-/** Whether (and if not, why not) this browser can take a voice note. "browser" on the server. */
-export function useVoiceSupport(): VoiceSupport {
-  return useSyncExternalStore(noopSubscribe, voiceSupport, () => "browser");
-}
-
-/** Whether this browser can take a voice note (speech recognizer and microphone, not the native app). */
-export function useVoiceSupported(): boolean {
-  return useVoiceSupport() === "ok";
+/** "native" inside the Android or iOS app, else "web" (also on the server). For copy that names the browser or phone. */
+export function useVoiceEngine(): VoiceEngine {
+  return useSyncExternalStore(noopSubscribe, voiceEngine, () => "web");
 }
 
 const tidy = (text: string) => text.replace(/\s+/g, " ").trim();
@@ -108,11 +172,27 @@ const ERRORS: Record<string, string> = {
 };
 export const NOTHING_HEARD = ERRORS["no-speech"];
 
+/** In the app, where "browser" would be untrue. Codes from nativeErrorCode (src/lib/claims/native-dictation.ts). */
+const APP_ERRORS: Record<string, string> = {
+  "not-allowed":
+    "The microphone or speech recognition is blocked for PitchSwipe. Allow it in your phone's settings, or type your comment instead.",
+  "service-not-allowed": "Voice typing is not available on this phone. Type your comment instead.",
+  "language-not-supported": "This phone cannot listen in that language. Pick another one, or type your comment instead.",
+  busy: "The microphone is in use by another app. Try again, or type your comment instead.",
+};
+
 /** Friendly copy for a recognizer error code. "aborted" is our own cancel and has none. */
-export function dictationErrorMessage(code: string): string | null {
+export function dictationErrorMessage(code: string, engine: VoiceEngine = "web"): string | null {
   if (code === "aborted") return null;
-  return ERRORS[code] ?? "Voice typing stopped. Try again, or type your comment instead.";
+  const app = engine === "native" ? APP_ERRORS[code] : undefined;
+  return app ?? ERRORS[code] ?? "Voice typing stopped. Try again, or type your comment instead.";
 }
+
+/** In the app, when this app build has no speech plugin. True for older Android builds and for today's iOS app. */
+export const NOT_IN_APP = "Voice notes are not in this version of the app. Type your comment instead.";
+/** In the app, when the phone has no speech service the plugin can use. */
+export const NO_SPEECH_SERVICE =
+  "This phone has no speech recognition service, so voice notes do not work here. Type your comment instead.";
 
 export interface DictationTake {
   /** What the browser heard. */
@@ -187,6 +267,8 @@ export function useDictation(options: {
   const [seconds, setSeconds] = useState(0);
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
   const session = useRef<Session | null>(null);
+  /** The take in progress on the phone's speech service (in the app); null on the web. */
+  const native = useRef<NativeDictation | null>(null);
   const opts = useRef(options);
   useEffect(() => {
     opts.current = options;
@@ -239,6 +321,10 @@ export function useDictation(options: {
   );
 
   const stop = useCallback(() => {
+    if (native.current) {
+      native.current.stop();
+      return;
+    }
     const s = session.current;
     if (!s || s.stopping) return;
     s.stopping = true;
@@ -305,6 +391,8 @@ export function useDictation(options: {
 
   /** Throw this take away. */
   const cancel = useCallback(() => {
+    native.current?.cancel();
+    native.current = null;
     const s = session.current;
     if (s) teardown(s);
     else setPhase("idle");
@@ -363,12 +451,63 @@ export function useDictation(options: {
   );
 
   /**
+   * In the app: the phone's own speech service through the Capacitor plugin. No getUserMedia or MediaRecorder (the
+   * recognizer holds the microphone), so there is no level meter and no audio: the take goes up with `audio: null`.
+   */
+  const startNative = useCallback(() => {
+    const plugin = nativeSpeechPlugin();
+    if (!plugin) {
+      opts.current.onError(NOT_IN_APP);
+      return;
+    }
+    const end = (take: NativeDictation) => {
+      if (native.current !== take) return false;
+      native.current = null;
+      setPhase("idle");
+      return true;
+    };
+    const take: NativeDictation = startNativeDictation(plugin, {
+      lang: opts.current.lang,
+      maxSeconds: opts.current.maxSeconds,
+      platform: nativePlatform(),
+      onLive: () => {
+        if (native.current === take) setPhase("listening");
+      },
+      onText: (heard) => {
+        if (native.current === take) setText(heard);
+      },
+      onTick: (secs) => {
+        if (native.current === take) setSeconds(secs);
+      },
+      onStopping: () => {
+        if (native.current === take) setPhase("stopping");
+      },
+      onDone: ({ transcript, durationSec }) => {
+        if (end(take)) opts.current.onDone({ transcript, durationSec, audio: null });
+      },
+      onError: (code) => {
+        if (!end(take)) return;
+        const message = dictationErrorMessage(code, "native");
+        if (message) opts.current.onError(message);
+      },
+    });
+    native.current = take;
+    setText("");
+    setSeconds(0);
+    setPhase("waiting");
+  }, []);
+
+  /**
    * Starts the recognizer right away, inside the tap (some browsers only allow that), then asks for a microphone
    * stream for the recorder and the level meter. If that stream never comes, the text still works without audio.
    * The phase is "waiting" (no clock) until the microphone is live, so time on a permission prompt is not counted.
    */
   const start = useCallback(() => {
-    if (session.current) return;
+    if (session.current || native.current) return;
+    if (inNativeApp()) {
+      startNative();
+      return;
+    }
     const Ctor = recognizer();
     if (!Ctor) {
       opts.current.onError("Voice notes need Chrome, Edge or Safari. Type your comment instead.");
@@ -429,10 +568,12 @@ export function useDictation(options: {
     setPhase("waiting");
 
     void attachMicrophone(s);
-  }, [attachMicrophone, goLive, recognizerEnded]);
+  }, [attachMicrophone, goLive, recognizerEnded, startNative]);
 
   useEffect(
     () => () => {
+      native.current?.cancel();
+      native.current = null;
       if (session.current) teardown(session.current);
     },
     [teardown],

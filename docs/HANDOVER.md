@@ -283,9 +283,12 @@ that database at the end. It does not check the host, so only ever point it at a
   quality check was switched off, no swiper was counting, so feed answers used the local split and never reached
   Flagsmith.
 - **Keys:** Claude, Resend with a verified sending domain, and the support email (see [Secrets](#secrets)).
-- **Voice notes in the apps:** they work in Chrome, Edge and Safari but are switched off inside the Android and iOS
-  apps (no speech recognition in their web views). A native plugin such as
-  `@capacitor-community/speech-recognition` would bring them back.
+- **Voice notes in the apps:** built for Android on `@capacitor-community/speech-recognition` 7.0.1 (the phone's
+  own speech service; no audio kept). Not yet tried on a real phone: run the device checklist in
+  [mobile.md](mobile.md#voice-notes-in-the-apps), then ship a new app build (installed builds without the plugin keep
+  saying "Voice notes are not in this version of the app"). iOS: the plugin has no Swift Package Manager support, so
+  it is not linked into the iOS project; it needs upstream SPM support (issue "support capacitor 8" is open) or a small
+  in-app Swift plugin built on a Mac. The web code is ready for either.
 - **Store releases:** Android release signing and a Play Console account. PR #29 (open, never run) adds a manual
   Android build-and-release workflow that signs builds once four `ANDROID_KEY*` secrets exist. iOS needs an Apple
   Developer account and signing. The app id `app.pitchswipe.mobile` is a placeholder.
