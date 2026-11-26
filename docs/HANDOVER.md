@@ -160,12 +160,13 @@ tag `pitchswipe-backup` (`journalctl -t pitchswipe-backup`). It writes
 `/var/backups/pitchswipe/pitchswipe-<UTC time>.archive.gz` and keeps the newest 7. List them with
 `sudo ls -lt /var/backups/pitchswipe`. The script and its cron file are not in the repo yet.
 
-**Off-site copy (ready, not yet switched on).** `.github/workflows/offsite-backup.yml` copies the newest backup off
+**Off-site copy (needs a one-time install).** `.github/workflows/offsite-backup.yml` copies the newest backup off
 the VM every day at 03:30 UTC, encrypted with gpg (AES256) using the `BACKUP_PASSPHRASE` secret, and keeps it as a
 workflow artifact for 30 days. It works only after the owner does the one-time steps under "Off-site backup" in
 [infra/vm/README.md](../infra/vm/README.md): install `/usr/local/bin/pitchswipe-backup-export`, add one line to
 `/etc/sudoers.d/pitchswipe-deploy` (checked with `visudo -cf` first), and set the `BACKUP_PASSPHRASE` repository
-secret. Until then the backups are on the VM only: if the VM's disk is lost, so are they.
+secret. Until then the backups are on the VM only (if the VM's disk is lost, so are they), and the workflow fails
+every day once it is on `main`, emailing a failure each time.
 
 - The repo is public, so **anyone signed in to GitHub can download the artifacts**; that is why they are encrypted.
 - **Losing the passphrase makes every copy useless.** GitHub never shows a secret again: keep the passphrase in a

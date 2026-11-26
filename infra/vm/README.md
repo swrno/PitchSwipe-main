@@ -58,7 +58,9 @@ Without `BACKUP_PASSPHRASE` the run fails before connecting and uploads nothing;
 
 **The repo is public: anyone signed in to GitHub can download these artifacts.** That is why they are encrypted, and why the passphrase must stay secret. **If the passphrase is lost, every copy is useless**: GitHub never shows a secret again, so keep the passphrase in a password manager and hand it over with the server env. When you change it, keep the old one for 30 days, because older artifacts still need it.
 
-A failed scheduled run is emailed to one person, the same way as the uptime check (see "Uptime check"), and the same 60-day rule applies: in a public repo GitHub switches the schedule off after 60 days without repository activity. The `deploy` key can now read the backup; it could already install code that runs as root, so this does not widen what a stolen key can reach.
+A failed scheduled run is emailed to one person, the same way as the uptime check (see "Uptime check"), and the same 60-day rule applies: in a public repo GitHub switches the schedule off after 60 days without repository activity. The `deploy` key can now read the backup. It could already ship app code that runs as the `pitchswipe` user and reads the whole database through `MONGODB_URI`, so this exposes no data the key could not already reach.
+
+Until the steps below are done and the secret is set, the workflow still runs every day once it is on `main` and fails (no `BACKUP_PASSPHRASE`, or the export script or sudoers line missing), so the person it emails gets a failure email each day. Install first, or expect those emails. GitHub only runs a schedule, and only shows the "Run workflow" button, for workflow files on the default branch.
 
 ### One-time install on the VM (owner, after review)
 
