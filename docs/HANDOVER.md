@@ -28,6 +28,8 @@ Ask the current owner for each of these. Nothing here can be done from the repo 
    personal-account repo, so collaborators get read and write but cannot be made admins. To manage Actions secrets,
    variables and repo settings yourself, have the owner transfer the repo to you or to an organization where you
    are an owner.
+   After a transfer, update the repo name in the `github.repository == 'swrno/PitchSwipe-main'` guard in
+   `.github/workflows/deploy.yml`, or deploys silently stop; the Actions variables and secrets move with the repo.
 2. **The server:** an SSH key on the VM. See [Logging in to the server](#logging-in-to-the-server).
 3. **Firebase:** member of project `pitchswipe-cadfd` (Firebase console -> Project settings -> Users and
    permissions -> Add member, role Owner or Editor).
