@@ -1,7 +1,7 @@
 /**
- * Hand-written types for the parts of services/ai (plain ESM JavaScript, WP12) that the app uses.
+ * Hand-written types for the parts of the AI engine in ./engine (plain ESM JavaScript, WP12) that the app uses.
  * tsconfig has allowJs off, so `services.ts` casts the JS module to `AiServices`.
- * Keep this in step with services/ai/src/index.js when you use another export.
+ * Keep this in step with engine/src/index.js when you use another export.
  */
 
 export interface LlmRequest {

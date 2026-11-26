@@ -1,7 +1,7 @@
 # Handover
 
 Start here if you are taking over PitchSwipe. This page covers getting access, logging in to the server, where the
-secrets live, and what is still open. Day-to-day server operations are in [deploy/vm/README.md](../deploy/vm/README.md);
+secrets live, and what is still open. Day-to-day server operations are in [infra/vm/README.md](../infra/vm/README.md);
 how the code fits together is in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Nothing secret is written here. Keys, passwords and the server env are handed over privately (see
@@ -127,7 +127,7 @@ Host pitchswipe
 | See which commit is live | `sudo cat /opt/pitchswipe/DEPLOYED` |
 | List releases, newest first | `sudo ls -t /opt/pitchswipe/releases` |
 | Edit the server env | `sudo nano /etc/pitchswipe.env`, then `sudo systemctl restart pitchswipe` |
-| Roll back by hand | list releases as above, then "Rollback by hand" in [deploy/vm/README.md](../deploy/vm/README.md) |
+| Roll back by hand | list releases as above, then "Rollback by hand" in [infra/vm/README.md](../infra/vm/README.md) |
 
 `/opt/pitchswipe` is readable only by the `pitchswipe` user, so anything inside it needs `sudo`.
 
@@ -143,7 +143,7 @@ mongosh --host 127.0.0.1 -u admin --authenticationDatabase admin pitchswipe   # 
 ```
 
 To reach the database from your own machine (for example `npm run db:sync-indexes`), open a tunnel; the steps are
-under "Indexes" in [deploy/vm/README.md](../deploy/vm/README.md).
+under "Indexes" in [infra/vm/README.md](../infra/vm/README.md).
 
 ### Backups
 

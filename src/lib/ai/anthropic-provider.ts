@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { LlmProvider, LlmRequest, LlmResponse } from "./services-ai";
 
 /**
- * The live LLM provider: Claude through the official Anthropic SDK. Same contract as the services/ai providers
+ * The live LLM provider: Claude through the official Anthropic SDK. Same contract as the engine's providers
  * (`complete({ task, system, user })` -> `{ text, model }`), so every service (drafting, Ask, insights wording)
  * runs on it unchanged and its rules engine still checks every answer.
  *

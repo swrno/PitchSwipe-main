@@ -5,6 +5,6 @@ import nextTs from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  // android/ and ios/ hold generated native projects and their local build output (Capacitor), not app source.
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "android/**", "ios/**"]),
+  // mobile/android and mobile/ios hold generated native projects and their local build output (Capacitor), not app source.
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "mobile/android/**", "mobile/ios/**"]),
 ]);

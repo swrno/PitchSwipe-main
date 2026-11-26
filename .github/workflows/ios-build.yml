@@ -44,15 +44,15 @@ jobs:
         run: |
           test -n "$CAP_SERVER_URL" || { echo "::error::Repo variable APP_URL is not set"; exit 1; }
           npx cap sync ios
-          grep -q "\"url\": \"$CAP_SERVER_URL\"" ios/App/App/capacitor.config.json
+          grep -q "\"url\": \"$CAP_SERVER_URL\"" mobile/ios/App/App/capacitor.config.json
 
       - name: Resolve Swift packages
-        run: xcodebuild -resolvePackageDependencies -project ios/App/App.xcodeproj -scheme App
+        run: xcodebuild -resolvePackageDependencies -project mobile/ios/App/App.xcodeproj -scheme App
 
       - name: Build for the iOS Simulator
         run: |
           xcodebuild build \
-            -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -project mobile/ios/App/App.xcodeproj -scheme App -configuration Release \
             -sdk iphonesimulator -destination "generic/platform=iOS Simulator" \
             -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO
           APP=$(find build/sim/Build/Products -maxdepth 2 -name "App.app" -type d | head -1)
@@ -62,7 +62,7 @@ jobs:
       - name: Build for devices (unsigned)
         run: |
           xcodebuild build \
-            -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -project mobile/ios/App/App.xcodeproj -scheme App -configuration Release \
             -sdk iphoneos -destination "generic/platform=iOS" \
             -derivedDataPath build/device CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
           APP=$(find build/device/Build/Products -maxdepth 2 -name "App.app" -type d | head -1)

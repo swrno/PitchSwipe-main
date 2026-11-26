@@ -1,6 +1,6 @@
 /**
  * Public surface of the app's AI adapter (see README.md). Everything else in the app imports from here,
- * never from services/ai directly.
+ * never from ./engine directly.
  */
 export { ai } from "./services";
 export { getLlmProvider, type MockResponder } from "./provider";

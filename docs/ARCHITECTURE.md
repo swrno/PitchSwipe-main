@@ -1,6 +1,6 @@
 # Architecture map
 
-Short orientation. The product spec is the source of truth: start at `goal/README.md`; work packages are in `goal/BUILD_PLAN.md`. This describes the repo as found on disk and may lag other work in progress.
+Short orientation. The product spec is the source of truth: start at `docs/spec/README.md`; work packages are in `docs/spec/BUILD_PLAN.md`. This describes the repo as found on disk and may lag other work in progress.
 
 ## Stack
 
@@ -10,11 +10,11 @@ One responsive Next.js (App Router) app, TypeScript, Tailwind, Framer Motion. Mo
 
 | Path | What it holds | Work package |
 |---|---|---|
-| `goal/` | Spec, designs, build plan | n/a |
+| `docs/spec/`, `docs/designs/` | Spec and build plan, designs | n/a |
 | `src/app/` | Routes: `(auth)` login, signup, verify; `(shell)` decks, products, swipe, wallet, profile; `d/[slug]`, `practice`, landing, `api/*` | WP0, WP1-WP16 |
 | `src/types/` | Types mirroring the data model | WP0 |
 | `src/models/` | Mongoose models (no connection on import) | WP0 |
-| `src/fixtures/` | Demo numbers from `goal/spec/08` | WP0 |
+| `src/fixtures/` | Demo numbers from `docs/spec/08` | WP0 |
 | `src/lib/lists.ts` | Standard roles, industries, states, test types (no free text) | WP0 |
 | `src/lib/db.ts` | `connectDb()`, server only, needs `MONGODB_URI` | WP0 |
 | `src/lib/auth`, `firebase` | Firebase sign-in and server verification | WP1 |
@@ -26,7 +26,7 @@ One responsive Next.js (App Router) app, TypeScript, Tailwind, Framer Motion. Mo
 | `src/lib/assistant` | "Test decided" watcher, approve and ship | WP8 |
 | `src/lib/demand-curve` | Price demand curve | WP10 |
 | `src/lib/export`, `src/components/export` | Download results | WP11 |
-| `services/ai/` | Framework-agnostic AI services and rules engine | WP12 |
+| `src/lib/ai/engine/` | Framework-agnostic AI services and rules engine (plain ESM JavaScript, own tests) | WP12 |
 | `src/lib/ai` | App-side AI provider and tool loop | WP12 |
 | `src/lib/ask`, `src/components/ask` | Ask your results chat | WP13 |
 | `src/lib/share`, `src/components/share` | Sharing and audience UI | WP14 |
@@ -74,14 +74,14 @@ node --import ./scripts/register-ts.mjs --test src/lib/claims/tests/claims.test.
 node --import ./scripts/register-ts.mjs --test src/lib/quality/tests/quality.test.mjs
 node --import ./scripts/register-ts.mjs --test src/lib/share/tests/share.test.mjs
 node --import ./scripts/register-ts.mjs --test src/lib/swipe/tests/swipe.test.mjs
-(cd services/ai && node --test)
+(cd src/lib/ai/engine && node --test)
 ```
 
 `src/lib/decks/tests/` has its own hooks (`hooks.mjs`, `register.mjs`); see that folder before running `decks.test.mjs` and `service.test.mjs`. Some of these files depend on other branches being merged, so a failure may mean a missing dependency. Checks: `npm run typecheck`, `npm run lint`.
 
 ## Demo seed
 
-`scripts/seed/seed.mjs` upserts demo data (Arjun Sen, Voice Khata, QueueLess, LoadMate, Priya Nair, wallet Rs 46.75, headline test numbers from `goal/spec/08`). It refuses to run without `--yes`, needs `MONGODB_URI` in the environment, and prints the target database name before writing:
+`scripts/seed/seed.mjs` upserts demo data (Arjun Sen, Voice Khata, QueueLess, LoadMate, Priya Nair, wallet Rs 46.75, headline test numbers from `docs/spec/08`). It refuses to run without `--yes`, needs `MONGODB_URI` in the environment, and prints the target database name before writing:
 
 ```
 MONGODB_URI=... node scripts/seed/seed.mjs --yes
@@ -94,7 +94,7 @@ The seed is demo data end to end. Its waitlist split follows `src/fixtures` (hea
 ## Demo data rules
 
 - **Real mode** (`MONGODB_URI` set, or production without `PITCHSWIPE_DEMO=1`): every number shown is computed from real data. If there is not enough data the element is removed or shows an honest empty state. No fixture number is ever substituted. `src/lib/fixtures-imports.test.ts` fails CI if a file outside its allowlist imports `@/fixtures`.
-- **Demo mode**: numbers come from `src/fixtures` only, and every screen or export that shows numbers not printed in `goal/spec/08` or a design carries a "Demo data" label (`src/components/ui/demo-badge.tsx` on screens, a first-row note in CSV/Excel/PDF exports).
+- **Demo mode**: numbers come from `src/fixtures` only, and every screen or export that shows numbers not printed in `docs/spec/08` or a design carries a "Demo data" label (`src/components/ui/demo-badge.tsx` on screens, a first-row note in CSV/Excel/PDF exports).
 - **One source for the Voice Khata deck counts**: `VOICE_KHATA_DECK_COUNTS`, `PRICE_TEST_ARMS` and `PRODUCT_TOTALS` in `src/fixtures/index.ts`. Headline 214, Product UI 224, Price 480, Launch reward 120 swipers. The product total of **612 counts distinct people** (one swiper can answer several decks), so it is not the sum of the deck rows. The waitlist 118 is a sum (26 + 11 + 76 + 5). Insights "Decks 1 and 2 · 438 swipers" is 214 + 224.
 - **Pinned design values**: the price test counts compute to 89% and "about 90 more swipers"; web 17 prints 88% and "about 40". Demo mode pins the printed values (`PRICE_TEST_DESIGN_VALUES`) and says so on the results screen.
 - Headline deck status: "Leading" (91%) on My decks, Results and the deck switcher (web 03, web 24, spec/08 13.1); it becomes "Won" only after Approve and ship. The decided state (256 valid swipers, B 96%) is a later snapshot; its per-card identities split 256 in the proportions of 72 / 71 / 71.

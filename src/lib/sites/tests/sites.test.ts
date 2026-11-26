@@ -60,7 +60,7 @@ describe("snippet", () => {
   });
 
   it("demo site embeds exactly the generated snippet", () => {
-    const html = readFileSync(new URL("../../../../demo-site/voice-khata/index.html", import.meta.url), "utf8");
+    const html = readFileSync(new URL("../../../../docs/marketing/demo-site/voice-khata/index.html", import.meta.url), "utf8");
     const expected = buildSnippet({ envKey: PLACEHOLDER_KEY, siteId: "site-voice-khata", baseUrl: "https://pitchswipe.example" });
     assert.ok(html.includes(expected), "demo-site snippet is out of date; regenerate it from src/lib/sites/snippet.ts");
   });

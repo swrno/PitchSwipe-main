@@ -1,5 +1,5 @@
 # Normalise text to LF in the repository and in working trees, on every OS.
-# Windows checkouts used to convert files such as demo-site/voice-khata/index.html to CRLF,
+# Windows checkouts used to convert files such as docs/marketing/demo-site/voice-khata/index.html to CRLF,
 # which broke the sites snippet-equality test.
 * text=auto eol=lf
 

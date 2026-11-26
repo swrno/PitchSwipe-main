@@ -73,7 +73,7 @@ export function trackedKeys(): number {
 
 /** The caller's IP as seen by our own proxy, or "" when no header gives one. */
 export function clientIp(req: Request): string {
-  // 1. x-real-ip: nginx (deploy/vm/pitchswipe.nginx) and Vercel set it to the TCP peer, overwriting any value
+  // 1. x-real-ip: nginx (infra/vm/pitchswipe.nginx) and Vercel set it to the TCP peer, overwriting any value
   //    the client sent.
   const real = req.headers.get("x-real-ip")?.trim();
   if (real) return real;

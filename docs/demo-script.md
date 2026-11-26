@@ -1,6 +1,6 @@
 # Demo script: QR live swipe and 3-minute video
 
-Status: **plan.** Source: `goal/spec/07-strategy-and-research.md` sections 10.7 and 10.8 (round 1 idea 6). Demo numbers: `goal/spec/08-build-reference.md` section 13.
+Status: **plan.** Source: `docs/spec/07-strategy-and-research.md` sections 10.7 and 10.8 (round 1 idea 6). Demo numbers: `docs/spec/08-build-reference.md` section 13.
 
 ## Routes used (confirmed in `src/app`)
 

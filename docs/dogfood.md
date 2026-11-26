@@ -1,6 +1,6 @@
 # Dogfood: PitchSwipe tests itself
 
-Status: **PLAN. Nothing here has been run.** No results exist yet. Source: `goal/spec/07-strategy-and-research.md` section 10.8, round 1 idea 1 (status *Demo*, "Screens: not needed"), and the traffic plan in section 10.5.
+Status: **PLAN. Nothing here has been run.** No results exist yet. Source: `docs/spec/07-strategy-and-research.md` section 10.8, round 1 idea 1 (status *Demo*, "Screens: not needed"), and the traffic plan in section 10.5.
 
 ## What it is
 
@@ -20,7 +20,7 @@ Run one real Flagsmith experiment on PitchSwipe's own swipe screen during the ev
 Notes and open points:
 
 - The spec says "for example", so the two wordings are a proposal, not a locked decision. Confirm before launch.
-- The spec names the metric `reward_claimed`, while the product decks use `reward_claim` (`goal/spec/06`, "Primary metric"). Decide whether the dogfood metric is a separate Flagsmith event or the same event; this doc does not resolve it. TODO.
+- The spec names the metric `reward_claimed`, while the product decks use `reward_claim` (`docs/spec/06`, "Primary metric"). Decide whether the dogfood metric is a separate Flagsmith event or the same event; this doc does not resolve it. TODO.
 - Which variant is control is not stated in the spec. TODO.
 - The spec does not say which screen element carries the dogfood button. TODO (the live swipe screen is `/swipe`).
 

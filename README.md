@@ -132,10 +132,24 @@ accounts and a real database.
 - **Mobile:** a Capacitor 8 shell for Android and iOS that loads the live site, with native haptics and
   edge-to-edge status bars.
 - **Deploys:** every push to `main` runs CI. When it passes, GitHub Actions builds the app, installs it on the VM,
-  health-checks it and rolls back automatically if the check fails ([deploy/vm/README.md](deploy/vm/README.md)).
+  health-checks it and rolls back automatically if the check fails ([infra/vm/README.md](infra/vm/README.md)).
 
 More detail is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the product spec and designs are in
-[`goal/`](goal/README.md).
+[`docs/spec/`](docs/spec/README.md) and [`docs/designs/`](docs/designs/README.md).
+
+## Repository layout
+
+The Next.js app lives at the repository root; everything else sits in a few top-level folders.
+
+```
+.github/      CI, deploy-to-VM and iOS build workflows
+docs/         architecture, deploy and handover notes; spec/ (product spec, build plan), designs/, marketing/, releases/, images/ (README screenshots)
+infra/        server setup: vm/ holds the nginx, systemd, cron and release-activate files for the Azure VM
+mobile/       Capacitor shell: android/ and ios/ native projects, www/ offline fallback page
+public/       static files served by the app (icons, demo card images, service worker, offline page)
+scripts/      test runner, seed data, index sync, service doctor, Flagsmith lifecycle check, icon tools
+src/          the app: app/ routes and API, components/, lib/ (domain logic; lib/ai/engine is the AI rules engine), models/, types/, fixtures/
+```
 
 ## Build from source
 
@@ -167,7 +181,7 @@ With `PITCHSWIPE_DEMO=1` the app runs on fixture data, labelled "Demo data".
 
 ```bash
 CAP_SERVER_URL=https://noor-api.centralindia.cloudapp.azure.com npx cap sync android
-cd android && ./gradlew assembleDebug    # android/app/build/outputs/apk/debug/app-debug.apk
+cd mobile/android && ./gradlew assembleDebug    # mobile/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
 **iOS.** No Mac is needed: the **iOS build** workflow compiles the app on a GitHub macOS runner. Run it from the

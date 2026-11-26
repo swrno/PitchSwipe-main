@@ -2,7 +2,7 @@ import { AudioLines, Gift, Heart } from "lucide-react";
 import { Mascot } from "@/components/ui/mascot";
 
 /**
- * A pitch card drawn as plain markup for the hero. It is an illustration (copy from marketing/index.html), not a
+ * A pitch card drawn as plain markup for the hero. It is an illustration (copy from docs/marketing/index.html), not a
  * real deck, so it carries a visible "Example" tag and nothing on it is interactive.
  */
 export function ExampleCard() {

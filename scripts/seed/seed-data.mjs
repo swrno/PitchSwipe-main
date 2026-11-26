@@ -1,4 +1,4 @@
-// Demo seed data for PitchSwipe, built from goal/spec/08-build-reference.md (section 13)
+// Demo seed data for PitchSwipe, built from docs/spec/08-build-reference.md (section 13)
 // and src/fixtures/index.ts. Pure data: no connection, no secrets, safe to import in tests.
 //
 // Everything is deterministic. Every document has a stable _id derived from a string key, so

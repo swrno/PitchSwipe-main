@@ -1,15 +1,15 @@
-# PitchSwipe — Goal folder
+# PitchSwipe — Product spec and build plan
 
 **One-liner:** A/B test your pitch before you build your landing page. Founders test 2–3 versions of one idea (one variable changed); swipers see exactly one card each (assigned by Flagsmith); the version that earns the most reward-claim emails wins; claimants become the founder's waitlist.
 
-This folder is the single source of truth for what we are building. Start here.
+This folder and `docs/designs/` are the single source of truth for what we are building. Start here. (They were the `goal/` folder until the repo was tidied: `goal/spec` and `goal/designs` became `docs/spec` and `docs/designs`, and `goal/README.md` and `goal/BUILD_PLAN.md` moved into `docs/spec/`.)
 
 ## Layout
 ```
-goal/
-├── README.md                     ← you are here (entry point + working agreement)
-├── BUILD_PLAN.md                 ← work packages, dependencies, acceptance checklist
+docs/
 ├── spec/                         ← product spec (v2, 15 Nov 2026), split so you load only what you need
+│   ├── README.md                 ← you are here (entry point + working agreement)
+│   ├── BUILD_PLAN.md             ← work packages, dependencies, acceptance checklist
 │   ├── pitchswipe-product-spec.md   full spec, single file (source of truth)
 │   ├── 01-product.md             overview, flow, business model, one app two roles, payouts
 │   ├── 02-founder-features.md    §5.1 founder features, ship winner, download, logo test, price demand curve, ship to website
@@ -26,9 +26,11 @@ goal/
     └── web/    (36 JPGs, 2880 wide)
 ```
 
+Below, `spec/NN` means `docs/spec/NN-….md`.
+
 ## How to pick up work
 1. Read this file, then your package in `BUILD_PLAN.md`.
-2. Read only the spec files that package lists, then open the matching images via `designs/README.md` (look at the actual images — they carry copy, spacing and states not in the text).
+2. Read only the spec files that package lists, then open the matching images via `../designs/README.md` (look at the actual images — they carry copy, spacing and states not in the text).
 3. Build against the contracts in `BUILD_PLAN.md` (types, fixtures, Flagsmith wrapper). Don't invent new field names or routes; if you must, update the spec file in the same change.
 4. Tick the package's "done when" before moving on; keep commits scoped to one package.
 

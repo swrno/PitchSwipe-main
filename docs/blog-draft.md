@@ -1,6 +1,6 @@
 # DRAFT: A/B test your pitch before you build your landing page
 
-> Draft built only from `goal/README.md` and `goal/spec/`. Everything marked TODO needs real results or a human decision. No customers, quotes or results are claimed.
+> Draft built only from `docs/spec/README.md` and `docs/spec/`. Everything marked TODO needs real results or a human decision. No customers, quotes or results are claimed.
 
 ## The problem
 

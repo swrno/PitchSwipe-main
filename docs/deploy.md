@@ -1,12 +1,14 @@
 # Deploying PitchSwipe
 
-Target stack (spec `goal/spec/06`): Vercel (Next.js app and crons), MongoDB Atlas, Firebase Authentication, Flagsmith. Nothing here has been run against real accounts by the repo's authors; the repo only provides the plumbing listed under "What the repo does".
+Target stack (spec `docs/spec/06`): Vercel (Next.js app and crons), MongoDB Atlas, Firebase Authentication, Flagsmith. Nothing here has been run against real accounts by the repo's authors; the repo only provides the plumbing listed under "What the repo does".
+
+Production today runs on one Azure VM instead, deployed by `.github/workflows/deploy.yml`; see [infra/vm/README.md](../infra/vm/README.md). Its cron jobs come from `infra/vm/pitchswipe-cron`. The repo no longer ships a `vercel.json`: section 3 shows the one to add if you deploy to Vercel.
 
 ## What the repo does, and what you do
 
 | Repo (already in git) | You, in dashboards or a terminal |
 | --- | --- |
-| `vercel.json`: two cron schedules | Create the Vercel project, set env vars, choose a plan |
+| The two cron schedules (section 3; on the VM, `infra/vm/pitchswipe-cron`) | Create the Vercel project, add the `vercel.json` from section 3, set env vars, choose a plan |
 | `.github/workflows/ci.yml`: typecheck, lint, build, tests on every push and PR | Turn on branch protection if you want CI to gate merges |
 | `npm run db:sync-indexes`: builds the unique indexes | Create the Atlas cluster and database user, allow Vercel's IPs, run the script once |
 | `scripts/flagsmith-lifecycle.mjs`: checks the Flagsmith lifecycle end to end | Create the Flagsmith project, environment and keys; connect the warehouse |
@@ -55,7 +57,17 @@ Set each variable for the Production environment (and Preview if you want previe
 
 ## 3. Cron jobs
 
-`vercel.json` registers two crons:
+There are two scheduled jobs. On the VM, `infra/vm/pitchswipe-cron` (installed as `/etc/cron.d/pitchswipe`) calls them with curl. On Vercel, add this `vercel.json` at the repo root to register the same two crons:
+
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    { "path": "/api/cron/assistant", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/audio-cleanup", "schedule": "0 3 * * *" }
+  ]
+}
+```
 
 | Path | Schedule | What it does |
 | --- | --- | --- |
@@ -76,7 +88,7 @@ According to Vercel's cron documentation (checked while writing this file), Hobb
 
 What that means here:
 
-- The 5-minute assistant watcher needs the Pro plan (or higher). The committed `vercel.json` is written for that.
+- The 5-minute assistant watcher needs the Pro plan (or higher). The `vercel.json` above is written for that.
 - On Hobby, change `/api/cron/assistant` to a daily expression such as `0 4 * * *` before deploying. The "Test decided" alert then appears up to a day late, and within the hour at best. Alternatively remove the assistant entry from `vercel.json` and call the route every 5 minutes from an external scheduler that can send the `Authorization: Bearer <CRON_SECRET>` header (for example a GitHub Actions schedule, which this repo does not include). That scheduler setup is untested.
 - Daily audio cleanup works on Hobby.
 - Crons run only on the production deployment, not on previews.
@@ -140,11 +152,11 @@ $env:CAP_SERVER_URL = "https://<your-production-domain>"; npm run cap:sync
 
 ## 9. CI
 
-`.github/workflows/ci.yml` runs on pushes and pull requests to the default branch: Node 22.18, `npm ci`, `npx tsc --noEmit`, `npx eslint src services scripts`, `npm run build` (no secrets or environment needed), and `npm test` (`scripts/run-tests.mjs`, one process per suite, non-zero exit if any suite fails or reports no tests; run one suite with `npm test -- ratelimit`). Node 22.18 is the lowest version that fits every dependency (firebase-admin and the Capacitor CLI need 22 or later, ESLint needs 22.13 or later) and the tests rely on Node's built-in TypeScript type stripping, enabled by default from 22.18.
+`.github/workflows/ci.yml` runs on pushes and pull requests to the default branch: Node 22.18, `npm ci`, `npx tsc --noEmit`, `npx eslint src scripts`, `npm run build` (no secrets or environment needed), and `npm test` (`scripts/run-tests.mjs`, one process per suite, non-zero exit if any suite fails or reports no tests; run one suite with `npm test -- ratelimit`). Node 22.18 is the lowest version that fits every dependency (firebase-admin and the Capacitor CLI need 22 or later, ESLint needs 22.13 or later) and the tests rely on Node's built-in TypeScript type stripping, enabled by default from 22.18.
 
 The Mongo store adapters (publish claim, edit lock, conditional delete, new deck/response fields) have an opt-in integration test against a real server, not run by CI or `npm test`: `MONGODB_TEST_URI=mongodb://127.0.0.1:27017/pitchswipe_it_local npm run test:mongo`, or in PowerShell `$env:MONGODB_TEST_URI="mongodb://127.0.0.1:27017/pitchswipe_it_local"; npm run test:mongo` (it skips without the variable, refuses any database not named `pitchswipe_it_*`, and drops that database when done).
 
-`.gitattributes` forces LF line endings. Without it a Windows checkout with `core.autocrlf=true` converts files such as `demo-site/voice-khata/index.html` to CRLF and the sites snippet-equality test fails.
+`.gitattributes` forces LF line endings. Without it a Windows checkout with `core.autocrlf=true` converts files such as `docs/marketing/demo-site/voice-khata/index.html` to CRLF and the sites snippet-equality test fails.
 
 ## 10. First deploy checklist
 

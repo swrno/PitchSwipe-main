@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Installs one built PitchSwipe release on the VM and switches traffic to it. Run as root (the deploy user may run
-# only this script through sudo, see deploy/vm/README.md).
+# only this script through sudo, see infra/vm/README.md).
 #
 #   pitchswipe-activate <bundle.tar.gz> <git-sha>
 #

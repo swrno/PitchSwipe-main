@@ -26,7 +26,7 @@ if (serverUrl) {
 const config: CapacitorConfig = {
   appId: process.env.CAP_APP_ID || "app.pitchswipe.mobile", // placeholder: change before store release
   appName: "PitchSwipe",
-  webDir: "cap-www",
+  webDir: "mobile/www",
   server: {
     ...(serverUrl ? { url: serverUrl } : {}),
     cleartext: isDev,
@@ -37,6 +37,7 @@ const config: CapacitorConfig = {
     allowNavigation: serverUrl ? [new URL(serverUrl).host] : [],
   },
   android: {
+    path: "mobile/android",
     allowMixedContent: false,
   },
   plugins: {
@@ -49,6 +50,7 @@ const config: CapacitorConfig = {
     },
   },
   ios: {
+    path: "mobile/ios",
     contentInset: "always",
     scheme: "PitchSwipe",
   },
