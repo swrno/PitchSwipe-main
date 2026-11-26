@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PitchSwipe</string>
+    <string name="title_activity_main">PitchSwipe</string>
+    <string name="package_name">app.pitchswipe.mobile</string>
+    <string name="custom_url_scheme">app.pitchswipe.mobile</string>
+</resources>
