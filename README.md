@@ -87,8 +87,8 @@ The screenshots show demo data, which the app labels as such.
 - Founders only ever see totals and groups of 10 or more people, never who answered.
 - Accounts use Firebase Authentication; everything else is stored in our own MongoDB database on the server.
 - Voice notes (signed in, verified email) are turned into text by your browser's own speech service, or in the app
-  by the phone's own speech service (usually Google's on Android). Only the text is sent to us (and to Anthropic for
-  the English translation). On the website the audio is uploaded only if you let the founder play it, and is
+  by the phone's own speech service (usually Google's on Android). Only the text is sent to us (and, for the English translation,
+  to the AI provider the server is set up with: Groq today, or Anthropic). On the website the audio is uploaded only if you let the founder play it, and is
   deleted after 30 days by a daily job; the text stays. In the app no audio is kept at all.
 - Deleting your account deletes your profile, wallet and reward claims, and anonymises your answers on other
   founders' decks so their results stay correct.

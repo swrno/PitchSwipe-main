@@ -78,10 +78,12 @@ export function nativeSpeechPlugin(): NativeSpeechPlugin | null {
 
 /** How long to wait for available() before treating the phone as having no speech service. */
 export const PROBE_TIMEOUT_MS = 4000;
-/** How long to wait for the phone's last words after the recognizer ends (or after Stop) before going on without them. */
+/**
+ * After the recognizer ends (or after Stop), keep taking the phone's words for this long, then finish with the latest.
+ * The plugin sends partial and final results the same way (no "final" marker), so a result in this window is not
+ * proof the words are complete: a corrected final result can still follow it.
+ */
 export const NATIVE_STOP_GRACE_MS = 2500;
-/** Once words arrive after the end, wait this long for any later (final) words, then finish. */
-export const NATIVE_FINAL_WORDS_MS = 400;
 /** How often the watchdog asks the plugin whether it is still listening. */
 export const NATIVE_WATCHDOG_MS = 1000;
 /** How long to wait for the iOS language list before starting anyway. */
@@ -206,7 +208,6 @@ export function startNativeDictation(plugin: NativeSpeechPlugin, options: Native
   let tick: ReturnType<typeof setInterval> | undefined;
   let watchdog: ReturnType<typeof setInterval> | undefined;
   let grace: ReturnType<typeof setTimeout> | undefined;
-  let settle: ReturnType<typeof setTimeout> | undefined;
   const handles: Promise<NativeListenerHandle | null>[] = [];
 
   /** Fire and forget: Android's stop() never resolves. */
@@ -224,7 +225,6 @@ export function startNativeDictation(plugin: NativeSpeechPlugin, options: Native
     clearInterval(tick);
     clearInterval(watchdog);
     clearTimeout(grace);
-    clearTimeout(settle);
     for (const handle of handles.splice(0)) {
       void handle.then((h) => h?.remove()).catch(() => undefined);
     }
@@ -304,11 +304,6 @@ export function startNativeDictation(plugin: NativeSpeechPlugin, options: Native
     goLive();
     text = heard;
     options.onText(text);
-    if (ending) {
-      // Probably the last words: finish shortly, unless more arrive.
-      clearTimeout(settle);
-      settle = setTimeout(finish, NATIVE_FINAL_WORDS_MS);
-    }
   };
 
   const onState = (event: NativeSpeechEvent) => {

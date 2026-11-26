@@ -4,7 +4,6 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import {
-  NATIVE_FINAL_WORDS_MS,
   NATIVE_STOP_GRACE_MS,
   NATIVE_WATCHDOG_MS,
   bestMatch,
@@ -231,7 +230,7 @@ describe("native voice note", () => {
     // iOS sends "stopped" from stop() before the last words; they still count.
     fake.emit("listeningState", { status: "stopped" });
     fake.emit("partialResults", { matches: ["मैं 500 दूंगा"] });
-    mock.timers.tick(NATIVE_FINAL_WORDS_MS);
+    mock.timers.tick(NATIVE_STOP_GRACE_MS);
     await flush();
     assert.deepEqual(run.events, ["live", "stopping", "done"]);
     assert.deepEqual(run.takes, [{ transcript: "मैं 500 दूंगा", durationSec: 4 }]);
@@ -250,9 +249,29 @@ describe("native voice note", () => {
     assert.deepEqual(run.events, ["live", "stopping"]);
     mock.timers.tick(700);
     fake.emit("partialResults", { matches: ["Reminders on WhatsApp would help", "reminders on what's up"] });
-    mock.timers.tick(NATIVE_FINAL_WORDS_MS);
+    mock.timers.tick(NATIVE_STOP_GRACE_MS);
     await flush();
     assert.deepEqual(run.takes, [{ transcript: "Reminders on WhatsApp would help", durationSec: 2.5 }]);
+  });
+
+  it("keeps taking words through the grace period: a corrected final result replaces an earlier partial", async () => {
+    const fake = fakePlugin();
+    const run = record({ lang: "en-IN" });
+    const take = startNativeDictation(fake.plugin, run.options);
+    await flush();
+    fake.emit("partialResults", { matches: ["I would pay"] });
+    mock.timers.tick(3000);
+    take.stop();
+    fake.emit("listeningState", { status: "stopped" });
+    mock.timers.tick(100);
+    fake.emit("partialResults", { matches: ["I would pay 200"] });
+    mock.timers.tick(900);
+    await flush();
+    assert.deepEqual(run.takes, [], "a result after the end does not finish the take early");
+    fake.emit("partialResults", { matches: ["I would pay 250"] });
+    mock.timers.tick(NATIVE_STOP_GRACE_MS);
+    await flush();
+    assert.deepEqual(run.takes, [{ transcript: "I would pay 250", durationSec: 3 }]);
   });
 
   it("goes on without the last words if they never come", async () => {
