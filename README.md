@@ -167,7 +167,7 @@ With `PITCHSWIPE_DEMO=1` the app runs on fixture data, labelled "Demo data".
 
 ```bash
 CAP_SERVER_URL=https://noor-api.centralindia.cloudapp.azure.com npx cap sync android
-cd android && ./gradlew assembleDebug    # android/app/build/outputs/apk/debug/app-debug.apk
+cd mobile/android && ./gradlew assembleDebug    # mobile/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
 **iOS.** No Mac is needed: the **iOS build** workflow compiles the app on a GitHub macOS runner. Run it from the
