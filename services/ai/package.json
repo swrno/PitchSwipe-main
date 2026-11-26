@@ -1,0 +1,14 @@
+{
+  "name": "@pitchswipe/ai-services",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WP12 AI services: LLM provider interface, rules engine (spec 05 §6.5) and prompt templates. Framework-agnostic; no dependencies.",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}

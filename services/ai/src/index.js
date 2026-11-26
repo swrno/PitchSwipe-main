@@ -1,0 +1,12 @@
+export { assertProvider } from './llm/provider.js';
+export { createMockProvider } from './llm/mock-provider.js';
+export { createLlmProviderFromEnv, DEFAULT_LLM_MODEL, DEFAULT_LLM_URL } from './llm/env-provider.js';
+export { canonicalize, extractNumbers, placeholderKeys, fillPlaceholders, stripPlaceholders } from './rules/numbers.js';
+export { createSourceTable } from './rules/source-table.js';
+export { checkDraft, checkFilled } from './rules/post-check.js';
+export { TAGS, TAG_LABELS, THRESHOLDS, classifyExperiment, classifySegment, groupSegments, personaTrackRecord } from './rules/tagging.js';
+export { buildInsight, applyPageLimits } from './rules/insight.js';
+export { formatInt, formatPercent, rate, groupFacts, countFact, chanceFact } from './rules/facts.js';
+export { checkDeckShape, checkLanguageDraft, applyThemeCounts } from './rules/card-checks.js';
+export * from './prompts/templates.js';
+export { writeInsight } from './services/insights.js';
