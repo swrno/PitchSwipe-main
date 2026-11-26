@@ -2,6 +2,8 @@
 
 Rules of engagement: `README.md`. Each package lists **scope, depends-on, spec, designs, done-when**. Packages with no shared dependency run in parallel. Never build *(Pitch only)* beyond static UI. Status tags (Build / Demo / Proposed / Roadmap) come from `spec/07-…` §10.8: **build only "Build"**; Proposed items are optional extras after everything else.
 
+Paths: `spec/NN` means `docs/spec/NN-….md` (this folder) and `designs/` means `docs/designs/`.
+
 ## Contracts (WP0 produces; everyone consumes)
 - **Types** in `src/types/` mirror the data model in `spec/06-…` (note new fields: `decks.variable` incl. `language`, `priceMode`, statuses `draft|live|decided|shipped|closed`, `products.targetUsers/audience.who`, `users.role/qualityScore/counting`, `sites`, `assistantEvents`, `responses.commentVoice`). Don't rename.
 - **Standard lists** (roles, industries, states) in one module `src/lib/lists.ts` from `spec/03` §5.12 / `spec/08` §13.5. No free text anywhere.
