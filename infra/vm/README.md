@@ -58,7 +58,7 @@ Without `BACKUP_PASSPHRASE` the run fails before connecting and uploads nothing;
 
 **The repo is public: anyone signed in to GitHub can download these artifacts.** That is why they are encrypted, and why the passphrase must stay secret. **If the passphrase is lost, every copy is useless**: GitHub never shows a secret again, so keep the passphrase in a password manager and hand it over with the server env. When you change it, keep the old one for 30 days, because older artifacts still need it.
 
-A failed scheduled run is emailed to one person, the same way as the uptime check (see "Uptime check"), and the same 60-day rule applies: in a public repo GitHub switches the schedule off after 60 days without repository activity. The `deploy` key can now read the backup. It could already ship app code that runs as the `pitchswipe` user and reads the whole database through `MONGODB_URI`, so this exposes no data the key could not already reach.
+A failed scheduled run is emailed to one person, the same way as the uptime check (see "Uptime check"), and the same 60-day rule applies: in a public repo GitHub switches the schedule off after 60 days without repository activity. The `deploy` key can now read the backup. It could already ship app code that runs as the `pitchswipe` user and reads the whole `pitchswipe` database through `MONGODB_URI`, so the export exposes nothing new **only if the nightly dump is limited to the `pitchswipe` database** (`mongodump --db pitchswipe`). The backup script is not in this repo, so check it before installing (first line of the install steps below). If it dumps the whole server, the archive also holds the `admin` database, including the password hashes of every MongoDB user (the `admin` user too), which the key could not read before: limit the dump to `--db pitchswipe` first, or accept that.
 
 Until the steps below are done and the secret is set, the workflow still runs every day once it is on `main` and fails (no `BACKUP_PASSPHRASE`, or the export script or sudoers line missing), so the person it emails gets a failure email each day. Install first, or expect those emails. GitHub only runs a schedule, and only shows the "Run workflow" button, for workflow files on the default branch.
 
@@ -71,6 +71,7 @@ Nothing here is installed yet. A deploy ships only the built app, so copy the tw
 scp infra/vm/pitchswipe-backup-export infra/vm/pitchswipe-deploy.sudoers <your-user>@noor-api.centralindia.cloudapp.azure.com:~/
 
 # on the VM
+sudo grep -n mongodump /usr/local/bin/pitchswipe-backup   # should show --db pitchswipe; see the note above if not
 sudo install -o root -g root -m 755 ~/pitchswipe-backup-export /usr/local/bin/pitchswipe-backup-export
 sudo cat /etc/sudoers.d/pitchswipe-deploy          # today: the single pitchswipe-activate line
 sudo diff /etc/sudoers.d/pitchswipe-deploy ~/pitchswipe-deploy.sudoers   # adds comments and one export line only
