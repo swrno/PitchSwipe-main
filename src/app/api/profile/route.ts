@@ -119,7 +119,7 @@ export async function POST(request: Request) {
     const doc = await User.findOneAndUpdate(
       { firebaseUid: token.uid },
       { $set: set, $setOnInsert: { firebaseUid: token.uid } },
-      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
+      { upsert: true, returnDocument: "after", runValidators: true, setDefaultsOnInsert: true },
     ).lean<Doc>();
     return NextResponse.json({ user: serialize(doc as Doc) }, { status: existing ? 200 : 201 });
   } catch (error) {

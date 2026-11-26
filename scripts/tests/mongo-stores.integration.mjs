@@ -49,6 +49,12 @@ function assertTestDb() {
   return name;
 }
 
+/** Mongoose warnings (deprecations) seen during the run; the last test fails on any. */
+const mongooseWarnings = [];
+process.on("warning", (warning) => {
+  if (warning.code === "MONGOOSE") mongooseWarnings.push(warning.message);
+});
+
 const RUN = Date.now().toString(36);
 const owner = new mongoose.Types.ObjectId().toHexString();
 const store = createMongoStore();
@@ -163,7 +169,7 @@ describe("Mongo stores (integration)", { skip }, () => {
       rewardMetricId: "metric-7",
       flagsmithError: "simulated: warehouse not connected",
     });
-    // The value returned by findOneAndUpdate({ new: true }) is the updated document.
+    // The value returned by findOneAndUpdate({ returnDocument: "after" }) is the updated document.
     assert.equal(saved.status, "live");
     assert.equal(saved.publishingAt, undefined);
     assert.equal(saved.featureId, 9001);
@@ -395,5 +401,12 @@ describe("Mongo stores (integration)", { skip }, () => {
     await swipe.markExposed("not-an-id"); // ignored, no throw
     const stats = await store.deckStats(owner, [deck._id]);
     assert.equal(stats[deck._id].swipers, 1);
+  });
+
+  // Runs last: every store call above has run by now. Mongoose reports deprecated options (such as `new: true` on
+  // findOneAndUpdate) through process warnings with code MONGOOSE.
+  it("no Mongoose deprecation warnings during the run", async () => {
+    await new Promise((resolve) => setImmediate(resolve)); // warnings are delivered on a later tick
+    assert.deepEqual(mongooseWarnings, []);
   });
 });

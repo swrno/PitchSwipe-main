@@ -86,7 +86,7 @@ try {
   const house = await User.findOneAndUpdate(
     { firebaseUid: HOUSE_ACCOUNT.firebaseUid },
     { $setOnInsert: { ...HOUSE_ACCOUNT, emailVerified: true, roles: ["founder"], createdAt: new Date() } },
-    { upsert: true, new: true, lean: true },
+    { upsert: true, returnDocument: "after", lean: true },
   );
   const ownerId = String(house._id);
 

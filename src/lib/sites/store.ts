@@ -83,7 +83,7 @@ export function createMongoSitesStore(): SitesStore {
     async save(site) {
       const { Site, isValidObjectId } = await model();
       if (site.id && isValidObjectId(site.id)) {
-        const r = (await Site.findByIdAndUpdate(site.id, { $set: toDoc(site), ...(site.lastSeenAt ? {} : { $unset: { lastSeenAt: 1 } }) }, { new: true }).lean()) as unknown as Row | null;
+        const r = (await Site.findByIdAndUpdate(site.id, { $set: toDoc(site), ...(site.lastSeenAt ? {} : { $unset: { lastSeenAt: 1 } }) }, { returnDocument: "after" }).lean()) as unknown as Row | null;
         if (r) return fromRow(r);
       }
       const created = await Site.create(toDoc(site));
