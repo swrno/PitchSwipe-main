@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Writes the newest nightly MongoDB backup to stdout, for the encrypted off-site copy
+# (.github/workflows/offsite-backup.yml). Run as root: the deploy user may run it through sudo, with no arguments
+# (infra/vm/pitchswipe-deploy.sudoers). Install steps: "Off-site backup" in infra/vm/README.md.
+#
+#   sudo /usr/local/bin/pitchswipe-backup-export > copy.archive.gz
+#
+# stdout carries the archive bytes and nothing else; messages go to stderr. It refuses (non-zero exit, nothing on
+# stdout) when there is no backup, when the newest one is older than 36 hours (the nightly job has stopped), or when
+# the newest one is not a complete gzip file (for example while the nightly job is still writing it).
+set -euo pipefail
+umask 077
+
+# Fixed on purpose: this runs as root on behalf of a remote key, so nothing about it can be chosen by the caller.
+BACKUP_DIR=/var/backups/pitchswipe
+MAX_AGE_HOURS=36
+ME=pitchswipe-backup-export
+
+die() { echo "$ME: $*" >&2; exit 1; }
+
+(( $# == 0 )) || { echo "$ME: takes no arguments" >&2; exit 2; }
+[[ -t 1 ]] && die "stdout is a terminal; redirect it to a file or a pipe"
+[[ -d "$BACKUP_DIR" ]] || die "no backup directory $BACKUP_DIR"
+
+# Newest by modification time, over regular files only (no symlinks), without parsing ls.
+newest=""
+newest_mtime=0
+shopt -s nullglob
+for file in "$BACKUP_DIR"/pitchswipe-*.archive.gz; do
+  [[ -f "$file" && ! -L "$file" ]] || continue
+  mtime="$(stat -c %Y -- "$file")"
+  if (( mtime > newest_mtime )); then
+    newest="$file"
+    newest_mtime="$mtime"
+  fi
+done
+[[ -n "$newest" ]] || die "no backup (pitchswipe-*.archive.gz) in $BACKUP_DIR"
+
+name="$(basename -- "$newest")"
+age=$(( $(date +%s) - newest_mtime ))
+(( age <= MAX_AGE_HOURS * 3600 )) || die "newest backup $name is $(( age / 3600 )) h old (limit ${MAX_AGE_HOURS} h); is the nightly job running?"
+[[ -s "$newest" ]] || die "newest backup $name is empty"
+gzip -t -- "$newest" 2>/dev/null || die "newest backup $name is not a complete gzip file"
+
+echo "$ME: sending $name ($(stat -c %s -- "$newest") bytes, $(( age / 60 )) min old)" >&2
+exec cat -- "$newest"

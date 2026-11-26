@@ -157,8 +157,26 @@ the Actions tab. Details under "Uptime check" in [infra/vm/README.md](../infra/v
 
 `/usr/local/bin/pitchswipe-backup` runs every night at 02:15 UTC (`/etc/cron.d/pitchswipe-backup`) and logs under the
 tag `pitchswipe-backup` (`journalctl -t pitchswipe-backup`). It writes
-`/var/backups/pitchswipe/pitchswipe-<UTC time>.archive.gz` and keeps the newest 7. They are on the same VM only: if
-the VM's disk is lost, so are the backups. List them with `sudo ls -lt /var/backups/pitchswipe`.
+`/var/backups/pitchswipe/pitchswipe-<UTC time>.archive.gz` and keeps the newest 7. List them with
+`sudo ls -lt /var/backups/pitchswipe`. The script and its cron file are not in the repo yet.
+
+**Off-site copy (ready, not yet switched on).** `.github/workflows/offsite-backup.yml` copies the newest backup off
+the VM every day at 03:30 UTC, encrypted with gpg (AES256) using the `BACKUP_PASSPHRASE` secret, and keeps it as a
+workflow artifact for 30 days. It works only after the owner does the one-time steps under "Off-site backup" in
+[infra/vm/README.md](../infra/vm/README.md): install `/usr/local/bin/pitchswipe-backup-export`, add one line to
+`/etc/sudoers.d/pitchswipe-deploy` (checked with `visudo -cf` first), and set the `BACKUP_PASSPHRASE` repository
+secret. Until then the backups are on the VM only: if the VM's disk is lost, so are they.
+
+- The repo is public, so **anyone signed in to GitHub can download the artifacts**; that is why they are encrypted.
+- **Losing the passphrase makes every copy useless.** GitHub never shows a secret again: keep the passphrase in a
+  password manager and hand it over with the server env.
+- Without the secret the workflow fails and uploads nothing; it never uploads an unencrypted copy.
+
+To restore from an off-site copy: download the artifact (Actions -> Off-site backup -> a run -> Artifacts, a zip),
+unzip it, run `gpg --output pitchswipe-restore.archive.gz --decrypt pitchswipe-backup-<date>.archive.gz.gpg` and
+enter the passphrase, copy the result to the VM as `/root/pitchswipe-restore.archive.gz` (root only, mode 600), then
+run the commands below with `--archive=/root/pitchswipe-restore.archive.gz`. The full steps are under "Restore from an
+off-site copy" in [infra/vm/README.md](../infra/vm/README.md).
 
 **A restore has never been rehearsed.** Before you need one, check that the `admin` user is allowed to restore (in
 mongosh, `db.getSiblingDB("admin").getUser("admin")` should show `root`, `restore` or `readWriteAnyDatabase`), and try
@@ -220,7 +238,8 @@ Actions -> Variables): `APP_URL` (which becomes `NEXT_PUBLIC_APP_URL` and `NEXT_
 `NEXT_PUBLIC_FIREBASE_*`, `NEXT_PUBLIC_FLAGSMITH_ENV_KEY`, and `NEXT_PUBLIC_SUPPORT_EMAIL` once created. `DEPLOY_HOST`
 (the server name) is a variable too. After changing one, redeploy: Actions -> Deploy -> Run workflow, or push to
 `main`. The deploy also uses two Actions **secrets**: `DEPLOY_SSH_KEY` (the `deploy` user's private key) and
-`DEPLOY_KNOWN_HOSTS` (the server's host key).
+`DEPLOY_KNOWN_HOSTS` (the server's host key). The off-site backup uses those two and a third secret,
+`BACKUP_PASSPHRASE` (see [Backups](#backups)); hand that passphrase over privately with the server env.
 
 ### Rotate after the handover
 
@@ -248,6 +267,9 @@ Once you have access, replace the secrets the previous owner held. One at a time
   (`MONGO_APP_PASSWORD`) and `MONGODB_URI`; change both and restart the app. The `admin` password is only in
   `/root/.pitchswipe-mongo` (`MONGO_ADMIN_PASSWORD`), but the nightly backup uses it, so update that file at the same
   moment and check the next backup with `journalctl -t pitchswipe-backup`.
+- **`BACKUP_PASSPHRASE` (once the off-site copy is on):** set a new one (`openssl rand -base64 32`) and store it in
+  your password manager. Copies made before the change still need the old passphrase, so keep it until they expire
+  (30 days).
 
 ## Flagsmith setup
 
@@ -300,7 +322,8 @@ that database at the end. It does not check the host, so only ever point it at a
 - **Store releases:** Android release signing and a Play Console account. PR #29 (open, never run) adds a manual
   Android build-and-release workflow that signs builds once four `ANDROID_KEY*` secrets exist. iOS needs an Apple
   Developer account and signing. The app id `app.pitchswipe.mobile` is a placeholder.
-- **Operations:** backups are on the VM only (no off-site copy) and a restore has never been rehearsed; uptime
+- **Operations:** backups are on the VM only until the off-site copy is switched on (see [Backups](#backups)), and a
+  restore has never been rehearsed; uptime
   alerting is a GitHub workflow that emails one person (see [Uptime check](#uptime-check)), not a paging service;
   1 GB RAM is tight; the site runs on the Azure DNS name, not a custom domain.
 - **Legal and product:** the terms and privacy notice are unreviewed drafts; no licence chosen; swiper earnings are
