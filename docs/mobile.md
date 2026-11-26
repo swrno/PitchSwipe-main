@@ -125,15 +125,60 @@ In Xcode choose your Team under Signing & Capabilities, pick a simulator or devi
 
 ## Permissions
 
-- Android: `INTERNET`, `RECORD_AUDIO`. Voice notes are **not available in the app yet**: they
-  now use the browser's speech recognizer (Web Speech API), which the Android System WebView
-  does not provide. The web code detects the native shell (`window.Capacitor.isNativePlatform()`)
-  and says "Voice notes are not in the app yet. Type your comment instead." `RECORD_AUDIO` is
-  kept for a future native speech plugin (for example `@capacitor-community/speech-recognition`);
-  remove it before a store release if that plugin is not added.
-- iOS: `NSMicrophoneUsageDescription`, kept for the same reason (a native plugin would also need
-  `NSSpeechRecognitionUsageDescription`).
+- Android: `INTERNET`, `RECORD_AUDIO` (voice notes), and a `<queries>` entry for the
+  `android.speech.RecognitionService` intent. From Android 11 the app cannot see the phone's speech
+  service without it, and voice notes would stay off. Android asks for the microphone the first time
+  the swiper taps "Or say it out loud".
+- iOS: `NSMicrophoneUsageDescription` and `NSSpeechRecognitionUsageDescription` (both needed by the
+  speech plugin). They are in `Info.plist` already, ready for when the plugin can be linked (see below).
 - No camera, location or other permissions are declared because the app does not use them.
+
+## Voice notes in the apps
+
+The WebViews have no speech recognizer (Web Speech API), so inside the app voice notes use the
+phone's own speech service through `@capacitor-community/speech-recognition` 7.0.1 (Google's
+recognizer on most Android phones, Apple's on iOS).
+
+- The app loads the live site, so the plugin has to be **in the installed app** (added by `cap sync`)
+  and the web code calls it through the Capacitor bridge (`window.Capacitor.Plugins.SpeechRecognition`,
+  read at call time in `src/lib/claims/native-dictation.ts`). A new app build is needed before users get it.
+- The web code picks the engine: in the app, if this build has the plugin and `available()` says yes,
+  the phone listens; the browser path is never used in the app. An app build without the plugin says
+  "Voice notes are not in this version of the app. Type your comment instead."; a phone with no
+  speech service says so too.
+- Same flow as the website: pick a language, live words, a 30 s cap that starts when listening starts,
+  Stop and keep, Delete, then review and the English translation. **No audio is kept in the app**
+  (the recognizer holds the microphone, so nothing is recorded) and the "Let the founder play my voice
+  note" tick is not shown. There is no level meter in the app.
+- Android's recognizer stops by itself after a pause. That counts as "Stop and keep", as it does in
+  Chrome; the swiper can start another voice note to say more.
+- **iOS is not wired up yet.** The plugin ships no `Package.swift` and this iOS project uses Swift
+  Package Manager, so `cap sync` skips it ("does not have a Package.swift") and `CapApp-SPM/Package.swift`
+  does not list it. The iOS app therefore says voice notes are not in this version of the app. To add it:
+  wait for an upstream release with SPM support (the "support capacitor 8" issue is open), or write a
+  small Swift plugin in the app named `SpeechRecognition` with the same methods and events (`available`,
+  `checkPermissions`, `requestPermissions`, `start`, `stop`, `isListening`, `getSupportedLanguages`,
+  `partialResults`, `listeningState`), and build it on a Mac. The web code needs no change for either.
+
+### Device test checklist (a real Android phone)
+
+Install a debug build made after this change (`./gradlew assembleDebug`) and, signed in with a verified email:
+
+- [ ] Tap "Or say it out loud": Android asks for the microphone once. Deny it: the app says the microphone or
+      speech recognition is blocked and to allow it in the phone's settings. Allow it in Settings and try again.
+- [ ] English: words appear while you speak; the clock starts at 0:00 when listening starts; "Stop and keep"
+      keeps the last words; the review shows the words and says your voice is not kept (no "play" tick).
+- [ ] Hindi (and one more Indian language, e.g. Tamil): the words come back in that script, and the English
+      translation appears.
+- [ ] Pause for a few seconds mid-sentence: the note ends and is kept (no lost words, no hang on "Finishing...").
+- [ ] Say nothing: within a few seconds the app says "We did not hear anything".
+- [ ] Talk for more than 30 s: it stops by itself at 0:30 and keeps the words.
+- [ ] Delete while listening: nothing is kept, and the microphone indicator in the status bar goes off.
+- [ ] Airplane mode: either the words still come (on-device recognition) or the app shows a plain message;
+      no crash and no endless "Listening".
+- [ ] A phone without Google's speech service (or with it disabled): the app says the phone has no speech
+      recognition service.
+- [ ] An app build from before this change: it still says voice notes are not in this version of the app.
 
 ## Navigation and sign-in
 
@@ -161,18 +206,20 @@ Opening shared deck links (`https://<domain>/d/<slug>`) in the app needs the fin
 - [ ] Android: generate an upload keystore (keep it and passwords out of git), build a signed
       AAB (`./gradlew bundleRelease`), enrol in Play App Signing.
 - [ ] iOS: Apple Developer account, App Store Connect record, signing, archive and upload.
-- [ ] Privacy: the app collects **email addresses** (account). Voice notes (audio and
-      transcripts) are collected on the website only until a native speech plugin is added. Complete Google Play Data safety and Apple App Privacy labels
+- [ ] Privacy: the app collects **email addresses** (account). In the Android app, voice notes collect the
+      transcript text and its English translation (no audio; the phone's speech service, usually Google's,
+      turns speech into text). Complete Google Play Data safety and Apple App Privacy labels
       accordingly, and provide a privacy policy URL and an account deletion path (both
       stores require one for apps with accounts).
-- [ ] Test on real devices: sign-in, offline fallback, and that the comment sheet shows "Voice notes
-      are not in the app yet" instead of a record button.
+- [ ] Test on real devices: sign-in, offline fallback, and the voice-note checklist above (on iOS,
+      until the plugin is linked, the comment sheet says "Voice notes are not in this version of the app").
 
 ## Known limits
 
 - No push notifications.
 - Native plugins: `@capacitor/haptics` (swipe, answer and reward feedback; the web code reads it
-  from `window.Capacitor` and falls back to `navigator.vibrate`). Capacitor 8's built-in SystemBars
+  from `window.Capacitor` and falls back to `navigator.vibrate`) and
+  `@capacitor-community/speech-recognition` (voice notes, Android only for now; see above). Capacitor 8's built-in SystemBars
   draws the app edge to edge with dark status-bar icons and passes the insets to CSS as
   `--safe-area-inset-*` (used through `--safe-top` / `--safe-bottom` in `globals.css`).
 - Needs network: offline shows only the fallback page.
