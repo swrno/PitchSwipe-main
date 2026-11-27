@@ -106,3 +106,90 @@ describe("provider choice", () => {
     assert.equal(translateModel({ LLM_API_KEY: "sk-ant-x", LLM_MODEL: "claude-haiku-5-5" }), "claude-haiku-5-5");
   });
 });
+
+describe("Groq provider: failures and options", () => {
+  it("a timed-out call moves to the fallback model", async () => {
+    const models: string[] = [];
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body));
+      models.push(body.model);
+      if (body.model === GROQ_DEFAULT_MODEL) {
+        // Hang until the provider's timeout aborts the request.
+        return new Promise<Response>((_, reject) => init.signal?.addEventListener("abort", () => reject(new Error("aborted"))));
+      }
+      return new Response(JSON.stringify({ model: body.model, choices: [{ finish_reason: "stop", message: { content: "late but fine" } }] }));
+    }) as unknown as typeof fetch;
+    const res = await createGroqProvider(env, { fetchImpl, timeoutMs: 20, maxRetries: 0 }).complete(req);
+    assert.equal(res.text, "late but fine");
+    assert.deepEqual(models, [GROQ_DEFAULT_MODEL, GROQ_FAST_MODEL]);
+  });
+
+  it("an unreachable Groq ends in an LlmHttpError with status 0", async () => {
+    const fetchImpl = (async () => {
+      throw new TypeError("fetch failed");
+    }) as unknown as typeof fetch;
+    await assert.rejects(
+      createGroqProvider(env, { fetchImpl, maxRetries: 0 }).complete(req),
+      (e: unknown) => e instanceof LlmHttpError && e.status === 0 && /could not be reached/.test(e.message),
+    );
+  });
+
+  it("a server error moves to the fallback model", async () => {
+    const { calls, fetchImpl } = fakeGroq([err(503, "service_unavailable"), ok("fine")]);
+    assert.equal((await createGroqProvider(env, { fetchImpl }).complete(req)).text, "fine");
+    assert.equal(calls.length, 2);
+  });
+
+  it("a bad request that is not about the model is not retried", async () => {
+    const { calls, fetchImpl } = fakeGroq([err(400, "invalid_request_error", "messages: too long")]);
+    await assert.rejects(createGroqProvider(env, { fetchImpl }).complete(req), (e: unknown) => e instanceof LlmHttpError && e.status === 400);
+    assert.equal(calls.length, 1);
+  });
+
+  it("a content filter stop is a decline, not an answer", async () => {
+    const { fetchImpl } = fakeGroq([ok("", "content_filter")]);
+    await assert.rejects(createGroqProvider(env, { fetchImpl }).complete(req), { name: "LlmDeclinedError" });
+  });
+
+  it("an unreadable error body still gives a clear status", async () => {
+    const fetchImpl = (async () => new Response("<html>bad gateway</html>", { status: 502 })) as unknown as typeof fetch;
+    await assert.rejects(
+      createGroqProvider(env, { fetchImpl, maxRetries: 0 }).complete(req),
+      (e: unknown) => e instanceof LlmHttpError && e.status === 502 && e.message === "Groq answered 502.",
+    );
+  });
+
+  it("retries the whole model list up to maxRetries more times (capped at 2)", async () => {
+    const { calls, fetchImpl } = fakeGroq([err(429, "rate_limit_exceeded")]);
+    await assert.rejects(createGroqProvider(env, { fetchImpl, maxRetries: 5 }).complete(req));
+    assert.equal(calls.length, 6, "3 passes x 2 models");
+  });
+
+  it("Qwen models hide their reasoning instead of taking an effort level", async () => {
+    const { calls, fetchImpl } = fakeGroq([ok("<think>hmm</think>hi")]);
+    const res = await createGroqProvider({ ...env, LLM_MODEL: "qwen/qwen3.8-27b" }, { fetchImpl }).complete(req);
+    assert.equal(res.text, "hi");
+    assert.equal(calls[0].body.reasoning_format, "hidden");
+    assert.equal("reasoning_effort" in calls[0].body, false);
+  });
+
+  it("passes a chosen effort, a custom base URL and the template's own output cap", async () => {
+    const { calls, fetchImpl } = fakeGroq([ok("x")]);
+    const p = createGroqProvider({ ...env, LLM_BASE_URL: "https://proxy.example/v1/" }, { fetchImpl, effort: "medium" });
+    await p.complete({ ...req, maxTokens: 5000 });
+    assert.equal(calls[0].url, "https://proxy.example/v1/chat/completions");
+    assert.equal(calls[0].body.reasoning_effort, "medium");
+    assert.equal(calls[0].body.max_completion_tokens, 5000);
+  });
+
+  it("uses LLM_API_KEY when it is a Groq key, and needs some key", () => {
+    assert.equal(createGroqProvider({ LLM_API_KEY: "gsk_from_llm" }).model, GROQ_DEFAULT_MODEL);
+    assert.throws(() => createGroqProvider({}), /GROQ_API_KEY is not set/);
+  });
+
+  it("the fast model falls back to the main model", async () => {
+    const { calls, fetchImpl } = fakeGroq([err(429, "rate_limit_exceeded"), ok("fine")]);
+    await createGroqProvider({ ...env, LLM_MODEL: GROQ_FAST_MODEL }, { fetchImpl }).complete(req);
+    assert.deepEqual(calls.map((c) => c.body.model), [GROQ_FAST_MODEL, GROQ_DEFAULT_MODEL]);
+  });
+});

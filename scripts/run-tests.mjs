@@ -30,7 +30,7 @@ export const SUITES = [
   { name: "assistant", args: [...TS, "src/lib/assistant/tests/assistant.test.ts"] },
   { name: "export", args: [...TS, "src/lib/export/export.test.ts"] },
   { name: "share", args: [...TS, "src/lib/share/tests/share.test.mjs"] },
-  { name: "ai", args: [...TS, "src/lib/ai/ai.test.ts", "src/lib/ai/groq.test.ts", "src/lib/decks/ai-live.test.ts"] },
+  { name: "ai", args: [...TS, "src/lib/ai/ai.test.ts", "src/lib/ai/groq.test.ts", "src/lib/ai/tool-loop.test.ts", "src/lib/ai/digits.test.ts", "src/lib/decks/ai-live.test.ts"] },
   { name: "ask", args: [...TS, "src/lib/ask/ask.test.ts"] },
   { name: "insights", args: [...TS, "src/lib/insights/insights.test.ts"] },
   { name: "sites", args: [...TS, "src/lib/sites/tests/sites.test.ts"] },
