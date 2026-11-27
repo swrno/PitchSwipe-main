@@ -22,7 +22,7 @@ function filesIn(dir, pattern) {
 
 export const SUITES = [
   { name: "flagsmith", args: [...TS, "scripts/tests/flagsmith.test.mjs"] },
-  { name: "quality", args: [...TS, "src/lib/quality/tests/quality.test.mjs", "src/lib/quality/tests/switch.test.mjs"] },
+  { name: "quality", args: [...TS, "src/lib/quality/tests/quality.test.mjs", "src/lib/quality/tests/switch.test.mjs", "src/lib/quality/tests/submission.test.mjs"] },
   { name: "demand-curve", args: [...TS, "src/lib/demand-curve/demand-curve.test.ts"] },
   { name: "swipe", args: [...TS, ...filesIn("src/lib/swipe/tests", /\.test\.mjs$/)] },
   { name: "claims", args: [...TS, "src/lib/claims/tests/claims.test.mjs", "src/lib/claims/tests/voice-text.test.ts", "src/lib/claims/tests/native-dictation.test.ts"] },
@@ -34,6 +34,7 @@ export const SUITES = [
   { name: "ask", args: [...TS, "src/lib/ask/ask.test.ts"] },
   { name: "insights", args: [...TS, "src/lib/insights/insights.test.ts"] },
   { name: "sites", args: [...TS, "src/lib/sites/tests/sites.test.ts"] },
+  { name: "auth", args: [...TS, "src/lib/auth/tests/next.test.ts"] },
   { name: "ratelimit", args: [...TS, "src/lib/ratelimit/ratelimit.test.ts", "src/lib/ratelimit/body.test.ts"] },
   { name: "feel", args: [...TS, "src/lib/feel/haptics.test.ts"] },
   { name: "firebase", args: [...TS, "src/lib/firebase/private-key.test.ts"] },
