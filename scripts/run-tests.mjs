@@ -21,12 +21,12 @@ function filesIn(dir, pattern) {
 }
 
 export const SUITES = [
-  { name: "flagsmith", args: [...TS, "scripts/tests/flagsmith.test.mjs"] },
+  { name: "flagsmith", args: [...TS, "scripts/tests/flagsmith.test.mjs", "src/lib/flagsmith/http.test.ts"] },
   { name: "quality", args: [...TS, "src/lib/quality/tests/quality.test.mjs", "src/lib/quality/tests/switch.test.mjs", "src/lib/quality/tests/submission.test.mjs"] },
   { name: "demand-curve", args: [...TS, "src/lib/demand-curve/demand-curve.test.ts"] },
   { name: "swipe", args: [...TS, ...filesIn("src/lib/swipe/tests", /\.test\.mjs$/)] },
   { name: "claims", args: [...TS, "src/lib/claims/tests/claims.test.mjs", "src/lib/claims/tests/voice-text.test.ts", "src/lib/claims/tests/native-dictation.test.ts"] },
-  { name: "results", args: [...TS, "src/lib/results/results.test.ts", "src/lib/results/demo-consistency.test.ts", "src/lib/fixtures-imports.test.ts"] },
+  { name: "results", args: [...TS, "src/lib/results/results.test.ts", "src/lib/results/demo-consistency.test.ts", "src/lib/results/state-tiles.test.ts", "src/lib/fixtures-imports.test.ts"] },
   { name: "assistant", args: [...TS, "src/lib/assistant/tests/assistant.test.ts"] },
   { name: "export", args: [...TS, "src/lib/export/export.test.ts"] },
   { name: "share", args: [...TS, "src/lib/share/tests/share.test.mjs"] },
