@@ -6,7 +6,6 @@ import { ChevronRight, LogIn, PanelLeftClose, PanelLeftOpen, Plus } from "lucide
 import * as React from "react";
 import { useAuth } from "@/features/auth/ui/provider";
 import { fetchWallet } from "@/features/claims/ui/client";
-import { AnimatedAmount } from "@/shared/ui/animated-amount";
 import { useAnnouncedBalance } from "@/shared/lib/feel/wallet-events";
 import { getSwiperGuid } from "@/features/swipe/ui/client";
 import { DecksLeftCompact } from "@/features/decks/ui/decks-left";
@@ -17,6 +16,7 @@ import { NAV_ITEMS, NEW_DECK_HREF, TAB_ITEMS, isActivePath, isItemActive } from 
 import { api } from "@/features/decks/ui/api";
 import type { DecksOverview, ProductListItem } from "@/features/decks/views";
 import { cn } from "@/shared/lib/utils";
+import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 /** Phone: fixed bottom tab bar. Hidden from md up. */
@@ -230,9 +230,10 @@ export function Sidebar({
                     <Icon aria-hidden className={cn("size-4 shrink-0", active && "text-accent")} strokeWidth={active ? 2.25 : 1.75} />
                     {collapsed ? null : item.label}
                     {isEarnings && !collapsed ? (
-                      <span className="tnum ml-auto text-xs font-bold text-accent">
-                        <AnimatedAmount value={balance} />
-                      </span>
+                      // Payouts are not live yet: the item says so instead of showing a balance.
+                      <Badge variant="coming" className="ml-auto px-1.5 text-[10px]">
+                        Coming soon
+                      </Badge>
                     ) : null}
                   </Link>
                   {isProducts && !collapsed ? (
