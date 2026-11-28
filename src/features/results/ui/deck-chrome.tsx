@@ -162,7 +162,7 @@ function DeckSwitcher({ view }: { view: SwitcherView }) {
 
 /**
  * Header shared by every deck-level page (results, Who swiped, Waitlist, Share, and any page added under
- * /decks/[id]/): title, deck switcher + download, and the Results · Who swiped · Waitlist · Share tabs.
+ * /decks/[id]/): title, deck switcher + download, and the Results · Audience and who swiped · Waitlist users · Share tabs.
  * Registers the real names for the top bar's breadcrumb. Wrapped by app/(shell)/decks/[id]/layout.tsx.
  */
 export function DeckChrome({
@@ -191,7 +191,7 @@ export function DeckChrome({
   const base = `/decks/${deckId}`;
   const tabs: PageTab[] = [
     { icon: "results", label: "Results", href: base, exact: true },
-    { icon: "whoSwiped", label: "Who swiped", href: `${base}/who-swiped` },
+    { icon: "whoSwiped", label: "Audience and who swiped", href: `${base}/who-swiped` },
     { icon: "waitlistUsers", label: "Waitlist users", href: `${base}/waitlist` },
     { icon: "share", label: "Share", href: `${base}/share` },
   ];
@@ -218,7 +218,7 @@ export function DeckChrome({
             ? undefined
             : sub === "Waitlist users"
               ? "Everyone who joined the waitlist for this test."
-              : sub === "Who swiped"
+              : sub === "Audience and who swiped"
               ? "Where swipers are, who they are and what they care about."
               : sub === "Share"
               ? `Send ${view.productName} to people who can answer.`
@@ -236,7 +236,7 @@ export function DeckChrome({
               <SwitcherButton view={null} className="px-3.5 py-1.5" />
             )}
             {/* Results and Who swiped both export the same bundle (it includes the who-swiped tables). */}
-            {!sub || sub === "Who swiped" ? <DownloadResultsButton deckId={deckId} /> : null}
+            {!sub || sub === "Audience and who swiped" ? <DownloadResultsButton deckId={deckId} /> : null}
           </>
         }
         tabs={tabs}

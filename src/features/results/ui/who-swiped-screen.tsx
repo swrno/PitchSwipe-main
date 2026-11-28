@@ -290,7 +290,7 @@ export function WhoSwipedSection({ data }: { data: ResultsPayload }) {
           id="who-swiped-title"
           className="text-lg font-semibold tracking-tight md:text-2xl"
         >
-          <IconLabel icon="whoSwiped">Who swiped</IconLabel>
+          <IconLabel icon="whoSwiped">Audience and who swiped</IconLabel>
         </h2>
         <p className="mt-1 text-sm text-muted-foreground md:hidden">
           {whoSwiped.validSwipers} valid swipers · {deck.label}
@@ -306,7 +306,7 @@ export function WhoSwipedSection({ data }: { data: ResultsPayload }) {
         <>
           <div
             role="tablist"
-            aria-label="Who swiped"
+            aria-label="Audience and who swiped"
             className="-mx-4 flex gap-1.5 overflow-x-auto px-4 md:hidden"
           >
             {WHO_TABS.map((t) => (
