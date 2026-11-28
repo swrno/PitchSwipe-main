@@ -288,7 +288,7 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
   if (published) {
     const link = `${window.location.origin}/d/${encodeURIComponent(published.slug)}`;
     return (
-      <div className="max-w-xl space-y-6">
+      <div className="mx-auto max-w-xl space-y-6">
         <Crumbs items={[{ label: "Products", href: "/products" }, { label: product.name, href: `/products/${product.id}` }, { label: "New test" }]} />
         <PageHeader icon="statusLive" title="Your test is live" description="Swipers can see it now." className="mb-0" />
         <StepProgress step={totalSteps} total={totalSteps} label="Live" />
