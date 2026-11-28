@@ -69,7 +69,7 @@ export function ModalSheet({
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 md:items-center md:p-5">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 backdrop-blur-[2px] md:items-center md:p-5">
       <div
         ref={panel}
         role="dialog"
@@ -77,7 +77,7 @@ export function ModalSheet({
         aria-labelledby={labelledBy}
         tabIndex={-1}
         className={cn(
-          "flex max-h-[92dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-[2rem] bg-background outline-none md:rounded-3xl",
+          "flex max-h-[92dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-2xl border border-border bg-card text-card-foreground shadow-[0_24px_64px_-12px_rgba(0,0,0,0.6)] outline-none ring-1 ring-foreground/10 md:rounded-2xl",
           className,
         )}
       >
@@ -98,7 +98,7 @@ export function ModalSheet({
           <div
             data-modal-footer
             className={cn(
-              "shrink-0 border-t bg-background px-5 pb-[max(1.5rem,var(--safe-bottom))] pt-3 md:px-6 md:pb-6",
+              "shrink-0 border-t bg-card px-5 pb-[max(1.5rem,var(--safe-bottom))] pt-3 md:px-6 md:pb-6",
               scrolls ? "border-border" : "border-transparent",
             )}
           >
