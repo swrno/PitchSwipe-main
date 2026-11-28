@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     const deckId = new URL(request.url).searchParams.get("deckId") || (await newestDeckId(who.ownerId)) || "";
     if (!deckId) return NextResponse.json({ header: null, suggestions: [] }, { headers: NO_STORE });
     const ctx = deckId ? await buildAskContext(who.ownerId, deckId) : null;
-    if (!ctx) return NextResponse.json({ error: "Deck not found." }, { status: 404, headers: NO_STORE });
+    if (!ctx) return NextResponse.json({ error: "Test not found." }, { status: 404, headers: NO_STORE });
     return NextResponse.json({ header: contextHeader(ctx), suggestions: suggestedQuestions(ctx) }, { headers: NO_STORE });
   } catch (error) {
     console.error("ask: could not load", error instanceof Error ? error.message : error);

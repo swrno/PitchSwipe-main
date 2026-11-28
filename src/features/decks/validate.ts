@@ -62,9 +62,9 @@ export function validateDeck(input: unknown, mode: ValidationMode): ValidationRe
   const errors: FieldError[] = [];
   const add = (path: string, message: string) => errors.push({ path, message });
 
-  if (!isObject(input)) return { ok: false, errors: [{ path: "", message: "Deck must be an object." }] };
+  if (!isObject(input)) return { ok: false, errors: [{ path: "", message: "Test must be an object." }] };
 
-  if (typeof input.productId !== "string" || !input.productId) add("productId", "Pick the product this deck belongs to.");
+  if (typeof input.productId !== "string" || !input.productId) add("productId", "Pick the product this test belongs to.");
   const variable = input.variable as TestVariable;
   if (!(TEST_VARIABLES as readonly string[]).includes(variable)) {
     add("variable", "Pick what you are testing (headline, description, reward, price, product UI, logo or language).");
@@ -78,7 +78,7 @@ export function validateDeck(input: unknown, mode: ValidationMode): ValidationRe
     }
     if (mode === "publish" && !input.priceMode) add("priceMode", "Choose Find the best price or Test framing.");
   } else if (input.priceMode !== undefined) {
-    add("priceMode", "Price mode only applies to price decks.");
+    add("priceMode", "Price mode only applies to price tests.");
   }
   const priceMode = input.priceMode as DeckInput["priceMode"];
 
@@ -118,7 +118,7 @@ export function validateDeck(input: unknown, mode: ValidationMode): ValidationRe
   if (input.cards !== undefined && !Array.isArray(input.cards)) add("cards", "Cards must be a list.");
   const cards = Array.isArray(input.cards) ? input.cards : [];
   const range = cardCountRange(variable, priceMode);
-  if (cards.length > range.max) add("cards", `A ${variable} deck has at most ${range.max} cards.`);
+  if (cards.length > range.max) add("cards", `A ${variable} test has at most ${range.max} cards.`);
   if (publish && cards.length < range.min) add("cards", `Add at least ${range.min} versions to compare.`);
 
   cards.forEach((card, i) => {

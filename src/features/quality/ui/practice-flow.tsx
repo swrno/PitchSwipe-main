@@ -133,7 +133,7 @@ export function PracticeFlow({ mode }: { mode: PracticeMode }) {
               </>
             ) : (
               <>
-                Before real decks, you swipe <strong className="text-foreground">{QUALITY.practiceCards} practice cards</strong>,
+                Before real tests, you swipe <strong className="text-foreground">{QUALITY.practiceCards} practice cards</strong>,
                 picked at random from our sample cards. They are practice examples, not real founders&apos; pitches, and nothing you answer here goes to a founder.{" "}
                 There is no right answer: we check that you read and answer with care.
               </>

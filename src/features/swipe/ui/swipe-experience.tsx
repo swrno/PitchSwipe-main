@@ -51,7 +51,7 @@ function splitQuestion(question: string): [string, string | null] {
 }
 
 function Experience({ mode, firstSlug }: SwipeExperienceProps) {
-  const { user, authFetch } = useAuth();
+  const { user, authFetch, loading: authLoading } = useAuth();
   const fetcher = React.useMemo<Fetcher>(
     () => (user ? authFetch : (input, init) => fetch(input, init)),
     [user, authFetch],
@@ -90,7 +90,10 @@ function Experience({ mode, firstSlug }: SwipeExperienceProps) {
   const interests = React.useRef<Industry[]>([]);
   const started = React.useRef(false);
 
+  // Who the shown card was served to (uid, or null for a guest). Its token only verifies for that same swiper.
+  const loadedAs = React.useRef<string | null | undefined>(undefined);
   const load = React.useCallback(async () => {
+    loadedAs.current = user?.uid ?? null;
     setPhase("loading");
     setLoadError(null);
     try {
@@ -115,15 +118,22 @@ function Experience({ mode, firstSlug }: SwipeExperienceProps) {
       setLoadError(e instanceof Error ? e.message : "Could not load the next idea.");
       setPhase(mode === "link" ? "empty" : "home");
     }
-  }, [fetcher, mode]);
+  }, [fetcher, mode, user?.uid]);
 
-  // A personal link opens straight on its deck.
+  // Signed in or out while a card is on screen: its token belongs to the old identity, so fetch a fresh card.
   React.useEffect(() => {
-    if (mode === "link" && !started.current) {
+    if (authLoading || phase !== "card" || loadedAs.current === undefined) return;
+    if (loadedAs.current !== (user?.uid ?? null)) void load();
+  }, [authLoading, phase, user?.uid, load]);
+
+  // A personal link opens straight on its deck, but only once sign-in has settled: the served token is bound to the
+  // swiper (guest or signed-in). Loading as a guest and answering signed in would make the answer "no longer valid".
+  React.useEffect(() => {
+    if (mode === "link" && !started.current && !authLoading) {
       started.current = true;
       void load();
     }
-  }, [mode, load]);
+  }, [mode, load, authLoading]);
 
   // The card is on screen: start the dwell clock and the 2 s answer lock.
   React.useEffect(() => {

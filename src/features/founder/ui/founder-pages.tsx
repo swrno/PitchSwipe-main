@@ -4,12 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { buttonVariants } from "@/shared/ui/button";
+import { PageHeader } from "@/shared/shell/page-header";
 import { CURRENT_PLAN, decksLeft } from "@/shared/lib/plans";
 import { useAuth } from "@/features/auth/ui/provider";
 import type { DecksOverview, ProductListItem } from "@/features/decks/views";
 import { cn } from "@/shared/lib/utils";
 
-const TITLE = "text-2xl md:text-3xl font-semibold tracking-tight";
 const CARD = "rounded-xl border border-border bg-card";
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
@@ -24,7 +24,7 @@ function useOverview(): State {
     let live = true;
     authFetch("/api/decks?overview=1")
       .then(async (res) => {
-        if (!res.ok) throw new Error("Could not load your decks. Try again.");
+        if (!res.ok) throw new Error("Could not load your tests. Try again.");
         const data = (await res.json()) as DecksOverview;
         if (live) setState({ products: Array.isArray(data.products) ? data.products : [] });
       })
@@ -40,7 +40,7 @@ function NewDeckLink() {
   return (
     <Link href="/decks/new" className={cn(buttonVariants({ variant: "default" }), "h-10")}>
       <Plus aria-hidden strokeWidth={2} />
-      New deck
+      New test
     </Link>
   );
 }
@@ -70,7 +70,7 @@ function ViewAll({ href }: { href: string }) {
 
 function OverviewSkeleton() {
   return (
-    <div aria-busy className="space-y-4">
+    <div aria-busy className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="h-20 rounded-xl bg-muted motion-safe:animate-pulse" />
@@ -87,14 +87,8 @@ function OverviewSkeleton() {
 export function OverviewScreen() {
   const state = useOverview();
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className={TITLE}>Overview</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Your tests at a glance</p>
-        </div>
-        <NewDeckLink />
-      </div>
+    <div>
+      <PageHeader title="Overview" description="See which of your tests need you today." actions={<NewDeckLink />} />
       {!state ? (
         <OverviewSkeleton />
       ) : "error" in state ? (
@@ -105,7 +99,9 @@ export function OverviewScreen() {
           </button>
         </div>
       ) : (
-        <OverviewBody products={state.products} />
+        <div className="space-y-6">
+          <OverviewBody products={state.products} />
+        </div>
       )}
     </div>
   );
@@ -132,22 +128,6 @@ function OverviewBody({ products }: { products: ProductListItem[] }) {
   const allowance = CURRENT_PLAN.deckAllowance;
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Kpi label="Live decks" value={live.length} />
-        <Kpi label="Swipers" value={swipers} />
-        <Kpi label="Joined waitlist" value={waitlist} />
-        <div className={cn(CARD, "p-4")}>
-          <p className="flex items-baseline gap-1.5">
-            <span className="tnum text-2xl font-semibold">{fmt(left)}</span>
-            <span className="text-xs text-muted-foreground">of {fmt(allowance)}</span>
-          </p>
-          <p className="text-xs text-muted-foreground">Decks left</p>
-          <div className="mt-2 h-1 rounded-full bg-muted" aria-hidden>
-            <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round((left / allowance) * 100)}%` }} />
-          </div>
-        </div>
-      </div>
-
       {review.length > 0 ? (
         <section className={cn(CARD, "border-l-2 border-l-accent")}>
           <h2 className="px-4 pt-4 text-lg font-semibold">Needs your review</h2>
@@ -172,14 +152,30 @@ function OverviewBody({ products }: { products: ProductListItem[] }) {
         </section>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Kpi label="Live tests" value={live.length} />
+        <Kpi label="Swipers" value={swipers} />
+        <Kpi label="Joined waitlist" value={waitlist} />
+        <div className={cn(CARD, "p-4")}>
+          <p className="flex items-baseline gap-1.5">
+            <span className="tnum text-2xl font-semibold">{fmt(left)}</span>
+            <span className="text-xs text-muted-foreground">of {fmt(allowance)}</span>
+          </p>
+          <p className="text-xs text-muted-foreground">Tests left</p>
+          <div className="mt-2 h-1 rounded-full bg-muted" aria-hidden>
+            <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round((left / allowance) * 100)}%` }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
         <section className="space-y-2 md:col-span-2">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Live tests</h2>
             <ViewAll href="/products" />
           </div>
           {live.length === 0 ? (
-            <p className={cn(CARD, "p-4 text-sm text-muted-foreground")}>No live tests right now.</p>
+            <p className={cn(CARD, "p-4 text-sm text-muted-foreground")}>No live tests right now. <Link href="/decks/new" className="font-medium text-foreground underline underline-offset-2">Start one</Link></p>
           ) : (
             <ul className={cn(CARD, "divide-y divide-border overflow-hidden")}>
               {live.map(({ deck, product }) => (
@@ -213,7 +209,7 @@ function OverviewBody({ products }: { products: ProductListItem[] }) {
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{p.name}</span>
                   <span className="block text-sm text-muted-foreground">
-                    {p.deckCount} {p.deckCount === 1 ? "deck" : "decks"} · {fmt(p.waitlist)} waitlist
+                    {p.deckCount} {p.deckCount === 1 ? "test" : "tests"} · {fmt(p.waitlist)} waitlist
                   </span>
                 </span>
                 <Link href={`/products/${p.id}/insights`} className="shrink-0 rounded-sm text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">

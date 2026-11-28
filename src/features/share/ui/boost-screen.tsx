@@ -24,7 +24,13 @@ import { cn } from "@/shared/lib/utils";
 export function BoostScreen({ deckId }: { deckId: string }) {
   const { data, loadError } = useDeckAndProduct(deckId);
   if (loadError) return <Notice tone="error">{loadError}</Notice>;
-  if (!data) return <p className="text-muted-foreground">Loading...</p>;
+  if (!data)
+    return (
+      <div aria-busy className="space-y-3">
+        <span className="sr-only">Loading</span>
+        <div className="h-48 rounded-xl bg-muted motion-safe:animate-pulse" />
+      </div>
+    );
   return <Loaded data={data} />;
 }
 
@@ -60,7 +66,7 @@ function Loaded({ data }: { data: BoostData }) {
       });
       setSaved(draft);
       setEditing(false);
-      setMessage({ tone: "ok", text: "Audience saved. It applies to new decks; running decks keep theirs." });
+      setMessage({ tone: "ok", text: "Audience saved. It applies to new tests; running tests keep theirs." });
     } catch (e) {
       setMessage({ tone: "error", text: e instanceof ApiError ? e.message : "Could not save. Try again." });
     } finally {
@@ -69,13 +75,13 @@ function Loaded({ data }: { data: BoostData }) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,23.5rem)] md:items-start">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,23.5rem)] md:items-start">
         <Card className="space-y-3 p-5">
           <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold tracking-tight text-lg font-extrabold">
+            <h2 className="text-lg font-semibold tracking-tight">
               Who sees it{" "}
               <span className="text-sm font-medium text-muted-foreground">
                 · <span className="md:hidden">from</span>
@@ -91,7 +97,7 @@ function Loaded({ data }: { data: BoostData }) {
             <Bold>{parts.interests.join(", ")}</Bold>.
           </p>
           <p className="text-sm text-muted-foreground">
-            {reach.message} · Free · Every deck of {product.name} uses this audience.
+            {reach.message} · Free · Every test of {product.name} uses this audience.
           </p>
           <button
             type="button"
@@ -156,16 +162,16 @@ function Loaded({ data }: { data: BoostData }) {
           ) : null}
         </Card>
 
-        <div className="space-y-5">
+        <div className="space-y-6">
           <section aria-labelledby="boost-title" className="rounded-xl space-y-4 bg-card border border-border neutral-ink p-5">
             <div className="flex items-start justify-between gap-3">
-              <h2 id="boost-title" className="flex items-center gap-2 text-xl">
+              <h2 id="boost-title" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
                 <Zap className="size-5 fill-current" /> Boost: priority in the feed
               </h2>
-              <span className="hidden text-sm font-semibold text-muted-foreground md:block">Optional</span>
+              <span className="shrink-0 rounded-md border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">Coming soon</span>
             </div>
             <p className="text-base text-muted-foreground">
-              <span className="md:hidden">Optional. </span>A higher chance of being shown to your audience. Rs {BOOST_PRICE_PER_SWIPE_RS} per valid
+              Optional. A higher chance of being shown to your audience. Rs {BOOST_PRICE_PER_SWIPE_RS} per valid
               swipe; the swiper gets Rs {BOOST_SWIPER_SHARE_RS.toFixed(2)}
               <span className="hidden md:inline"> of it</span>.
             </p>
@@ -193,13 +199,12 @@ function Loaded({ data }: { data: BoostData }) {
               <Zap className="fill-current" /> {boostButtonLabel(amount)}
             </Button>
             <p id="boost-soon" className="text-xs text-muted-foreground">
-              Coming soon. No payment is taken and your deck is not boosted.
+              No payment is taken and your test is not boosted yet.
             </p>
             
           </section>
         </div>
       </div>
-      <p className="text-sm text-muted-foreground">Prices are placeholders.</p>
     </div>
   );
 }

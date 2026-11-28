@@ -268,7 +268,7 @@ export class FlagsmithAdmin {
   private validateVariants(input: CreateDeckExperimentInput): void {
     const { variantKeys } = input;
     if (variantKeys.length < MIN_VARIANTS || variantKeys.length > MAX_VARIANTS) {
-      throw new FlagsmithInvalidInput(`A deck needs ${MIN_VARIANTS} to ${MAX_VARIANTS} cards (control first)`);
+      throw new FlagsmithInvalidInput(`A test needs ${MIN_VARIANTS} to ${MAX_VARIANTS} cards (control first)`);
     }
     if (new Set(variantKeys).size !== variantKeys.length || !variantKeys.every((k) => KEY_PATTERN.test(k))) {
       throw new FlagsmithInvalidInput("Variant keys must be unique and match [-a-zA-Z0-9_]+");

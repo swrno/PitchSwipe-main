@@ -6,10 +6,5 @@ export const dynamic = "force-dynamic";
 /** F2 Product settings: the product's details, then its team (invite co-founders by email). */
 export default async function ProductSettingsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return (
-    <div className="space-y-6">
-      <ProductScreen productId={id} />
-      <TeamPanel productId={id} />
-    </div>
-  );
+  return <ProductScreen productId={id} aside={<TeamPanel productId={id} />} />;
 }

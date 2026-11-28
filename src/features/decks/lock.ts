@@ -77,11 +77,11 @@ export function checkDeckPatch(existing: Pick<DeckRecord, "status"> & Partial<De
       if (key in patch && !deepEqual(patch[key], (existing as Record<string, unknown>)[key])) {
         violations.push({
           path: key,
-          message: "Cards are locked once the deck is published. Start a new deck to test a change.",
+          message: "Cards are locked once the test is published. Start a new test to test a change.",
         });
       }
     }
-    if (patch.publish) violations.push({ path: "publish", message: "This deck is already published." });
+    if (patch.publish) violations.push({ path: "publish", message: "This test is already published." });
   }
   return { ok: violations.length === 0, violations };
 }

@@ -39,8 +39,8 @@ function SwitcherButton({
       aria-expanded={open ?? false}
       aria-label={
         view
-          ? `Switch deck, now ${view.productName} ${view.currentLabel}`
-          : "Switch deck"
+          ? `Switch test, now ${view.productName} ${view.currentLabel}`
+          : "Switch test"
       }
       className={cn(
         "flex items-center gap-2 rounded-xl border bg-background text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -53,7 +53,7 @@ function SwitcherButton({
           {view?.productName ?? " "}
         </span>
         <span className="truncate text-base font-extrabold tracking-tight md:text-sm md:font-bold">
-          {view?.currentLabel ?? "Deck"}
+          {view?.currentLabel ?? "Test"}
         </span>
       </span>
       <ChevronDown
@@ -108,12 +108,12 @@ function DeckSwitcher({ view }: { view: SwitcherView }) {
       {open && (
         <div
           role="menu"
-          aria-label={`${view.productName} decks`}
+          aria-label={`${view.productName} tests`}
           className="absolute right-0 top-full z-40 mt-2 w-[min(19rem,calc(100vw-2rem))] rounded-2xl border border-border bg-card p-2 shadow-xl md:w-80"
         >
           <p className="px-3 pb-1 pt-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             {view.productName} · {view.items.length}{" "}
-            {view.items.length === 1 ? "deck" : "decks"}
+            {view.items.length === 1 ? "test" : "tests"}
           </p>
           <ul>
             {view.items.map((item) => (
@@ -150,7 +150,7 @@ function DeckSwitcher({ view }: { view: SwitcherView }) {
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-base font-extrabold tracking-tight hover:bg-muted"
             >
-              All decks of {view.productName}{" "}
+              All tests of {view.productName}{" "}
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </div>
@@ -161,8 +161,8 @@ function DeckSwitcher({ view }: { view: SwitcherView }) {
 }
 
 /**
- * Header shared by every deck-level page (results, Audience & Boost, Share, and any page added under
- * /decks/[id]/): title, deck switcher + download, and the Results · Audience & Boost · Share tabs.
+ * Header shared by every deck-level page (results, Waitlist, Who swiped, Audience & Boost, Share, and any page added under
+ * /decks/[id]/): title, deck switcher + download, and the Results · Waitlist · Who swiped · Audience & Boost · Share tabs.
  * Registers the real names for the top bar's breadcrumb. Wrapped by app/(shell)/decks/[id]/layout.tsx.
  */
 export function DeckChrome({
@@ -191,6 +191,8 @@ export function DeckChrome({
   const base = `/decks/${deckId}`;
   const tabs: PageTab[] = [
     { label: "Results", href: base, exact: true },
+    { label: "Waitlist", href: `${base}/waitlist` },
+    { label: "Who swiped", href: `${base}/who-swiped` },
     { label: "Audience & Boost", href: `${base}/boost` },
     { label: "Share", href: `${base}/share` },
   ];
@@ -211,7 +213,19 @@ export function DeckChrome({
     <div>
       <PageHeader
         title={view?.currentLabel ?? <span className="inline-block h-8 w-40 rounded-lg bg-muted align-middle motion-safe:animate-pulse" />}
-        description={view ? `A test for ${view.productName}` : undefined}
+        description={
+          !view
+            ? undefined
+            : sub === "Waitlist"
+              ? "Everyone who joined the waitlist for this test."
+              : sub === "Who swiped"
+              ? "Where swipers are, who they are and what they care about."
+              : sub === "Share"
+              ? `Send ${view.productName} to people who can answer.`
+              : sub
+                ? "Choose who sees this test."
+                : "See which version is winning, then ship it."
+        }
         actions={
           <>
             {view ? (
@@ -221,11 +235,11 @@ export function DeckChrome({
             ) : (
               <SwitcherButton view={null} className="px-3.5 py-1.5" />
             )}
-            <DownloadResultsButton deckId={deckId} />
+            {sub ? null : <DownloadResultsButton deckId={deckId} />}
           </>
         }
         tabs={tabs}
-        tabsLabel="Deck sections"
+        tabsLabel="Test sections"
       />
       {children}
     </div>

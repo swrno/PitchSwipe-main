@@ -252,7 +252,7 @@ export function AskPanel({ open, onClose, deckId }: { open: boolean; onClose: ()
           <h2 className="truncate text-lg font-extrabold tracking-tight">Ask {header?.productName ?? "your results"}</h2>
           {header ? (
             <p className="truncate text-xs text-muted-foreground">
-              {header.decks} {header.decks === 1 ? "deck" : "decks"} · {header.swipers.toLocaleString("en-US")} {header.swipersLabel}
+              {header.decks} {header.decks === 1 ? "test" : "tests"} · {header.swipers.toLocaleString("en-US")} {header.swipersLabel}
               {header.updated ? ` · updated ${header.updated}` : ""}
             </p>
           ) : null}

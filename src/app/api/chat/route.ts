@@ -35,12 +35,12 @@ export async function POST(request: Request) {
     const asked = typeof body?.deckId === "string" ? body.deckId : "";
     const deckId = asked || (await newestDeckId(who.ownerId));
     if (!deckId) {
-      return streamText({ model: sayModel("You have no decks yet. Create a deck first, then ask about its results."), prompt: "." }).toUIMessageStreamResponse({
+      return streamText({ model: sayModel("You have no tests yet. Create a test first, then ask about its results."), prompt: "." }).toUIMessageStreamResponse({
         headers: NO_STORE,
       });
     }
     const ctx = await buildAskContext(who.ownerId, deckId);
-    if (!ctx) return NextResponse.json({ error: "Deck not found." }, { status: 404, headers: NO_STORE });
+    if (!ctx) return NextResponse.json({ error: "Test not found." }, { status: 404, headers: NO_STORE });
     return runChat({ ctx, messages, abortSignal: request.signal });
   } catch (error) {
     console.error("chat: failed", error instanceof Error ? error.message : error);

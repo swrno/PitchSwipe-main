@@ -1,15 +1,10 @@
-import { redirect } from "next/navigation";
+import { WhoSwipedScreen } from "@/features/results/ui/who-swiped-screen";
 
-/** Who swiped now lives on the deck results page. Old links land on its #who-swiped section. */
-export default async function WhoSwipedPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
-}) {
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Who swiped · PitchSwipe" };
+
+/** Who swiped on this test: location, target users, source and interests. The client loads the results. */
+export default async function WhoSwipedPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { tab } = await searchParams;
-  const query = tab ? `?tab=${encodeURIComponent(tab)}` : "";
-  redirect(`/decks/${encodeURIComponent(id)}${query}#who-swiped`);
+  return <WhoSwipedScreen deckId={id} />;
 }

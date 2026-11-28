@@ -29,7 +29,7 @@ export function ProductHeader({ productId }: { productId: string }) {
 
   const base = `/products/${productId}`;
   const tabs: PageTab[] = [
-    { label: "Decks", href: base, exact: true },
+    { label: "Tests", href: base, exact: true },
     { label: "Insights", href: `${base}/insights` },
     { label: "Website", href: `${base}/site`, alsoActive: [`${base}/connect`] },
     { label: "Settings", href: `${base}/settings` },
@@ -39,8 +39,8 @@ export function ProductHeader({ productId }: { productId: string }) {
   const crumbs = loaded
     ? [
         { label: "Products", href: "/products" },
-        active && active.label !== "Decks" ? { label: loaded.name, href: base } : { label: loaded.name },
-        ...(active && active.label !== "Decks" ? [{ label: active.label }] : []),
+        active && active.label !== "Tests" ? { label: loaded.name, href: base } : { label: loaded.name },
+        ...(active && active.label !== "Tests" ? [{ label: active.label }] : []),
       ]
     : null;
   useBreadcrumb(crumbs);
@@ -48,10 +48,10 @@ export function ProductHeader({ productId }: { productId: string }) {
   return (
     <PageHeader
       title={loaded?.name ?? <span className="inline-block h-8 w-48 rounded-lg bg-muted align-middle motion-safe:animate-pulse" />}
-      description={loaded?.category || undefined}
+      description="Test ideas for this product and see which test is winning."
       actions={
         <Link href={`/decks/new?product=${productId}`} className={cn(buttonVariants({ variant: "default" }))}>
-          <Plus /> Add deck
+          <Plus /> Add test
         </Link>
       }
       tabs={tabs}

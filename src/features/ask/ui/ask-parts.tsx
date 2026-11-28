@@ -90,8 +90,8 @@ function DeckDraft({ c }: { c: Extract<RenderedComponent, { kind: "deckDraft" }>
   return (
     <section className="rounded-2xl border-2 border-foreground bg-card p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-xs font-extrabold uppercase tracking-wide text-muted-foreground">
-        <span>Deck draft · not published</span>
-        <span className="font-semibold normal-case tracking-normal">Uses 1 deck</span>
+        <span>Test draft · not published</span>
+        <span className="font-semibold normal-case tracking-normal">Uses 1 test</span>
       </div>
       <h3 className="mt-2 text-lg font-extrabold tracking-tight">{c.title}</h3>
       <ul className="mt-3 flex flex-wrap gap-2">

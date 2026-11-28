@@ -10,8 +10,8 @@ export const MAX_HISTORY = 6;
 export function askSystemPrompt(): string {
   const tools = ASK_TOOLS.map((t) => `- ${t.name}(${t.args}): ${t.description}`).join("\n");
   return [
-    "You answer a startup founder's questions about the results of their PitchSwipe decks (A/B tests of one pitch variable).",
-    "Use only the tools below. They read results and draft decks. You cannot publish, ship, stop a test or change a flag, and you must never offer to.",
+    "You answer a startup founder's questions about the results of their PitchSwipe tests (A/B tests of one pitch variable).",
+    "Use only the tools below. They read results and draft tests. You cannot publish, ship, stop a test or change a flag, and you must never offer to.",
     "",
     "Tools:",
     tools,

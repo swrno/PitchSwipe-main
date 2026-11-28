@@ -4,6 +4,7 @@ import * as React from "react";
 import { Check, Clock, Shuffle } from "lucide-react";
 import { WalletPill } from "./wallet-pill";
 import { Button } from "@/shared/ui/button";
+import { PageHeader } from "@/shared/shell/page-header";
 import { MIN_READ_MS, PAID_RATE_RS } from "@/features/swipe/validity";
 import { INDUSTRIES, isIndustry, type Industry } from "@/shared/lib/lists";
 import { ArrowChip } from "@/shared/ui/mascot";
@@ -67,12 +68,12 @@ export function SwipeHome({
   }, []);
 
   const howItWorks = [
-    { icon: Shuffle, title: "Ideas come in random order", body: "You do not pick. Every idea gets a fair chance." },
-    { icon: Clock, title: "One card per idea", body: "Read it, answer one question. About 10 seconds." },
+    { icon: Shuffle, title: "Random order", body: "Every idea gets a fair chance." },
+    { icon: Clock, title: "About 10 seconds", body: "One card, one question." },
     {
       icon: Check,
       title: `${formatRs(PAID_RATE_RS)} on every paid card`,
-      body: `Paid cards say so. Read ${MIN_READ_MS / 1000}+ seconds; yes and no pay the same.`,
+      body: `Read for ${MIN_READ_MS / 1000}+ seconds.`,
     },
   ];
 
@@ -91,58 +92,18 @@ export function SwipeHome({
 
   return (
     <div className="rise-children space-y-6">
-      <div className="space-y-2">
-        {signedIn ? (
-          <div className="flex justify-end md:hidden">
-            <WalletPill balanceRs={balanceRs} />
-          </div>
-        ) : null}
-        <h1 className="text-balance text-3xl font-semibold tracking-tight md:text-5xl">
-          Swipe on new ideas.
-          <br />
-          <span>Get paid for it.</span>
-        </h1>
-      </div>
-
-      <section className="space-y-3" aria-labelledby="how-swiping-works">
-        <h2 id="how-swiping-works" className="text-lg font-semibold">
-          How swiping works
-        </h2>
-        <ul className="grid gap-3 md:grid-cols-3 md:gap-4">
-          {howItWorks.map(({ icon: Icon, title, body }) => (
-            <li key={title} className="flex items-start gap-4 rounded-xl border border-border bg-card p-4 md:flex-col md:gap-3">
-              <Icon aria-hidden className="size-5 shrink-0 text-muted-foreground" strokeWidth={2} />
-              <div>
-                <p className="text-sm font-semibold">{title}</p>
-                <p className="text-sm text-muted-foreground">{body}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {signedIn ? (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
-          {statTiles.map((t) => (
-            <div key={t.label} className={cn("rounded-xl border border-border bg-card p-4", t.className)}>
-              <p className="tnum text-2xl font-semibold">{t.value}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{t.label}</p>
-            </div>
-          ))}
-        </div>
-      ) : null}
+      <PageHeader
+        className="mb-0"
+        title="Swipe"
+        description={`Read an idea, answer one question. Earn ${formatRs(PAID_RATE_RS)} on every paid card.`}
+        actions={signedIn ? <WalletPill balanceRs={balanceRs} className="md:hidden" /> : null}
+      />
 
       <section aria-labelledby="start-swiping" className="rounded-xl border border-border bg-card p-5">
-        <span className="inline-flex rounded-md border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
-          {formatRs(PAID_RATE_RS)} per paid card
-        </span>
-        <h2 id="start-swiping" className="mt-3 text-lg font-semibold tracking-tight">
-          Ready for the next idea?
+        <h2 id="start-swiping" className="text-sm font-semibold">
+          Show me ideas for
         </h2>
-        <p className="mt-1 max-w-[44ch] text-sm text-muted-foreground">Read the card, answer one question. Yes and no pay the same.</p>
-
-        <p className="mt-6 text-sm font-semibold">Show me ideas for</p>
-        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Idea categories">
+        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Idea categories">
           {INDUSTRIES.map((industry) => {
             const on = selected.includes(industry);
             return (
@@ -162,7 +123,7 @@ export function SwipeHome({
           })}
         </div>
         {selected.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">No category filter: ideas from every category can show up. Tap a category to narrow it.</p>
+          <p className="mt-2 text-sm text-muted-foreground">All categories. Tap one to narrow it.</p>
         ) : null}
 
         <Button
@@ -175,7 +136,35 @@ export function SwipeHome({
           {starting ? "Finding an idea..." : "Start swiping"}
           <ArrowChip />
         </Button>
-        <p className="mt-2 text-xs text-muted-foreground">Answer honestly. There is no right answer.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Yes and no pay the same. Answer honestly.</p>
+      </section>
+
+      {signedIn ? (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+          {statTiles.map((t) => (
+            <div key={t.label} className={cn("rounded-xl border border-border bg-card p-4", t.className)}>
+              <p className="tnum text-2xl font-semibold">{t.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t.label}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <section className="space-y-3" aria-labelledby="how-swiping-works">
+        <h2 id="how-swiping-works" className="text-lg font-semibold">
+          How it works
+        </h2>
+        <ul className="grid gap-3 md:grid-cols-3 md:gap-4">
+          {howItWorks.map(({ icon: Icon, title, body }) => (
+            <li key={title} className="flex items-start gap-4 rounded-xl border border-border bg-card p-4 md:flex-col md:gap-3">
+              <Icon aria-hidden className="size-5 shrink-0 text-muted-foreground" strokeWidth={2} />
+              <div>
+                <p className="text-sm font-semibold">{title}</p>
+                <p className="text-sm text-muted-foreground">{body}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {error ? (

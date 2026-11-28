@@ -111,7 +111,7 @@ export function AuthShell({
                 Step {step} of {STEPS.length}
               </span>
             )}
-            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl mt-3 md:text-6xl">{title}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight md:text-4xl mt-3">{title}</h1>
             <p className="mt-3 max-w-[52ch] text-base text-muted-foreground">{intro}</p>
           </div>
 

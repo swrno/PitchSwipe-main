@@ -140,7 +140,7 @@ function Review({ view, busy, onKeep, onApprove }: { view: ReviewView; busy: boo
             {view.alreadyShipped ? "Already shipped" : "Not decided yet"}
           </h2>
           <p className="mb-5 text-muted-foreground">
-            {view.alreadyShipped ? "This deck's winner is already live." : (view.notDecidedText ?? "Nothing is ready to ship.")}
+            {view.alreadyShipped ? "This test's winner is already live." : (view.notDecidedText ?? "Nothing is ready to ship.")}
           </p>
           <Button variant="outline" className="w-full" onClick={onKeep}>
             Keep testing

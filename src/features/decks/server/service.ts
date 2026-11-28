@@ -130,10 +130,10 @@ export async function listDecks(ownerId: string): Promise<DeckRecord[]> {
 
 export async function getDeck(ownerId: string, id: string): Promise<ServiceResult<DeckRecord>> {
   const d = await (await getStore()).getDeck(ownerId, id);
-  return d ? ok(d) : fail(404, "Deck not found.");
+  return d ? ok(d) : fail(404, "Test not found.");
 }
 
-const BEING_PUBLISHED = "This deck is being published. Try again in a moment.";
+const BEING_PUBLISHED = "This test is being published. Try again in a moment.";
 
 /** JSON with object keys sorted and undefined dropped, so two reads of the same content compare equal. */
 function canonical(value: unknown): string {
@@ -166,19 +166,19 @@ const contentKey = (deck: DeckRecord) => {
 async function publish(store: Store, ownerId: string, deck: DeckRecord, product: ProductRecord): Promise<ServiceResult<DeckRecord>> {
   if (!(await store.claimPublish(ownerId, deck._id, new Date()))) {
     const now = await store.getDeck(ownerId, deck._id);
-    if (!now) return fail(404, "Deck not found.");
-    if (now.status !== "draft") return fail(409, "This deck is already published.");
+    if (!now) return fail(404, "Test not found.");
+    if (now.status !== "draft") return fail(409, "This test is already published.");
     // Draft but not claimable: another publish holds it, or (Mongo) another save is still writing its cards.
-    return fail(409, isPublishClaimed(now) ? BEING_PUBLISHED : "Another save of this deck is in progress. Try again in a moment.");
+    return fail(409, isPublishClaimed(now) ? BEING_PUBLISHED : "Another save of this test is in progress. Try again in a moment.");
   }
   try {
     // An edit may have landed between the caller's draft save and the claim: publish only what was validated
     // (every field, not just the cards), and build the flag and the saved deck from that fresh read.
     const fresh = await store.getDeck(ownerId, deck._id);
-    if (!fresh) return fail(404, "Deck not found.");
+    if (!fresh) return fail(404, "Test not found.");
     if (contentKey(fresh) !== contentKey(deck)) {
       await store.updateDeck(ownerId, deck._id, { publishingAt: null });
-      return fail(409, "This deck changed while it was being published. Check it and publish again.");
+      return fail(409, "This test changed while it was being published. Check it and publish again.");
     }
     // What goes live must itself pass publish validation (a save racing the caller's own may have been read back).
     const v = validateDeck(asInput(fresh), "publish");
@@ -214,7 +214,7 @@ async function publish(store: Store, ownerId: string, deck: DeckRecord, product:
       // The deck is gone (deleted after a stale claim): never report a deck that does not exist as live, and archive
       // the flag just made for it. By feature id with no experiment id, so the cleanup does not depend on a GET.
       if (featureId !== undefined) await onDeckArchived({ ...withSnapshot, experimentId: undefined, featureId });
-      return fail(404, "This deck was deleted while it was being published.");
+      return fail(404, "This test was deleted while it was being published.");
     }
     return ok(saved);
   } catch (error) {
@@ -288,7 +288,7 @@ export async function patchDeck(ownerId: string, id: string, body: unknown): Pro
   const patch = body as Record<string, unknown>;
   const store = await getStore();
   const existing = await store.getDeck(ownerId, id);
-  if (!existing) return fail(404, "Deck not found.");
+  if (!existing) return fail(404, "Test not found.");
   // A publish is building the Flagsmith flag from this draft right now: no edits, no second publish, no archive.
   if (isPublishClaimed(existing)) return fail(409, BEING_PUBLISHED);
 
@@ -322,10 +322,10 @@ export async function patchDeck(ownerId: string, id: string, body: unknown): Pro
     if (!saved) {
       // Null with the deck still there: it left draft, a publish claimed it, or another save is replacing its cards.
       const now = await store.getDeck(ownerId, id);
-      if (!now) return fail(404, "Deck not found.");
-      if (now.status !== "draft") return fail(409, "This deck was published while you were editing it.");
+      if (!now) return fail(404, "Test not found.");
+      if (now.status !== "draft") return fail(409, "This test was published while you were editing it.");
       if (isPublishClaimed(now)) return fail(409, BEING_PUBLISHED);
-      return fail(409, "Another save of this deck is in progress. Try again in a moment.");
+      return fail(409, "Another save of this test is in progress. Try again in a moment.");
     }
     current = saved;
     if (wantsPublish) {
@@ -340,7 +340,7 @@ export async function patchDeck(ownerId: string, id: string, body: unknown): Pro
   }
 
   if (patch.archived === true) {
-    if (!canArchive(current.status)) return fail(409, "This deck is already archived.");
+    if (!canArchive(current.status)) return fail(409, "This test is already archived.");
     const before = current;
     current = (await store.updateDeck(ownerId, id, { status: "closed", listedInFeed: false })) ?? current;
     // Archives the Flagsmith flag (kept for a shipped deck, so the hook gets the status before archiving); logs, never throws.
@@ -352,16 +352,16 @@ export async function patchDeck(ownerId: string, id: string, body: unknown): Pro
 export async function removeDeck(ownerId: string, id: string): Promise<ServiceResult<{ deleted: true }>> {
   const store = await getStore();
   const d = await store.getDeck(ownerId, id);
-  if (!d) return fail(404, "Deck not found.");
+  if (!d) return fail(404, "Test not found.");
   if (isPublishClaimed(d)) return fail(409, BEING_PUBLISHED);
-  if (!canDelete(d.status)) return fail(409, "Only drafts can be deleted. Archive this deck instead.");
+  if (!canDelete(d.status)) return fail(409, "Only drafts can be deleted. Archive this test instead.");
   // Conditional in the store (draft, unclaimed): a publish that claims after the checks above keeps its deck.
   if (!(await store.deleteDeck(ownerId, id))) {
     const now = await store.getDeck(ownerId, id);
-    if (!now) return fail(404, "Deck not found.");
+    if (!now) return fail(404, "Test not found.");
     if (isPublishClaimed(now)) return fail(409, BEING_PUBLISHED);
-    if (now.status !== "draft") return fail(409, "Only drafts can be deleted. Archive this deck instead.");
-    return fail(409, "Another save of this deck is in progress. Try again in a moment.");
+    if (now.status !== "draft") return fail(409, "Only drafts can be deleted. Archive this test instead.");
+    return fail(409, "Another save of this test is in progress. Try again in a moment.");
   }
   return ok({ deleted: true });
 }

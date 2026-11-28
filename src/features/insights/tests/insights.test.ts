@@ -107,17 +107,17 @@ describe("page", () => {
     assert.ok(result && lead);
     assert.equal(result.title, "Winners talk about getting paid.");
     assert.equal(result.worded, "model");
-    assert.match(result.sourceLine, /^Decks 1, 2 and 4 · 558 swipers · Flagsmith: 96%, 95% and 97% chance best/);
+    assert.match(result.sourceLine, /^Tests 1, 2 and 4 · 558 swipers · Flagsmith: 96%, 95% and 97% chance best/);
     assert.equal(lead.tagLabel, "Lead · confirm with a test");
     assert.equal(lead.worded, "template");
-    assert.match(lead.sourceLine, /^Deck 3, still running · 83 target users · Flagsmith: 88%, not decided/);
+    assert.match(lead.sourceLine, /^Test 3, still running · 83 target users · Flagsmith: 88%, not decided/);
   });
   it("persona card is Simulated and Unproven and adds nothing to the counts or insights", async () => {
     const persona = { personasPerCard: 20, totalPersonas: 60, picks: [{ key: "B", count: 9 }, { key: "A", count: 7 }, { key: "C", count: 4 }], right: 1, finished: 3 };
     const without = await build({ persona: null });
     const withP = await build({ persona });
     assert.equal(withP.persona?.tags.join(","), "Simulated,Unproven");
-    assert.match(withP.persona?.trackRecord ?? "", /Right in 1 of 3 finished decks/);
+    assert.match(withP.persona?.trackRecord ?? "", /Right in 1 of 3 finished tests/);
     assert.equal(withP.swipers, without.swipers);
     assert.deepEqual(withP.insights, without.insights);
     assert.equal(without.persona, null);
@@ -212,7 +212,7 @@ describe("post-check and fallback", () => {
     const p = await build({ provider: templateOnly() });
     assert.equal(
       p.insights.find((i) => i.tag === "Result")?.body,
-      "3 decks reached a clear winner, at 95% or more chance of being best. Each was tested on its own, so the winners were not tested against each other.",
+      "3 tests reached a clear winner, at 95% or more chance of being best. Each was tested on its own, so the winners were not tested against each other.",
     );
   });
   it("without an LLM key the provider answers with nothing, so code writes the words", async () => {

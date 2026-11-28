@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { Check, Copy, Loader2, Mail, RefreshCw, TriangleAlert } from "lucide-react";
 
 import { assistantJson } from "@/features/assistant/ui/api";
@@ -21,13 +20,10 @@ const POLL_MS = 10_000;
 export function ConnectWebsite({
   productId,
   initial,
-  backHref,
 }: {
   productId: string;
   /** Server-rendered data, when the page has it. */
   initial?: SiteView;
-  /** Where "Back" goes; defaults to the product settings. */
-  backHref?: string;
 }) {
   const [view, setView] = React.useState<SiteView | null>(initial ?? null);
   const [error, setError] = React.useState<string | null>(null);
@@ -61,12 +57,9 @@ export function ConnectWebsite({
     return () => clearInterval(t);
   }, [view?.site, connected, load]);
 
-  const back = backHref ?? `/products/${encodeURIComponent(productId)}`;
-
   if (!view) {
     return (
-      <div className="pb-10">
-        <Crumbs back={back} />
+      <div className="space-y-6">
         {error ? <p role="alert" className="rounded-xl bg-warning-soft px-4 py-3 text-sm text-warning">{error}</p> : <p className="text-sm text-muted-foreground" role="status">Loading your website settings...</p>}
       </div>
     );
@@ -76,18 +69,10 @@ export function ConnectWebsite({
   const stepDone = [Boolean(view.site), view.elementsFound > 0, connected];
 
   return (
-    <div className="pb-10">
-      <Crumbs back={back} />
-      <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-        Ship winners to <span className="underline decoration-accent decoration-4 underline-offset-4">your website</span>.
-      </h1>
-      <p className="mt-4 max-w-3xl text-base text-muted-foreground md:text-lg">
-        Each deck&apos;s Flagsmith flag holds the real text: the headline, the price, the reward. Connect your landing page once, and
-        &quot;Approve and ship&quot; changes your live site too.
-      </p>
-      {error ? <p role="alert" className="mt-4 rounded-xl bg-warning-soft px-4 py-3 text-sm text-warning">{error}</p> : null}
+    <div className="space-y-6">
+      {error ? <p role="alert" className="rounded-xl bg-warning-soft px-4 py-3 text-sm text-warning">{error}</p> : null}
 
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <Card className="p-5 md:p-5">
           <Step done={stepDone[0]} n={1} title={view.site ? "Add this snippet to your site, once" : "Where does your site live?"}>
             {view.site && !editing ? (
@@ -105,12 +90,12 @@ export function ConnectWebsite({
             )}
           </Step>
 
-          <Step done={stepDone[1]} n={2} title="Mark what each deck controls" disabled={!view.site}>
+          <Step done={stepDone[1]} n={2} title="Mark what each test controls" disabled={!view.site}>
             <p className="text-sm text-muted-foreground">
-              Add <code className="font-mono text-foreground">data-pitchswipe</code> with the deck&apos;s flag name. Keep your current text inside; it
+              Add <code className="font-mono text-foreground">data-pitchswipe</code> with the test&apos;s flag name. Keep your current text inside; it
               shows until a winner ships.
             </p>
-            {view.markup ? <CodeBlock>{view.markup}</CodeBlock> : <p className="mt-2 text-sm text-muted-foreground">Create a deck to see its flag name here.</p>}
+            {view.markup ? <CodeBlock>{view.markup}</CodeBlock> : <p className="mt-2 text-sm text-muted-foreground">Create a test to see its flag name here.</p>}
           </Step>
 
           <Step done={stepDone[2]} n={3} title="Check the connection" last disabled={!view.site}>
@@ -122,7 +107,7 @@ export function ConnectWebsite({
           <Card className="@container p-5 md:p-5">
             <h2 className="text-lg font-semibold tracking-tight text-xl tracking-tight">What your site shows now</h2>
             {view.rows.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">No text decks yet. Headline, description, reward and price decks appear here.</p>
+              <p className="mt-3 text-sm text-muted-foreground">No text tests yet. Headline, description, reward and price tests appear here.</p>
             ) : (
               <ul className="mt-3 divide-y divide-border">
                 {view.rows.map((r) => (
@@ -131,8 +116,7 @@ export function ConnectWebsite({
               </ul>
             )}
             <p className="mt-4 text-sm text-muted-foreground">
-              Visitors to your site are not in the test: they see your current text until you approve a winner. Swipers on PitchSwipe are the only
-              people who see A, B and C.
+              Your visitors see your current text until you approve a winner. Only swipers see the versions being tested.
             </p>
           </Card>
 
@@ -140,9 +124,9 @@ export function ConnectWebsite({
             <h2 className="text-lg font-semibold tracking-tight text-xl tracking-tight">When you approve a winner</h2>
             <ol className="mt-4 space-y-3 text-sm">
               {[
-                "Flagsmith ends the experiment.",
-                "The flag's live value becomes the winning text, so your site updates within seconds, with no deploy.",
-                "Undo puts the control text back the same way (the test itself does not restart).",
+                "The test ends.",
+                "Your site shows the winning text within seconds, with no deploy.",
+                "Undo puts your original text back (the test does not restart).",
               ].map((t, i) => (
                 <li key={t} className="flex gap-3">
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">{i + 1}</span>
@@ -153,16 +137,6 @@ export function ConnectWebsite({
           </Card>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Crumbs({ back }: { back: string }) {
-  return (
-    <div className="mb-3 flex items-center gap-3 text-sm text-muted-foreground md:hidden">
-      <Link href={back} className="font-medium text-foreground underline-offset-2 hover:underline">
-        Back
-      </Link>
     </div>
   );
 }

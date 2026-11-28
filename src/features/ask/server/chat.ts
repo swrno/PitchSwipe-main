@@ -301,6 +301,8 @@ export function runChat(options: { ctx: AskToolCtx; messages: IncomingMessage[];
     messages: modelMessages,
     tools: buildChatTools(run),
     stopWhen: stepCountIs(MAX_TOOL_ROUNDS),
+    // A rate limit switches to the fallback model at once (sdk-model.ts); one more try at most, no long backoff.
+    maxRetries: 1,
     experimental_transform: numberGuard(run),
     abortSignal: options.abortSignal,
     onError: ({ error }) => console.error("chat: stream error", error instanceof Error ? error.message : error),

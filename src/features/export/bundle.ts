@@ -15,7 +15,7 @@ function slug(text: string): string {
 /** Files for the chosen kinds, in a fixed order. The summary table gives an .xlsx and a .csv. */
 export function buildExportFiles(input: ExportInput): ExportOutputFile[] {
   const { now, decks } = input;
-  const scopeText = input.scope === "product" ? `whole product, ${decks.length} deck${decks.length === 1 ? "" : "s"}` : `this deck: ${decks[0]?.payload.deck.label ?? ""}`;
+  const scopeText = input.scope === "product" ? `whole product, ${decks.length} test${decks.length === 1 ? "" : "s"}` : `this test: ${decks[0]?.payload.deck.label ?? ""}`;
   const base = `pitchswipe-${slug(input.productName)}-${input.scope === "product" ? "all-decks" : slug(decks[0]?.payload.deck.label ?? "deck")}`;
   const stamp = stampSlug(now);
   const ctx = { productName: input.productName, scopeText, decks, now };
@@ -41,7 +41,7 @@ export function buildExportFiles(input: ExportInput): ExportOutputFile[] {
 export function readmeText(input: ExportInput, files: readonly ExportOutputFile[]): string {
   return [
     "PitchSwipe results export",
-    `${input.productName}, ${input.scope === "product" ? "whole product" : "this deck"}`,
+    `${input.productName}, ${input.scope === "product" ? "whole product" : "this test"}`,
     `Numbers as of ${stampLabel(input.now)}`,
     "",
     "Files:",

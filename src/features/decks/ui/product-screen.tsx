@@ -1,19 +1,18 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Globe } from "lucide-react";
-import { Button, buttonVariants } from "@/shared/ui/button";
+import { useBreadcrumb } from "@/shared/shell/breadcrumb";
+import { PageHeader } from "@/shared/shell/page-header";
+import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
 import { INDUSTRIES, ROLES, STATES, type Industry } from "@/shared/lib/lists";
 import { accentFor, type ProductInput } from "@/features/decks/product";
 import { reachView } from "@/features/share/reach";
 import type { DeckListItem, DecksOverview, ProductRecord } from "@/features/decks/views";
-import { cn } from "@/shared/lib/utils";
 import { api, ApiError, errorFor } from "./api";
 import { ChipPicker } from "./chip-picker";
-import { ErrorText, FieldLabel, Notice, ProductTile, Segmented, StatusText, SubPageNav, TextInput, ToggleChip } from "./primitives";
+import { ErrorText, FieldLabel, Notice, ProductTile, Segmented, StatusText, TextInput, ToggleChip } from "./primitives";
 import type { FieldError } from "@/features/decks/types";
 
 const EMPTY: ProductInput = {
@@ -32,7 +31,7 @@ export interface ProductScreenData {
 }
 
 /** F2 Product settings (phone 03, web 04) and /products/new. */
-export function ProductScreen({ productId }: { productId?: string }) {
+export function ProductScreen({ productId, aside }: { productId?: string; aside?: React.ReactNode }) {
   const router = useRouter();
   const [data, setData] = React.useState<ProductScreenData | undefined>(productId ? undefined : { decks: [] });
   const [form, setForm] = React.useState<ProductInput>(EMPTY);
@@ -59,6 +58,7 @@ export function ProductScreen({ productId }: { productId?: string }) {
   const reach = reachView();
   const accent = accentFor(form.name || "Product");
   const isNew = !productId;
+  useBreadcrumb(isNew ? [{ label: "Products", href: "/products" }, { label: "New product" }] : null);
 
   async function save() {
     setSaving(true);
@@ -70,7 +70,7 @@ export function ProductScreen({ productId }: { productId?: string }) {
         body: form,
       });
       if (isNew) router.push(`/decks/new?product=${saved.id}`);
-      else setMessage({ tone: "ok", text: "Saved. Changes apply to new decks only, so running tests stay fair." });
+      else setMessage({ tone: "ok", text: "Saved. Changes apply to new tests only, so running tests stay fair." });
     } catch (e) {
       if (e instanceof ApiError) setErrors(e.errors);
       setMessage({ tone: "error", text: e instanceof Error ? e.message : "Could not save." });
@@ -86,30 +86,35 @@ export function ProductScreen({ productId }: { productId?: string }) {
         <button type="button" onClick={() => window.location.reload()} className="inline-flex h-11 items-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Try again</button>
       </div>
     ) : (
-      <div aria-busy className="space-y-3"><span className="sr-only">Loading</span><div className="h-8 w-1/2 rounded-lg bg-muted motion-safe:animate-pulse" /><div className="h-48 rounded-xl bg-muted motion-safe:animate-pulse" /></div>
+      <div aria-busy className="space-y-4"><span className="sr-only">Loading</span><div className="h-64 rounded-xl bg-muted motion-safe:animate-pulse" /><div className="h-40 rounded-xl bg-muted motion-safe:animate-pulse" /></div>
     );
   const name = form.name || "New product";
 
   return (
-    <div className="space-y-5">
-      <SubPageNav backHref={isNew ? "/products" : `/products/${productId}`} right={<span>{name}</span>} />
-
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{isNew ? "New product" : "Product settings"}</h1>
-        <div className="hidden items-center gap-2 md:flex">
-          <Button onClick={save} disabled={saving}>
+    <div className="space-y-6">
+      {isNew ? (
+        <PageHeader
+          title="New product"
+          description="Describe it once. Every test you make for it reuses this."
+          actions={
+            <Button onClick={save} disabled={saving} className="hidden md:inline-flex">
+              {saving ? "Saving…" : "Save product"}
+            </Button>
+          }
+        />
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">Shared by every test. Changes apply to new tests only, so running tests stay fair.</p>
+          <Button onClick={save} disabled={saving} className="hidden md:inline-flex">
             {saving ? "Saving…" : "Save product"}
           </Button>
         </div>
-      </div>
-      <p className="text-muted-foreground">
-        Shared by every deck of this product. Changes apply to new decks only<span className="hidden md:inline">, so running tests stay fair</span>.
-      </p>
+      )}
 
-      <div className="grid gap-5 md:grid-cols-[1fr_27rem]">
-        <div className="space-y-5">
+      <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_24rem] md:items-start">
+        <div className="space-y-6">
           <Card className="space-y-5 p-5">
-            <h2 className="text-lg font-semibold tracking-tight hidden md:block">Identity</h2>
+            <h2 className="text-lg font-semibold tracking-tight">Identity</h2>
             <div className="flex items-end gap-3">
               <ProductTile icon={form.icon || (form.name.slice(0, 1).toUpperCase() || "?")} accent={accent} className="size-[3.25rem] md:size-14" />
               <div className="flex-1">
@@ -165,15 +170,12 @@ export function ProductScreen({ productId }: { productId?: string }) {
               </p>
               <ChipPicker label="Target user roles" options={ROLES} selected={form.targetUsers} onChange={(v) => set("targetUsers", v)} inline />
               <ErrorText message={errorFor(errors, "targetUsers")} />
-              <p className="mt-2 text-sm text-muted-foreground">
-                Picked from the same role list swipers choose in their profile. Results split by it automatically, so there is no extra question for swipers.
-              </p>
             </div>
           </Card>
 
           <Card className="space-y-4 p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 text-lg font-extrabold">
+              <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
                 Audience in the feed <span className="rounded-md bg-accent-soft px-2 py-0.5 text-xs font-bold text-accent">Free</span>
               </h2>
               <p className="text-sm text-muted-foreground" aria-live="polite">
@@ -200,41 +202,40 @@ export function ProductScreen({ productId }: { productId?: string }) {
               <ChipPicker label="Interests" options={INDUSTRIES} selected={form.audience.interests} onChange={(interests) => set("audience", { ...form.audience, interests })} />
             </div>
             <p className="text-sm text-muted-foreground">
-              Every deck of this product uses this audience. Flagsmith still picks one card at random for each swiper inside it. The personal link is not restricted.
+              Every test uses this audience. Your personal link is open to anyone.
             </p>
           </Card>
 
           {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
-
-          {!isNew ? (
-            <Link href={`/products/${productId}/site`} className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full md:hidden")}>
-              <Globe className="text-accent" /> Ship to website
-            </Link>
-          ) : null}
 
           <Button size="lg" onClick={save} disabled={saving} className="w-full md:hidden">
             {saving ? "Saving…" : "Save product"}
           </Button>
         </div>
 
-        {!isNew ? (
-          <Card className="hidden h-fit p-5 md:block">
-            <div className="mb-2 flex items-baseline justify-between">
-              <h2 className="text-lg font-semibold tracking-tight text-lg font-extrabold">Decks in this product</h2>
-              <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
-                {data.decks.length} decks · {data.decks.reduce((n, d) => n + d.waitlist, 0)} on the waitlist
-              </span>
-            </div>
-            <ul className="divide-y divide-border">
-              {data.decks.map((d) => (
-                <li key={d.id} className={cn("flex items-center justify-between py-4")}>
-                  <span className="font-semibold">{d.label}</span>
-                  <StatusText tone={d.tone}>{d.statusLabel}</StatusText>
-                </li>
-              ))}
-              {data.decks.length === 0 ? <li className="py-4 text-muted-foreground">No decks yet.</li> : null}
-            </ul>
-          </Card>
+        {!isNew || aside ? (
+          <div className="space-y-6">
+            {!isNew ? (
+              <Card className="hidden h-fit p-5 md:block">
+                <div className="mb-2 flex items-baseline justify-between">
+                  <h2 className="text-lg font-semibold tracking-tight">Tests in this product</h2>
+                  <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
+                    {data.decks.length} decks · {data.decks.reduce((n, d) => n + d.waitlist, 0)} on the waitlist
+                  </span>
+                </div>
+                <ul className="divide-y divide-border">
+                  {data.decks.map((d) => (
+                    <li key={d.id} className="flex items-center justify-between py-3">
+                      <span className="font-semibold">{d.label}</span>
+                      <StatusText tone={d.tone}>{d.statusLabel}</StatusText>
+                    </li>
+                  ))}
+                  {data.decks.length === 0 ? <li className="py-3 text-muted-foreground">No tests yet.</li> : null}
+                </ul>
+              </Card>
+            ) : null}
+            {aside}
+          </div>
         ) : null}
       </div>
     </div>

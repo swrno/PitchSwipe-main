@@ -132,11 +132,11 @@ export function reportDocument(input: { productName: string; scopeText: string; 
   ];
   if (input.decks.length > 1) {
     blocks.push(
-      { type: "heading", text: "Decks in this report" },
+      { type: "heading", text: "Tests in this report" },
       {
         type: "table",
         columns: [
-          { header: "Deck", weight: 3 },
+          { header: "Test", weight: 3 },
           { header: "Status", weight: 2 },
           { header: "Swipers", weight: 1.2, align: "right" },
           { header: "Joined", weight: 1.2, align: "right" },

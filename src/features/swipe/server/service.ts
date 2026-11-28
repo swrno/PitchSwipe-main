@@ -163,14 +163,14 @@ export async function submitResponse(deps: SwipeDeps, input: SubmitInput, ctx: S
   }
 
   const deck = await store.getDeckById(checked.claims.deckId);
-  if (!deck) return { ok: false, status: 404, error: "Deck not found." };
+  if (!deck) return { ok: false, status: 404, error: "Test not found." };
   const live = deck.status === "live";
   // Feed answers only on live decks; a link serves live, decided or shipped decks.
   if (source === "feed" ? !live || !deck.listedInFeed : deck.status === "draft" || deck.status === "closed") {
-    return { ok: false, status: 404, error: "This deck is not taking answers." };
+    return { ok: false, status: 404, error: "This test is not taking answers." };
   }
   const card = deck.cards.find((c) => c.id === checked.claims.cardKey);
-  if (!card) return { ok: false, status: 400, error: "That card is not part of this deck." };
+  if (!card) return { ok: false, status: 400, error: "That card is not part of this test." };
 
   const dwellMs = serverDwellMs({ servedAt, now });
   const { ignored, valid } = evaluateSwipe(dwellMs);
@@ -197,7 +197,7 @@ export async function submitResponse(deps: SwipeDeps, input: SubmitInput, ctx: S
     counted,
     createdAt: new Date(now),
   });
-  if (!saved.saved) return { ok: false, status: 409, error: "You already answered this deck." };
+  if (!saved.saved) return { ok: false, status: 409, error: "You already answered this test." };
 
   // The only path to Flagsmith: valid AND counted, on a live deck that runs on Flagsmith. The exposure goes for
   // every such answer (positive or negative), then answer_positive for positive ones: same population for both.
@@ -252,7 +252,7 @@ const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "obj
 export function parseSubmitBody(body: unknown): { value: SubmitInput; guid: string } | { error: string } {
   if (!isObject(body)) return { error: "Invalid request body." };
   if (!isValidGuid(body.swiperGuid)) return { error: "Missing swiper id." };
-  if (typeof body.deckId !== "string" || !body.deckId) return { error: "Missing deck." };
+  if (typeof body.deckId !== "string" || !body.deckId) return { error: "Missing test." };
   if (typeof body.cardId !== "string" || !body.cardId) return { error: "Missing card." };
   if (!ANSWERS.includes(body.answer as Answer)) return { error: "Answer must be positive or negative." };
   if (typeof body.token !== "string" || !body.token || body.token.length > 600) return { error: "Missing card token." };

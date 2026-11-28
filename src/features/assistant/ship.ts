@@ -77,7 +77,7 @@ export function safeWriteError(error: unknown): string {
 /** Data for the review sheet. Read only. */
 export async function getReview(deps: ShipDeps, ownerId: string, deckId: string): Promise<Outcome<ReviewView>> {
   const deck = await deps.decks.getForOwner(ownerId, deckId);
-  if (!deck) return fail(404, "Deck not found.");
+  if (!deck) return fail(404, "Test not found.");
   const ship = await deps.store.getShip(deckId);
   const { results, swipers } = await deps.results.get(deck, { now: deps.now?.() });
   const assessment = assessDeck(results, deck.controlKey, swipers);
@@ -104,7 +104,7 @@ export async function getReview(deps: ShipDeps, ownerId: string, deckId: string)
 export async function getShipped(deps: ShipDeps, ownerId: string, deckId: string): Promise<Outcome<ShippedView>> {
   const deck = await deps.decks.getForOwner(ownerId, deckId);
   const ship = await deps.store.getShip(deckId);
-  if (!deck || !ship || ship.ownerId !== ownerId) return fail(404, "Nothing shipped for this deck.");
+  if (!deck || !ship || ship.ownerId !== ownerId) return fail(404, "Nothing shipped for this test.");
   return { ok: true, value: shippedView(deck, ship, deps.siteDomain ? await deps.siteDomain(deck).catch(() => null) : null) };
 }
 
@@ -115,12 +115,12 @@ export async function shipDeck(
   if (input.approve !== true) return fail(400, "Shipping needs your approval (approve: true).");
   const now = deps.now ?? (() => new Date());
   const deck = await deps.decks.getForOwner(input.ownerId, input.deckId);
-  if (!deck) return fail(404, "Deck not found.");
-  if (inFlight.has(deck.deckId)) return fail(409, "A ship is already in progress for this deck.");
+  if (!deck) return fail(404, "Test not found.");
+  if (inFlight.has(deck.deckId)) return fail(409, "A ship is already in progress for this test.");
   inFlight.add(deck.deckId);
   try {
     const existing = await deps.store.getShip(deck.deckId);
-    if (activeShip(existing)) return fail(409, "This deck is already shipped.");
+    if (activeShip(existing)) return fail(409, "This test is already shipped.");
 
     const { results, swipers } = await deps.results.get(deck, { now: now() });
     const assessment = assessDeck(results, deck.controlKey, swipers);
@@ -158,7 +158,7 @@ export async function shipDeck(
     };
 
     const fm = deps.flagsmith;
-    if (!deck.experimentId) return fail(409, "This deck has no Flagsmith experiment.");
+    if (!deck.experimentId) return fail(409, "This test has no Flagsmith experiment.");
     record.previousSnapshot = await fm.snapshotFlag(deck.flagName);
     // Durable before any change, so undo works even if the next steps fail halfway.
     await deps.store.saveShip(record);
@@ -226,9 +226,9 @@ export async function shipDeck(
  */
 export async function undoDeck(deps: ShipDeps, input: { ownerId: string; deckId: string }): Promise<Outcome<{ undone: true }>> {
   const deck = await deps.decks.getForOwner(input.ownerId, input.deckId);
-  if (!deck) return fail(404, "Deck not found.");
+  if (!deck) return fail(404, "Test not found.");
   const ship = await deps.store.getShip(deck.deckId);
-  if (!activeShip(ship)) return fail(409, "There is nothing to undo for this deck.");
+  if (!activeShip(ship)) return fail(409, "There is nothing to undo for this test.");
   const at = (deps.now ?? (() => new Date()))().toISOString();
   if (!ship.previousSnapshot) return fail(409, "No saved flag state to restore.");
   // undoShip writes the control state (every option at 0%, enabled), never the snapshot's weights, which may have
@@ -251,7 +251,7 @@ export async function undoDeck(deps: ShipDeps, input: { ownerId: string; deckId:
 /** "Later": hide the alert for 24 hours. */
 export async function snoozeAlert(deps: ShipDeps, input: { ownerId: string; deckId: string }): Promise<Outcome<{ snoozedUntil: string }>> {
   const alert = await deps.store.getAlert(input.deckId);
-  if (!alert || alert.ownerId !== input.ownerId) return fail(404, "No alert for this deck.");
+  if (!alert || alert.ownerId !== input.ownerId) return fail(404, "No alert for this test.");
   if (alert.status !== "active") return fail(409, "This alert is not active.");
   const now = (deps.now ?? (() => new Date()))();
   const until = snoozeUntil(now);

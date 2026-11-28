@@ -297,12 +297,12 @@ export function Sidebar({
         )}
         <Link
           href={NEW_DECK_HREF}
-          aria-label="New deck"
-          title={collapsed ? "New deck" : undefined}
+          aria-label="New test"
+          title={collapsed ? "New test" : undefined}
           className={cn(buttonVariants({ variant: "default" }), "h-10 w-full", collapsed && "px-0")}
         >
           <Plus aria-hidden strokeWidth={2} />
-          {collapsed ? null : "New deck"}
+          {collapsed ? null : "New test"}
         </Link>
       </div>
 

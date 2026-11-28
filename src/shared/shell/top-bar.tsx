@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ChevronRight, Layers, LogIn, LogOut, ListChecks, Palette, User } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Layers, LogIn, LogOut, ListChecks, Palette, User } from "lucide-react";
 import * as React from "react";
 import { useAuth } from "@/features/auth/ui/provider";
 import { haptic } from "@/shared/lib/feel/haptics";
@@ -66,6 +66,27 @@ export function TopBar() {
   );
 }
 
+/** Phone only: one compact row under the logo bar; the parent crumb is a back link, the current page is the label. */
+export function PhoneCrumb() {
+  const pathname = usePathname();
+  const registered = useBreadcrumbItems();
+  const crumbs = registered ?? breadcrumbFor(pathname);
+  if (!crumbs || crumbs.length < 2) return null;
+  const parent = [...crumbs.slice(0, -1)].reverse().find((c) => c.href);
+  if (!parent) return null;
+  return (
+    <nav aria-label="Breadcrumb" className="px-4 pt-1 md:hidden">
+      <Link
+        href={parent.href as string}
+        className={cn("-ml-2 inline-flex min-h-11 max-w-full items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground", FOCUS_RING)}
+      >
+        <ChevronLeft aria-hidden className="size-4 shrink-0" />
+        <span className="truncate">{parent.label}</span>
+      </Link>
+    </nav>
+  );
+}
+
 /** "980 decks left": the plan allowance minus the founder's decks. Signed in only; re-read after each navigation. */
 function DecksLeft() {
   const used = useDecksUsed();
@@ -75,7 +96,7 @@ function DecksLeft() {
   return (
     <Link
       href="/settings/plan"
-      title={`${fmt(used)} of ${fmt(CURRENT_PLAN.deckAllowance)} decks used on the ${CURRENT_PLAN.name} plan`}
+      title={`${fmt(used)} of ${fmt(CURRENT_PLAN.deckAllowance)} tests used on the ${CURRENT_PLAN.name} plan`}
       className={cn(
         "flex h-9 items-center gap-1.5 rounded-lg border border-border px-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground",
         FOCUS_RING,
@@ -83,7 +104,7 @@ function DecksLeft() {
     >
       <Layers aria-hidden className="size-4" />
       <span className="tnum font-semibold text-foreground">{fmt(left)}</span>
-      <span>{left === 1 ? "deck left" : "decks left"}</span>
+      <span>{left === 1 ? "test left" : "tests left"}</span>
     </Link>
   );
 }
@@ -192,7 +213,7 @@ function TopBarAccount() {
             className={MENU_ITEM}
           >
             <ListChecks aria-hidden className="size-4" />
-            Plans
+            Plan
           </Link>
           <button
             type="button"

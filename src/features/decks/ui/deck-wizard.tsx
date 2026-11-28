@@ -41,7 +41,9 @@ import {
   ScreenshotVersions,
   TextVersions,
 } from "./version-editors";
-import { ErrorText, FieldLabel, Notice, Segmented, StepProgress, SubPageNav, TextArea, TextInput, ToggleChip } from "./primitives";
+import { PageHeader } from "@/shared/shell/page-header";
+import { useBreadcrumb } from "@/shared/shell/breadcrumb";
+import { ErrorText, FieldLabel, Notice, Segmented, StepProgress, TextArea, TextInput, ToggleChip } from "./primitives";
 
 const VARIABLE_NOUN: Record<TestVariable, { plural: string; versions: string }> = {
   headline: { plural: "headlines", versions: "headline" },
@@ -145,7 +147,7 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
         </button>
       </div>
     ) : (
-      <div aria-busy className="space-y-3">
+      <div aria-busy className="space-y-6">
         <div className="h-8 w-1/2 rounded-lg bg-muted motion-safe:animate-pulse" />
         <div className="h-64 rounded-xl bg-muted motion-safe:animate-pulse" />
       </div>
@@ -153,9 +155,9 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
 
   if (products.length === 0 || !form) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">New deck</h1>
-        <Notice>A deck lives inside a product. Create your first product, then come back.</Notice>
+      <div className="space-y-6">
+        <PageHeader title="New test" description="A test lives inside a product." className="mb-0" />
+        <Notice>A test lives inside a product. Create your first product, then come back.</Notice>
         <Link href="/products/new" className="inline-flex h-12 items-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground">
           New product
         </Link>
@@ -197,7 +199,7 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
         setPublished({ id: saved._id, slug: saved.slug });
         return;
       }
-      setMessage({ tone: "ok", text: "Draft saved. Nothing is live. Find it under Drafts on My decks." });
+      setMessage({ tone: "ok", text: "Draft saved. Nothing is live. Find it under Drafts on My tests." });
     } catch (e) {
       if (e instanceof ApiError) {
         setErrors(e.errors);
@@ -288,13 +290,14 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
   if (published) {
     const link = `${window.location.origin}/d/${encodeURIComponent(published.slug)}`;
     return (
-      <div className="mx-auto max-w-xl space-y-5">
+      <div className="max-w-xl space-y-6">
+        <Crumbs items={[{ label: "Products", href: "/products" }, { label: product.name, href: `/products/${product.id}` }, { label: "New test" }]} />
+        <PageHeader title="Your test is live" description="Swipers can see it now." className="mb-0" />
         <StepProgress step={totalSteps} total={totalSteps} label="Live" />
         <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-center" role="status">
           <CheckCircle2 aria-hidden className="mx-auto size-10 text-accent" />
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Your deck is live</h1>
           <p className="text-muted-foreground">
-            Swipers can see it now. Results appear here as people swipe, and we tell you when a winner is clear.
+            Results appear as people swipe, and we tell you when a winner is clear. Share your link to get the first swipes.
           </p>
           <p className="break-all rounded-lg bg-muted px-3 py-2 text-sm">{link}</p>
           <div className="flex flex-col gap-2">
@@ -316,7 +319,7 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
               View results
             </Link>
             <Link href="/decks/new" className="min-h-11 content-center text-sm font-medium text-muted-foreground hover:text-foreground">
-              Create another deck
+              Create another test
             </Link>
           </div>
         </div>
@@ -325,27 +328,26 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
   }
 
   return (
-    <div className="space-y-5">
-      <StepProgress step={totalSteps - 1} total={totalSteps} label="Build your deck" />
-      <SubPageNav backHref="/products" />
-
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-            <span className="md:hidden">New deck</span>
-            <span className="hidden md:inline">{product.name}</span>
-          </h1>
-        </div>
-        <p className="text-sm text-muted-foreground md:hidden">
-          in <span className="font-bold text-foreground">{product.name}</span> ·{" "}
-          <button type="button" className="font-semibold text-foreground underline" onClick={() => setChanging((v) => !v)} disabled={locked}>
-            Change
-          </button>
-        </p>
-        <div className="hidden gap-2 md:flex">
-          <ActionButtons busy={busy} locked={locked} onDraft={() => submit(false)} onAi={() => setAiOpen(true)} onPublish={() => submit(true)} />
-        </div>
-      </div>
+    <div className="space-y-6">
+      <Crumbs items={[{ label: "Products", href: "/products" }, { label: product.name, href: `/products/${product.id}` }, { label: "New test" }]} />
+      <PageHeader
+        className="mb-0"
+        title="New test"
+        description={
+          <>
+            For <span className="font-semibold text-foreground">{product.name}</span> ·{" "}
+            <button type="button" className="font-semibold text-foreground underline" onClick={() => setChanging((v) => !v)} disabled={locked}>
+              Change
+            </button>
+          </>
+        }
+        actions={
+          <div className="hidden gap-2 md:flex">
+            <ActionButtons busy={busy} locked={locked} onDraft={() => submit(false)} onAi={() => setAiOpen(true)} onPublish={() => submit(true)} />
+          </div>
+        }
+      />
+      <StepProgress step={totalSteps - 1} total={totalSteps} label="Build your test" />
 
       {changing ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl bg-muted p-3">
@@ -388,9 +390,9 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
       {locked ? (
         <Notice tone="muted">
           <span className="flex items-center gap-2 font-semibold text-foreground">
-            <Lock className="size-4" /> This deck is published, so its cards are locked.
+            <Lock className="size-4" /> This test is published, so its cards are locked.
           </span>
-          Cards never change after the experiment starts, so the result stays fair. To test a change, start a new deck.
+          Cards never change after the experiment starts, so the result stays fair. To test a change, start a new test.
         </Notice>
       ) : null}
 
@@ -507,8 +509,8 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
               <p>
                 <span className="hidden md:inline">Name, icon, industry, founder name, target user and audience</span>
                 <span className="md:hidden">Name, founder and audience</span> come from the product <strong>{product.name}</strong>.{" "}
-                {f.variable === "logo" ? "This deck tests the logo instead of the product icon. " : null}
-                {f.variable === "language" ? "This deck tests the card language. " : null}
+                {f.variable === "logo" ? "This tests the logo instead of the product icon. " : null}
+                {f.variable === "language" ? "This tests the card language. " : null}
                 <Link href={`/products/${product.id}`} className="font-semibold underline">
                   Edit product
                 </Link>
@@ -726,7 +728,7 @@ function ActionButtons({
         </Button>
       </div>
       <Button size="lg" className="w-full" onClick={onPublish} disabled={disabled}>
-        <Link2 /> {busy === "publish" ? "Publishing…" : "Publish deck"}
+        <Link2 /> {busy === "publish" ? "Publishing…" : "Publish test"}
       </Button>
     </>
   ) : (
@@ -738,8 +740,14 @@ function ActionButtons({
         <Sparkles className="text-accent" /> Test with AI personas
       </Button>
       <Button onClick={onPublish} disabled={disabled}>
-        <Link2 /> {busy === "publish" ? "Publishing…" : "Publish deck"}
+        <Link2 /> {busy === "publish" ? "Publishing…" : "Publish test"}
       </Button>
     </>
   );
+}
+
+/** Registers the breadcrumb with real names; renders nothing. */
+function Crumbs({ items }: { items: { label: string; href?: string }[] }) {
+  useBreadcrumb(items);
+  return null;
 }

@@ -94,10 +94,10 @@ export async function publishToFlagsmith(deck: DeckRecord, deps: HookDeps): Prom
     };
   } catch (error) {
     const reason = safeReason(error);
-    log.error("decks: Flagsmith publish failed; deck runs a local split", deck._id, error instanceof Error ? error.message : error);
+    log.error("decks: Flagsmith publish failed; test runs a local split", deck._id, error instanceof Error ? error.message : error);
     const orphan = (error as { orphanFeatureId?: unknown })?.orphanFeatureId;
     if (typeof orphan === "number") {
-      log.error("decks: half-made Flagsmith flag left unarchived; it is archived with the deck", deck._id, orphan);
+      log.error("decks: half-made Flagsmith flag left unarchived; it is archived with the test", deck._id, orphan);
       return { flagsmithError: reason, orphanFeatureId: orphan };
     }
     return { flagsmithError: reason };
@@ -110,7 +110,7 @@ export async function archiveOnFlagsmith(deck: DeckRecord, deps: HookDeps): Prom
   if (!deck.experimentId && deck.featureId === undefined) return; // local split: no flag was created
   const log = deps.log ?? console;
   if (deck.status === "shipped") {
-    log.info("decks: shipped deck archived; its Flagsmith flag stays (it serves the winner)", deck._id, deck.flagName);
+    log.info("decks: shipped test archived; its Flagsmith flag stays (it serves the winner)", deck._id, deck.flagName);
     return;
   }
   if (deck.experimentId && deps.flagsmith.getExperiment) {

@@ -78,7 +78,7 @@ export function SuggestionCard({ suggestion }: { suggestion: SuggestionView }) {
       <Link href={suggestion.href} className={cn(buttonVariants(), "shrink-0")}>
         <Plus className="hidden md:block" aria-hidden />
         <span className="md:hidden">Create</span>
-        <span className="hidden md:inline">Create this deck</span>
+        <span className="hidden md:inline">Create this test</span>
       </Link>
     </section>
   );
@@ -119,7 +119,7 @@ export function ThemesCard({ group }: { group: ThemeGroup }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-4 md:p-5" aria-label={`Comment themes, ${group.deckLabel}`}>
       <h2 className="text-lg font-semibold tracking-tight text-lg tracking-tight">What people said</h2>
-      <p className="text-sm text-muted-foreground">{group.deckLabel} deck · themes grouped by AI, counted by code</p>
+      <p className="text-sm text-muted-foreground">{group.deckLabel} · themes grouped by AI, counted by code</p>
       <ul className="mt-3 divide-y divide-border">
         {group.themes.map((t) => (
           <li key={t.label} className="flex items-baseline justify-between gap-3 py-2">
@@ -154,10 +154,10 @@ export function PersonaCard({ persona }: { persona: PersonaCardView }) {
 export function EmptyInsights({ payload }: { payload: InsightsPayload }) {
   return (
     <section className="rounded-2xl border border-dashed border-border p-5 text-center">
-      <p className="text-lg font-extrabold tracking-tight">No decks have run for {payload.productName} yet.</p>
-      <p className="mt-1 text-muted-foreground">Insights appear once a deck has real swipers.</p>
+      <p className="text-lg font-extrabold tracking-tight">No tests have run for {payload.productName} yet.</p>
+      <p className="mt-1 text-muted-foreground">Insights appear once a test has real swipers.</p>
       <Link href={`/decks/new?product=${encodeURIComponent(payload.productId)}`} className={cn(buttonVariants(), "mt-4")}>
-        New deck
+        New test
       </Link>
     </section>
   );

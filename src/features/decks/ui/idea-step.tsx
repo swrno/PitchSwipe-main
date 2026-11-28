@@ -6,7 +6,8 @@ import { Card } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { IDEA_MAX, IDEA_MIN, type IdeaDraft } from "@/features/decks/idea";
 import { api, ApiError } from "./api";
-import { ErrorText, StepProgress, SubPageNav, TextArea } from "./primitives";
+import { PageHeader } from "@/shared/shell/page-header";
+import { ErrorText, StepProgress, TextArea } from "./primitives";
 
 export interface IdeaResult {
   draft: IdeaDraft;
@@ -35,16 +36,10 @@ export function IdeaStep({ onDrafted, onSkip }: { onDrafted: (r: IdeaResult) => 
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
+    <div className="max-w-2xl space-y-6">
+      <PageHeader title="New test" description="Describe your idea. AI drafts the pitch and you edit it before anything goes live." className="mb-0" />
       <StepProgress step={1} total={3} label="Describe your idea" />
-      <SubPageNav backHref="/products" />
       <Card className="space-y-4 p-5 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:p-0">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Tell me what&apos;s on your mind</h1>
-          <p className="mt-2 text-muted-foreground">
-            Describe your product in your own words: what it does and who it is for. AI drafts your pitch, you review and edit it before anything goes live.
-          </p>
-        </div>
         <div>
           <label htmlFor="idea-text" className="sr-only">
             About your product

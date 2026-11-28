@@ -81,7 +81,7 @@ export async function claimReward(deps: ClaimsDeps, input: { responseId: string;
     return { ok: false, status: 400, error: "Only a counted yes answer can claim the reward." };
   }
   const deck = await deps.swipeStore.getDeckById(response.deckId);
-  if (!deck) return { ok: false, status: 404, error: "Deck not found." };
+  if (!deck) return { ok: false, status: 404, error: "Test not found." };
 
   const email = normalizeEmail(ctx.email);
   const saved = await deps.store.saveClaim({
@@ -210,7 +210,7 @@ export async function creditSwipe(
   if ("error" in found) return { ok: false, ...found.error };
   const { response } = found;
   const deck = await deps.swipeStore.getDeckById(response.deckId);
-  if (!deck) return { ok: false, status: 404, error: "Deck not found." };
+  if (!deck) return { ok: false, status: 404, error: "Test not found." };
   const paid = isPaidCard({ source: response.source, boost: deck.boost, paidSwipingFlag: await deps.paidSwiping() });
   const earnedRs = earningsFor({ paid, valid: response.valid, counted: response.counted });
   const note = walletNoteFor({ paid, valid: response.valid, counted: response.counted });

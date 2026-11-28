@@ -27,6 +27,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.103",
     "@ai-sdk/groq": "4.0.82",
+    "@ai-sdk/provider": "4.0.38",
     "@ai-sdk/react": "4.0.175",
     "@anthropic-ai/sdk": "1.10.0",
     "@capacitor-community/speech-recognition": "7.0.1",

@@ -13,7 +13,13 @@ import { useDeckAndProduct, type BoostData } from "./use-deck-and-product";
 export function ShareScreen({ deckId, origin }: { deckId: string; origin: string }) {
   const { data, loadError } = useDeckAndProduct(deckId);
   if (loadError) return <Notice tone="error">{loadError}</Notice>;
-  if (!data) return <p className="text-muted-foreground">Loading...</p>;
+  if (!data)
+    return (
+      <div aria-busy className="space-y-3">
+        <span className="sr-only">Loading</span>
+        <div className="h-48 rounded-xl bg-muted motion-safe:animate-pulse" />
+      </div>
+    );
   return <Loaded data={data} origin={origin} />;
 }
 
@@ -39,16 +45,15 @@ function Loaded({ data, origin }: { data: BoostData; origin: string }) {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {message ? <Notice tone="error">{message}</Notice> : null}
           <section aria-labelledby="link-title" className="space-y-3 rounded-xl border border-border bg-card p-5">
             <div>
-              <h2 id="link-title" className="text-lg font-extrabold md:text-xl">
+              <h2 id="link-title" className="text-lg font-semibold tracking-tight">
                 Your personal link
               </h2>
-              <p className="text-muted-foreground">
-                Opens the feed with your deck first. After one swipe, the feed goes random.
-                <span className="hidden md:inline"> Swipes are tagged as &quot;Your link&quot;.</span>
+              <p className="text-sm text-muted-foreground">
+                Opens the feed with your test first. Swipes from it are tagged &quot;Your link&quot;.
               </p>
             </div>
             <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2 md:border-0 md:bg-transparent md:p-0">
@@ -87,7 +92,7 @@ function Loaded({ data, origin }: { data: BoostData; origin: string }) {
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">
-              WhatsApp opens with a ready message. LinkedIn opens its share page and copies the post text, so paste it into your post.
+              LinkedIn copies the post text. Paste it into your post.
             </p>
             {showQr ? (
               <div className="flex items-center gap-4 rounded-xl bg-muted p-4">

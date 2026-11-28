@@ -56,12 +56,9 @@ export function AppearanceScreen() {
 
   return (
     <div className="rise-children space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Appearance</h1>
-        <p className="max-w-[60ch] text-sm text-muted-foreground">
-          Choose a colour theme for each mode. Colours are saved on this device only. Switch between light and dark with the theme button.
-        </p>
-      </header>
+      <p className="max-w-[60ch] text-sm text-muted-foreground">
+        Pick a colour theme for light and dark mode. Saved on this device only.
+      </p>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-6">
@@ -262,7 +259,7 @@ function Preview({ tokens }: { tokens: TokenSet }) {
       <div className="w-16 shrink-0 space-y-2 border-r border-border bg-card p-2">
         <div className="size-5 rounded-md bg-accent" />
         <div className="rounded-md bg-accent-soft px-1.5 py-1 text-[10px] font-semibold text-foreground">Swipe</div>
-        <div className="px-1.5 py-1 text-[10px] text-muted-foreground">Decks</div>
+        <div className="px-1.5 py-1 text-[10px] text-muted-foreground">Tests</div>
         <div className="px-1.5 py-1 text-[10px] text-muted-foreground">Wallet</div>
       </div>
       <div className="min-w-0 flex-1 space-y-3 p-3">

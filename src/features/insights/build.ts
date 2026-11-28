@@ -152,7 +152,7 @@ async function askModel(provider: LlmProvider, spec: InsightSpec, table: SourceT
       system: raw.SYSTEM_RULES ?? "Code fills every number. Cite figures only as {key} placeholders.",
       user: JSON.stringify({
         instruction:
-          'Write a short title and one or two plain sentences for the outline. Cite every figure with a {key} placeholder from FACTS. Do not say winners from separate decks were tested together.',
+          'Write a short title and one or two plain sentences for the outline. Cite every figure with a {key} placeholder from FACTS. Do not say winners from separate tests were tested together.',
         kind: spec.kind,
         outline: spec.outline,
         facts: spec.facts.map((key) => ({ key, label: table.get(key).label ?? key })),
@@ -216,13 +216,13 @@ function resultSpec(decks: DeckFacts[], facts: SourceFact[]): InsightSpec | null
   const swipers = winners.reduce((n, d) => n + d.swipers, 0);
   const comments = winners.reduce((n, d) => n + d.comments, 0);
   facts.push(
-    fact("res.count", "Decks with a clear winner", allWinners.length, plural(allWinners.length, "deck", "decks")),
-    fact("res.swipers", "Swipers across those decks", swipers, plural(swipers, "swiper", "swipers")),
+    fact("res.count", "Tests with a clear winner", allWinners.length, plural(allWinners.length, "test", "tests")),
+    fact("res.swipers", "Swipers across those tests", swipers, plural(swipers, "swiper", "swipers")),
     fact("min", "Chance needed for a Result", MIN_PCT, `${MIN_PCT}%`),
   );
   const keys = ["res.count", "res.swipers", "min"];
   if (comments > 0) {
-    facts.push(fact("res.comments", "Comments on those decks", comments, plural(comments, "comment", "comments")));
+    facts.push(fact("res.comments", "Comments on those tests", comments, plural(comments, "comment", "comments")));
     keys.push("res.comments");
   }
   for (const d of winners) {
@@ -230,17 +230,17 @@ function resultSpec(decks: DeckFacts[], facts: SourceFact[]): InsightSpec | null
   }
   const names = listPhrase(winners.map((d) => place(`${k(d)}.n`)));
   const chances = listPhrase(winners.map((d) => place(`${k(d)}.chance`)));
-  const source = `${winners.length === 1 ? "Deck" : "Decks"} ${names} · ${place("res.swipers")} · Flagsmith: ${chances} chance best${comments > 0 ? ` · ${place("res.comments")}` : ""}`;
+  const source = `${winners.length === 1 ? "Test" : "Tests"} ${names} · ${place("res.swipers")} · Flagsmith: ${chances} chance best${comments > 0 ? ` · ${place("res.comments")}` : ""}`;
   return {
     id: "result-across-decks",
     kind: "result",
     classification: { tag: "Result", counted: true, reasons: [] } as unknown as Classification,
     groupSize: swipers,
     facts: keys,
-    outline: "What the winning versions of these finished decks have in common, if anything. Each deck was tested on its own.",
+    outline: "What the winning versions of these finished tests have in common, if anything. Each test was tested on its own.",
     sourceTemplate: source,
     fallback: {
-      title: "Your finished decks have clear winners",
+      title: "Your finished tests have clear winners",
       text: `${place("res.count")} reached a clear winner, at ${place("min")} or more chance of being best. Each was tested on its own, so the winners were not tested against each other.`,
     },
     decks: winners.map((d) => ({ id: d.id, label: d.label, text: d.leaderText })),
@@ -265,8 +265,8 @@ function targetLeadSpec(d: DeckFacts, facts: SourceFact[]): InsightSpec | null {
     classification: group,
     groupSize: d.targetSwipers,
     facts: [`${deckKey}.n`, `${deckKey}.chance`, `${deckKey}.target`, "min", ...(leader.startsWith("{") ? [`${deckKey}.leader`] : [])],
-    outline: `The ${d.noun} deck is still running and one version leads, below the chance needed for a Result. Target users are a segment, so this is a Lead.`,
-    sourceTemplate: `Deck ${place(`${deckKey}.n`)}, still running · ${place(`${deckKey}.target`)} · Flagsmith: ${place(`${deckKey}.chance`)}, not decided`,
+    outline: `The ${d.noun} test is still running and one version leads, below the chance needed for a Result. Target users are a segment, so this is a Lead.`,
+    sourceTemplate: `Test ${place(`${deckKey}.n`)}, still running · ${place(`${deckKey}.target`)} · Flagsmith: ${place(`${deckKey}.chance`)}, not decided`,
     fallback: {
       title: `The ${d.noun} test is still open`,
       text: `${leader} leads with ${place(`${deckKey}.chance`)} chance of being best, below the ${place("min")} needed. ${place(`${deckKey}.target`)} have swiped so far, so keep it running before you lock a ${d.noun}.`,
@@ -293,8 +293,8 @@ function stateLeadSpec(d: DeckFacts, facts: SourceFact[]): InsightSpec | null {
     classification: group,
     groupSize: s.swipers,
     facts: [`${deckKey}.n`, `${deckKey}.state.swipers`, `${deckKey}.state.joined`, `${deckKey}.state.rate`],
-    outline: `One state group joins the waitlist most on the ${d.noun} deck. A state is a segment, so this is a Lead.`,
-    sourceTemplate: `Deck ${place(`${deckKey}.n`)} · ${place(`${deckKey}.state.swipers`)} swipers in ${s.label} · a lead, not a result`,
+    outline: `One state group joins the waitlist most on the ${d.noun} test. A state is a segment, so this is a Lead.`,
+    sourceTemplate: `Test ${place(`${deckKey}.n`)} · ${place(`${deckKey}.state.swipers`)} swipers in ${s.label} · a lead, not a result`,
     fallback: {
       title: `${s.label} joins the most`,
       text: `In ${s.label}, ${place(`${deckKey}.state.joined`)} of ${place(`${deckKey}.state.swipers`)} swipers joined (${place(`${deckKey}.state.rate`)}). A small group: confirm with a test before you rely on it.`,
@@ -309,7 +309,7 @@ function baseFacts(decks: DeckFacts[]): SourceFact[] {
   const facts: SourceFact[] = [];
   for (const d of decks) {
     const key = k(d);
-    facts.push(fact(`${key}.n`, `${d.label} deck number`, d.index, String(d.index)));
+    facts.push(fact(`${key}.n`, `${d.label} test number`, d.index, String(d.index)));
     facts.push(fact(`${key}.swipers`, `${d.label} swipers`, d.swipers, plural(d.swipers, "swiper", "swipers")));
     const chance = bestChance(d);
     if (chance !== null) facts.push(fact(`${key}.chance`, `${d.label} Flagsmith chance to be best`, chance, `${chance}%`));
@@ -362,7 +362,7 @@ export function personaCard(p: PersonaInput): PersonaCardView {
     tags: ["Simulated", "Unproven"],
     title: "AI persona pre-test",
     text: `${p.totalPersonas} simulated personas (${p.personasPerCard} per card) picked: ${pickText}. These are AI guesses, not swipes.`,
-    trackRecord: p.finished === 0 ? "No finished decks to compare with yet" : `Right in ${p.right} of ${p.finished} finished decks`,
+    trackRecord: p.finished === 0 ? "No finished tests to compare with yet" : `Right in ${p.right} of ${p.finished} finished tests`,
     footnote: "Never counted with real swipes and never used in the insights above.",
   };
 }

@@ -1,15 +1,12 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { Download, Mail, Sparkles, Zap } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 import { assistantJson } from "@/features/assistant/ui/api";
 import { ShipWinnerButton } from "@/features/assistant/ui";
 import { DemandCurve } from "@/features/demand-curve/ui";
-import { DownloadResultsButton } from "@/features/export/ui";
 import { WebsiteShippedView } from "@/features/sites/ui";
-import { buttonVariants } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
 import { LIMITS } from "@/shared/lib/limits";
 import type { WebsiteShippedData } from "@/features/sites/types";
@@ -22,10 +19,7 @@ import {
 } from "@/features/results/types";
 import { cn } from "@/shared/lib/utils";
 
-import { WhoSwipedSection } from "./who-swiped-screen";
 import { MovableBlocks, type MovableBlock } from "@/shared/ui/movable-blocks";
-import { downloadWaitlistCsv } from "./api";
-import { WaitlistModal } from "./waitlist-modal";
 import { useDeckResults } from "./use-results";
 
 const pct1 = (x: number) => `${(x * 100).toFixed(1)}%`;
@@ -89,25 +83,33 @@ function SplitStat({ feed, link }: { feed: number; link: number }) {
   const total = feed + link;
   const feedPct = share(feed, total);
   const linkPct = total ? 100 - feedPct : 0;
+  // Labels live in a legend under the bar, never inside a segment: a small segment (e.g. 13%) has no room for text.
+  const parts = [
+    { label: "Feed", n: feed, pct: feedPct, dot: "bg-accent" },
+    { label: "Your link", n: link, pct: linkPct, dot: "bg-muted-foreground/40" },
+  ];
   return (
     <div className="rounded-xl border border-border bg-card px-4 py-3">
-      <p className="text-sm font-medium">Where swipers came from</p>
+      {/* Right padding keeps the title clear of the drag handle in the corner. */}
+      <p className="pr-10 text-sm font-medium">Where swipers came from</p>
       <div
-        className="mt-2 flex h-7 overflow-hidden rounded-md bg-muted text-xs font-semibold"
+        className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-muted"
         role="img"
         aria-label={`Feed ${feed}, ${feedPct}%. Your link ${link}, ${linkPct}%.`}
       >
-        {feed > 0 && (
-          <div className="flex items-center overflow-hidden whitespace-nowrap bg-accent px-2 text-accent-foreground" style={{ width: `${feedPct}%` }}>
-            <span className="tnum">Feed {feed} · {feedPct}%</span>
-          </div>
-        )}
-        {link > 0 && (
-          <div className="flex items-center overflow-hidden whitespace-nowrap bg-muted-foreground/25 px-2" style={{ width: `${linkPct}%` }}>
-            <span className="tnum">Your link {link} · {linkPct}%</span>
-          </div>
-        )}
+        {feed > 0 && <div className="bg-accent" style={{ width: `${feedPct}%` }} />}
+        {link > 0 && <div className="bg-muted-foreground/40" style={{ width: `${linkPct}%` }} />}
       </div>
+      <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-xs" aria-hidden>
+        {parts.map((x) => (
+          <li key={x.label} className="flex items-center gap-1.5">
+            <span className={cn("size-2 rounded-full", x.dot)} />
+            <span className="text-muted-foreground">{x.label}</span>
+            <span className="tnum font-semibold">{x.n}</span>
+            <span className="tnum text-muted-foreground">· {x.pct}%</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -187,39 +189,19 @@ function Pill({
   );
 }
 
-/**
- * Web actions: Download results (WP11 export sheet/dialog) and Ship winner (WP8 review dialog).
- * Ship winner only enables when Flagsmith says the test is decided; it ships nothing by itself.
- */
+/** Primary action: Ship winner (WP8 review dialog). It only enables when the test is decided and ships nothing by itself. */
 function WebActions({
   deckId,
-  boost = true,
   shipLabel,
   onChanged,
 }: {
   deckId: string;
-  boost?: boolean;
   shipLabel?: string;
   onChanged?: () => void;
 }) {
   return (
     <div className="hidden shrink-0 items-center gap-2 md:flex">
-      <DownloadResultsButton deckId={deckId} variant="labelled" />
-      {boost && (
-        <Link
-          href={`/decks/${deckId}/boost`}
-          className={cn(buttonVariants({ variant: "outline" }), "h-11")}
-        >
-          <Zap /> Boost
-        </Link>
-      )}
-      <ShipWinnerButton
-        deckId={deckId}
-        variant="secondary"
-        className="h-11"
-        label={shipLabel}
-        onChanged={onChanged}
-      />
+      <ShipWinnerButton deckId={deckId} variant="default" className="h-11" label={shipLabel} onChanged={onChanged} />
     </div>
   );
 }
@@ -238,7 +220,7 @@ function PhoneShip({
     <div className="md:hidden">
       <ShipWinnerButton
         deckId={deckId}
-        variant="secondary"
+        variant="default"
         className="h-11 w-full"
         label={label}
         onChanged={onChanged}
@@ -421,7 +403,7 @@ function Leaderboard({ data }: { data: ResultsPayload }) {
 
       {rows.length === 0 ? (
         <p className="mt-4 rounded-xl bg-muted p-4 text-sm text-muted-foreground">
-          No swipes counted for this deck yet.
+          No swipes counted for this test yet.
         </p>
       ) : (
         <ol
@@ -455,7 +437,7 @@ function AssistantCard({ data }: { data: ResultsPayload }) {
     body = (
       <>
         <strong>
-          This deck runs a local split, not a Flagsmith experiment.
+          This test runs a local split, not a Flagsmith experiment.
         </strong>{" "}
         The numbers above are your counted swipes. Flagsmith will not report
         results for it, so no winner or chance is shown.
@@ -496,128 +478,6 @@ function AssistantCard({ data }: { data: ResultsPayload }) {
       <Sparkles aria-hidden className="mt-0.5 size-4 shrink-0 text-accent" />
       <p>{body}</p>
     </div>
-  );
-}
-
-function WaitlistCard({ data }: { data: ResultsPayload }) {
-  const { waitlist } = data;
-  const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState<string>();
-  const [open, setOpen] = React.useState(false);
-  const download = async () => {
-    setBusy(true);
-    setError(undefined);
-    try {
-      await downloadWaitlistCsv(data.deck.id);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <>
-      {/* Phone */}
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-muted p-4 md:hidden">
-        <div className="flex items-center gap-3">
-          <span className="flex size-12 items-center justify-center rounded-xl bg-background text-accent">
-            <Mail className="size-5" aria-hidden />
-          </span>
-          <div>
-            <p className="text-lg font-extrabold tracking-tight">
-              Waitlist: {waitlist.count} people
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {waitlist.acrossText}
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={download}
-          disabled={busy || waitlist.count === 0}
-          className={cn(buttonVariants({ size: "default" }), "px-4")}
-        >
-          <Download /> CSV
-        </button>
-      </div>
-
-      {/* Web */}
-      <Card className="hidden p-5 md:block">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold tracking-tight">
-            Waitlist
-          </h2>
-          <button
-            type="button"
-            onClick={download}
-            disabled={busy || waitlist.count === 0}
-            className="flex items-center gap-1.5 text-sm font-semibold underline disabled:opacity-50"
-          >
-            <Download className="size-4" aria-hidden /> Download emails
-          </button>
-        </div>
-        <div className="mt-3 flex items-center gap-3">
-          <div className="flex -space-x-2" aria-hidden>
-            {waitlist.preview.slice(0, 4).map((c, i) => (
-              <span key={`${c.email}-${i}`} className="flex size-8 items-center justify-center rounded-full border-2 border-card bg-accent-soft text-xs font-semibold uppercase text-accent">
-                {c.email.charAt(0)}
-              </span>
-            ))}
-          </div>
-          <p className="tnum text-2xl font-semibold">{waitlist.count}</p>
-        </div>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {waitlist.count} {waitlist.count === 1 ? "person" : "people"} claimed
-          {waitlist.reward ? ` "${waitlist.reward}"` : " the reward"}. This is
-          your waitlist: one list for every card in this deck. Contact them at
-          launch or before.
-        </p>
-        <ul className="mt-3">
-          {waitlist.preview.slice(0, 5).map((c) => (
-            <li
-              key={`${c.email}-${c.cardLabel}-${c.when}`}
-              className="flex items-center justify-between gap-3 border-t border-border py-3 first:border-t-0"
-            >
-              <span className="min-w-0 truncate font-semibold">{c.email}</span>
-              <span className="flex shrink-0 items-center gap-3 text-sm">
-                <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-bold">
-                  {c.cardLabel}
-                </span>
-                <span className="w-16 text-right text-muted-foreground">
-                  {c.when}
-                </span>
-              </span>
-            </li>
-          ))}
-        </ul>
-        {waitlist.count > 5 && (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-haspopup="dialog"
-            className="mt-1 min-h-11 rounded-sm text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            {waitlist.moreCount > 0 ? `+ ${waitlist.moreCount} more` : "View all"}
-          </button>
-        )}
-        {open && (
-          <WaitlistModal
-            deckId={data.deck.id}
-            count={waitlist.count}
-            onClose={() => setOpen(false)}
-            onDownload={download}
-            downloading={busy}
-          />
-        )}
-      </Card>
-      {error && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
-    </>
   );
 }
 
@@ -681,7 +541,7 @@ export function ResultsScreen({ deckId }: { deckId: string }) {
       node: empty ? (
         <Card className="p-5 text-muted-foreground">
           {deck.status === "draft"
-            ? "This deck is still a draft. Publish it to start collecting swipes."
+            ? "This test is still a draft. Publish it to start collecting swipes."
             : "No counted swipes yet. Only swipes from people whose quality score is 70 or more count here."}
         </Card>
       ) : (
@@ -695,27 +555,15 @@ export function ResultsScreen({ deckId }: { deckId: string }) {
       label: "Split and Flagsmith note",
       node: <AssistantCard data={data} />,
     });
-  if (!priceCurve || data.waitlist.count > 0)
-    blocks.push({
-      id: "waitlist",
-      label: "Waitlist",
-      node: <WaitlistCard data={data} />,
-    });
-  blocks.push({
-    id: "who-swiped",
-    label: "Who swiped",
-    node: <WhoSwipedSection data={data} />,
-  });
 
   return (
-    <div className="rise-children space-y-5 md:space-y-6">
+    <div className="rise-children space-y-6">
       <ShippedWebsite deckId={deck.id} tick={shipTick} />
       {priceCurve ? (
         <>
           <div className="hidden justify-end md:flex">
             <WebActions
               deckId={deck.id}
-              boost={false}
               shipLabel={
                 verdict.kind === "decided" ? undefined : "Ship winner at 95%"
               }
@@ -733,25 +581,15 @@ export function ResultsScreen({ deckId }: { deckId: string }) {
       ) : (
         <>
           <header className="space-y-3">
-            <div className="md:flex md:flex-wrap md:items-start md:justify-between md:gap-x-4 md:gap-y-3">
-              <div className="min-w-0 space-y-3 md:flex md:flex-1 md:basis-[28rem] md:flex-wrap md:items-center md:gap-3 md:space-y-0">
-                <h1 className="text-2xl font-semibold tracking-tight md:text-3xl md:hidden">
-                  <span className="inline-block max-w-[12ch] border-b-4 border-accent pb-1 leading-[1.05]">
-                    {verdict.headline}
-                  </span>
-                </h1>
-                <h1 className="text-2xl font-semibold tracking-tight md:text-3xl hidden md:block">
-                  Which {deck.noun} is winning
-                </h1>
+            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+              <div className="min-w-0 space-y-2">
                 <Pill kind={verdict.kind}>{verdict.pill}</Pill>
+                <p className="text-lg font-semibold tracking-tight" aria-live="polite">
+                  {takeaway(data) ?? verdict.headline}
+                </p>
               </div>
               <WebActions deckId={deck.id} onChanged={bump} />
             </div>
-            {takeaway(data) && (
-              <p className="text-base text-muted-foreground" aria-live="polite">
-                {takeaway(data)}
-              </p>
-            )}
             <PhoneShip deckId={deck.id} onChanged={bump} />
           </header>
         </>
@@ -759,25 +597,10 @@ export function ResultsScreen({ deckId }: { deckId: string }) {
 
       <MovableBlocks blocks={blocks} storageKey="ps:results-layout" />
 
-      <p className="text-sm text-muted-foreground">
-        {deck.localSplitReason !== undefined ? (
-          <span>
-            Local split: not running on Flagsmith
-            {deck.localSplitReason
-              ? ` (${deck.localSplitReason})`
-              : " (Flagsmith was not set up when this deck was published)"}
-            . No winner is called for this deck. Swipes under 2 seconds are
-            excluded.
-          </span>
-        ) : (
-          <span>
-            Experiment{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-              {deck.flagName}
-            </code>{" "}
-            runs on Flagsmith. Swipes under 2 seconds are excluded.
-          </span>
-        )}
+      <p className="text-xs text-muted-foreground">
+        {deck.localSplitReason !== undefined
+          ? `No winner is called for this test${deck.localSplitReason ? ` (${deck.localSplitReason})` : ""}. Swipes under 2 seconds are excluded.`
+          : "Swipes under 2 seconds are excluded."}
       </p>
     </div>
   );

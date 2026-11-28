@@ -71,7 +71,7 @@ export async function GET(request: Request) {
     if ("response" in who) return who.response;
     const deckId = url.searchParams.get("deckId") ?? "";
     const opts = deckId ? await exportOptions(who.ownerId, deckId).catch(() => null) : null;
-    if (!opts) return NextResponse.json({ error: "Deck not found." }, { status: 404, headers: NO_STORE });
+    if (!opts) return NextResponse.json({ error: "Test not found." }, { status: 404, headers: NO_STORE });
     return NextResponse.json({ ...opts, emailAvailable: Boolean(process.env.RESEND_API_KEY) }, { headers: NO_STORE });
   }
   const parsed = parseExportRequest({

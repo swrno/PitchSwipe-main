@@ -54,7 +54,7 @@ export function isItemActive(pathname: string, item: NavItem): boolean {
 
 const PRODUCTS_CRUMB: Crumb = { label: "Products", href: "/products" };
 const PRODUCT_TABS: Record<string, string> = { insights: "Insights", site: "Website", connect: "Website", settings: "Settings" };
-const DECK_TABS: Record<string, string> = { boost: "Audience & Boost", share: "Share" };
+const DECK_TABS: Record<string, string> = { waitlist: "Waitlist", "who-swiped": "Who swiped", boost: "Audience & Boost", share: "Share" };
 const SETTINGS_CRUMB: Crumb = { label: "Settings", href: "/profile" };
 const EARNINGS_CRUMB: Crumb = { label: "Earnings", href: "/wallet" };
 
@@ -85,10 +85,10 @@ export function breadcrumbFor(pathname: string): Crumb[] | null {
         : [PRODUCTS_CRUMB, { label: "Product" }];
     case "decks":
       if (!b) return [{ label: "Products" }];
-      if (b === "new") return [PRODUCTS_CRUMB, { label: "New deck" }];
+      if (b === "new") return [PRODUCTS_CRUMB, { label: "New test" }];
       return c && DECK_TABS[c]
-        ? [PRODUCTS_CRUMB, { label: "Deck", href: `/decks/${b}` }, { label: DECK_TABS[c] }]
-        : [PRODUCTS_CRUMB, { label: "Deck" }];
+        ? [PRODUCTS_CRUMB, { label: "Test", href: `/decks/${b}` }, { label: DECK_TABS[c] }]
+        : [PRODUCTS_CRUMB, { label: "Test" }];
     default:
       return null;
   }

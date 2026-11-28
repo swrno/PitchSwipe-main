@@ -101,17 +101,17 @@ export function TeamPanel({ productId, className }: { productId: string; classNa
   }
 
   if (loadError) return <p role="alert" className={cn("text-sm text-muted-foreground", className)}>{loadError}</p>;
-  if (!team) return <div aria-busy className={cn("h-24 rounded-xl bg-muted motion-safe:animate-pulse", className)}><span className="sr-only">Loading the team</span></div>;
+  if (!team) return <div aria-busy className={cn("h-32 rounded-xl bg-muted motion-safe:animate-pulse", className)}><span className="sr-only">Loading the team</span></div>;
   const isOwner = team.role === "owner";
 
   return (
-    <section aria-labelledby="team-heading" className={cn("space-y-4", className)}>
+    <section aria-labelledby="team-heading" className={cn("space-y-4 rounded-xl border border-border bg-card p-5", className)}>
       <div>
         <h2 id="team-heading" className="text-lg font-semibold tracking-tight">Co-founders</h2>
         <p className="text-sm text-muted-foreground">
           {isOwner
-            ? "Co-founders see everything about this product and can build and publish its decks. Only you can manage the team."
-            : "You are a co-founder of this product. Only the owner can manage the team."}
+            ? "Can build and publish tests. Only you manage the team."
+            : "You are a co-founder here. Only the owner manages the team."}
         </p>
       </div>
 
@@ -124,7 +124,7 @@ export function TeamPanel({ productId, className }: { productId: string; classNa
             const link = links[m.id];
             return (
               <li key={m.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">{m.email}</span>
+                <span className="min-w-0 basis-full truncate text-sm font-medium">{m.email}</span>
                 <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", p.className)}>{p.label}</span>
                 {isOwner && m.status === "invited" && link ? (
                   <Button type="button" variant="outline" size="sm" onClick={() => void copy(m.id, link)}>
@@ -143,7 +143,7 @@ export function TeamPanel({ productId, className }: { productId: string; classNa
       )}
 
       {isOwner ? (
-        <form onSubmit={invite} className="flex flex-col gap-2 sm:flex-row" noValidate>
+        <form onSubmit={invite} className="flex flex-col gap-2" noValidate>
           <label htmlFor="team-invite-email" className="sr-only">Co-founder email</label>
           <input
             id="team-invite-email"
@@ -155,7 +155,7 @@ export function TeamPanel({ productId, className }: { productId: string; classNa
             placeholder="friend@example.com"
             className="h-11 min-w-0 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
-          <Button type="submit" disabled={busy || email.trim() === ""}>
+          <Button type="submit" className="w-full" disabled={busy || email.trim() === ""}>
             {busy ? <Loader2 className="animate-spin" /> : <UserPlus />} Invite
           </Button>
         </form>

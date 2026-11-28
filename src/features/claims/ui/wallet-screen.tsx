@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Clock, Lock, Timer, MessageCircle, IndianRupee } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Lock, Timer, MessageCircle, IndianRupee } from "lucide-react";
+import { Button, buttonVariants } from "@/shared/ui/button";
 import { QUALITY } from "@/features/quality/rules";
 import { PAID_RATE_RS } from "@/features/swipe/validity";
 import { useAuth } from "@/features/auth/ui/provider";
@@ -79,25 +79,10 @@ export function WalletScreen() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Wallet</h1>
-          <span className="rounded-md border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">Coming soon</span>
-        </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Earn {formatRs(PAID_RATE_RS)} for every valid swipe on a paid card. Payouts are coming soon.
-        </p>
-      </header>
-
       <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
         <div className="space-y-6 lg:col-span-8">
-          <p className="flex gap-3 rounded-lg border-l-2 border-accent bg-muted p-3 text-sm">
-            <Clock aria-hidden className="mt-0.5 size-4 shrink-0 text-accent" />
-            Keep swiping. Your balance is tracked and paid out once withdrawals go live.
-          </p>
-
           <section aria-label="Balance" className="rounded-xl border border-border bg-card p-6">
-            <p className="text-sm font-medium text-muted-foreground">Available balance</p>
+            <p className="text-sm font-medium text-muted-foreground">Balance</p>
             <p className="tnum mt-2 text-4xl font-semibold">{formatRs(wallet.balanceRs)}</p>
             <div className="mt-6">
               <div
@@ -120,17 +105,17 @@ export function WalletScreen() {
                   : `You have reached the Rs ${WITHDRAW_MIN_RS} minimum`}
               </p>
             </div>
-            {/* Payouts are not live yet: withdraw is always disabled. */}
-            <Button
-              disabled
-              aria-disabled="true"
-              title="Payouts are not live yet"
-              size="lg"
-              className="mt-5 w-full gap-2 sm:w-auto"
-            >
-              <Lock aria-hidden className="size-4" />
-              Withdrawals coming soon
-            </Button>
+            {/* Payouts are not live yet: withdraw is always disabled; Swipe is the one primary action. */}
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <Link href="/swipe" className={buttonVariants({ variant: "accent", size: "lg" })}>
+                Keep swiping
+              </Link>
+              <Button disabled aria-disabled="true" title="Payouts are not live yet" variant="outline" size="lg" className="gap-2">
+                <Lock aria-hidden className="size-4" />
+                Withdraw: coming soon
+              </Button>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">Payouts are coming soon. Your balance is tracked until they go live.</p>
           </section>
 
           <section aria-label="Earnings summary">

@@ -64,7 +64,7 @@ const FOUNDER_STEPS = [
   },
   {
     title: "Reach real people",
-    body: "Your live deck shows in the swipe feed, and you get a link to share with your own audience. Paid boosts are planned.",
+    body: "Your live test shows in the swipe feed, and you get a link to share with your own audience. Paid boosts are planned.",
     tone: "bg-card border border-border neutral-ink",
   },
 ];
@@ -222,15 +222,15 @@ export function Swipers() {
 
 const PAID_PLANS = [
   {
-    name: "Deck pack",
+    name: "Test pack",
     price: "Rs 200",
-    unit: "10 decks, Rs 20 each",
+    unit: "10 tests, Rs 20 each",
     perks: ["All results and reward claims", "AI drafting and card checker"],
   },
   {
     name: "Big pack",
     price: "Rs 1,600",
-    unit: "100 decks, Rs 16 each (save 20%)",
+    unit: "100 tests, Rs 16 each (save 20%)",
     perks: ["All results and reward claims", "AI drafting and card checker"],
   },
   {
@@ -245,7 +245,7 @@ const PAID_PLANS = [
  * What Free gives today, and nothing more: publish() in src/features/decks/server/service.ts lists every live deck in the swipe
  * feed, every deck gets a share link (/d/<slug>), and no deck limit is enforced yet (see /decks/plans).
  */
-const FREE_PERKS = ["Your live deck shows in the swipe feed", "A share link for your own audience", "No deck limit during the pilot"];
+const FREE_PERKS = ["Your live test shows in the swipe feed", "A share link for your own audience", "No test limit during the pilot"];
 
 export function Pricing() {
   return (
@@ -324,7 +324,7 @@ export function FinalCta() {
             Test your pitch before you build.
           </h2>
           <p className="mt-4 max-w-[40ch] font-medium text-ink/75 md:text-lg">
-            Make a deck in minutes, share the link, and see which version makes people sign up.
+            Make a test in minutes, share the link, and see which version makes people sign up.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row md:pr-56">
             <Link href={TEST_AN_IDEA_HREF} className={cn(buttonVariants({ variant: "ink", size: "lg" }), "justify-between gap-4 pl-7 pr-2.5")}>

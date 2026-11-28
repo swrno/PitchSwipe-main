@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: Ctx) {
   try {
     if (url.searchParams.get("format") === "csv") {
       const csv = await loadWaitlistCsv(who.ownerId, deckId);
-      if (csv === null) return NextResponse.json({ error: "Deck not found." }, { status: 404, headers: NO_STORE });
+      if (csv === null) return NextResponse.json({ error: "Test not found." }, { status: 404, headers: NO_STORE });
       return new NextResponse(csv, {
         headers: {
           ...NO_STORE,
@@ -36,12 +36,12 @@ export async function GET(request: Request, { params }: Ctx) {
 
     if (url.searchParams.get("view") === "switcher") {
       const view = await loadSwitcher(who.ownerId, deckId);
-      if (!view) return NextResponse.json({ error: "Deck not found." }, { status: 404, headers: NO_STORE });
+      if (!view) return NextResponse.json({ error: "Test not found." }, { status: 404, headers: NO_STORE });
       return NextResponse.json(view, { headers: NO_STORE });
     }
 
     const payload = await loadResults(who.ownerId, deckId);
-    if (!payload) return NextResponse.json({ error: "Deck not found." }, { status: 404, headers: NO_STORE });
+    if (!payload) return NextResponse.json({ error: "Test not found." }, { status: 404, headers: NO_STORE });
     return NextResponse.json(payload, { headers: NO_STORE });
   } catch (error) {
     console.error("results: could not load", error instanceof Error ? error.message : error);

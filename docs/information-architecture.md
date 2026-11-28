@@ -16,8 +16,8 @@ PitchSwipe
 ◫  Earnings      Rs 0.00    /wallet
 ⚙  Settings                 /profile
 ───────────────
-980 of 1,000 decks left  →  /settings/plan
-[ + New deck ]              /decks/new
+980 of 1,000 tests left  →  /settings/plan
+[ + New test ]              /decks/new
 « Collapse
 ```
 No section labels (five items do not need them). Products expands to show the products (max 8 + "All products").
@@ -36,10 +36,10 @@ Phone tab bar: Swipe · Earnings · Products · Settings.
 | Page | Route | Tabs |
 | --- | --- | --- |
 | Overview | /overview | – |
-| Products | /products | – (list of products, each with its decks summary) |
-| Product | /products/[id] | **Decks** /products/[id] · **Insights** /products/[id]/insights · **Website** /products/[id]/site · **Settings** /products/[id]/settings |
-| Deck | /decks/[id] | **Results** /decks/[id] · **Audience & Boost** /decks/[id]/boost · **Share** /decks/[id]/share |
-| New deck | /decks/new | – (wizard with step progress) |
+| Products | /products | – (list of products, each with its tests summary) |
+| Product | /products/[id] | **Tests** /products/[id] · **Insights** /products/[id]/insights · **Website** /products/[id]/site · **Settings** /products/[id]/settings |
+| Test | /decks/[id] | **Results** /decks/[id] · **Audience & Boost** /decks/[id]/boost · **Share** /decks/[id]/share |
+| New test | /decks/new | – (wizard with step progress) |
 | Swipe | /swipe | – |
 | Earnings | /wallet | **Wallet** /wallet · **History** /history |
 | Settings | /profile | **Profile** /profile · **Appearance** /appearance · **Plan** /settings/plan |

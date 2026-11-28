@@ -69,7 +69,7 @@ export function AiPreviewSheet({
             Edit cards
           </Button>
           <Button size="lg" className="md:h-12" onClick={onPublish}>
-            Publish deck
+            Publish test
           </Button>
         </div>
       </div>

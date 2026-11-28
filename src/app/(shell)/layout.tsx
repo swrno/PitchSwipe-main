@@ -3,7 +3,7 @@ import { AskFab } from "@/features/ask/ui/ask-fab";
 import { BrandMark } from "@/shared/shell/brand-mark";
 import { BottomTabBar, BrandBarAccount } from "@/shared/shell/navigation";
 import { ShellFrame } from "@/shared/shell/shell-frame";
-import { TopBar } from "@/shared/shell/top-bar";
+import { PhoneCrumb, TopBar } from "@/shared/shell/top-bar";
 import { AuthProvider } from "@/features/auth/ui/provider";
 import { NotConfigured } from "@/shared/shell/not-configured";
 import { isServerConfigured } from "@/shared/lib/config";
@@ -25,6 +25,7 @@ export default function ShellLayout({ children }: Readonly<{ children: React.Rea
         {/* Must stay a sibling before <main>: globals.css hides .brand-bar when a page sets data-hide-brand-bar. */}
         <BrandBar />
         <TopBar />
+        <PhoneCrumb />
         <main
           className="mx-auto w-full max-w-md px-4 pt-4 md:max-w-[1200px] md:px-8 md:pt-10"
           style={{ paddingBottom: "calc(var(--tabbar-height) + 2rem)" }}

@@ -79,7 +79,7 @@ export function DecksLeftCompact() {
       className="block rounded-lg px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
     >
       <span className="tnum font-semibold text-foreground">{fmt(left)}</span> of {fmt(CURRENT_PLAN.deckAllowance)}{" "}
-      {left === 1 ? "deck" : "decks"} left
+      {left === 1 ? "test" : "tests"} left
     </Link>
   );
 }
@@ -95,13 +95,13 @@ export function DecksLeftCard() {
       <p className="flex flex-wrap items-baseline gap-x-2">
         <span className="tnum text-3xl font-semibold tracking-tight">{fmt(left)}</span>
         <span className="text-muted-foreground">
-          {left === 1 ? "deck" : "decks"} left of {fmt(allowance)} on the {CURRENT_PLAN.name} plan
+          {left === 1 ? "test" : "tests"} left of {fmt(allowance)} on the {CURRENT_PLAN.name} plan
         </span>
       </p>
       <div
         className="mt-3 h-2 rounded-full bg-muted"
         role="progressbar"
-        aria-label="Decks left"
+        aria-label="Tests left"
         aria-valuenow={left}
         aria-valuemin={0}
         aria-valuemax={allowance}

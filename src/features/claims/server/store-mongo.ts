@@ -149,7 +149,7 @@ export function createMongoClaimsStore(): ClaimsStore {
         (e): WalletEntryRecord => ({
           responseId: String(e.responseId ?? ""),
           deckId: String(e.deckId ?? ""),
-          title: String(e.title ?? "Deck"),
+          title: String(e.title ?? "Test"),
           amountRs: Number(e.amount ?? 0),
           note: String(e.note ?? "valid"),
           swipeCount: Number(e.swipeCount ?? 1),

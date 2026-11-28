@@ -179,12 +179,12 @@ const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 export async function getWebsiteShipped(deps: SiteDeps, input: { ownerId: string; deckId: string }): Promise<Outcome<WebsiteShippedData>> {
   const deck = await deps.catalog.getDeckContext(input.ownerId, input.deckId);
-  if (!deck) return fail(404, "Deck not found.");
+  if (!deck) return fail(404, "Test not found.");
   const ship = await deps.getShip(deck.deckId);
-  if (!ship || ship.ownerId !== input.ownerId) return fail(404, "Nothing is shipped for this deck yet.");
+  if (!ship || ship.ownerId !== input.ownerId) return fail(404, "Nothing is shipped for this test yet.");
   const before = deck.cards.find((c) => c.key === deck.controlKey);
   const after = deck.cards.find((c) => c.key === ship.winnerKey);
-  if (!before || !after) return fail(404, "Could not find the versions of this deck.");
+  if (!before || !after) return fail(404, "Could not find the versions of this test.");
 
   const site = await deps.sites.getByProduct(deck.productId);
   const reported = site?.elements.find((e) => e.flagName === deck.flagName);

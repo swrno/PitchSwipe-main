@@ -17,12 +17,12 @@ concrete checks for this product. Two audiences: **founders** test pitches, **sw
 | Serial position | First and last items are remembered best. | Put the most important info first (title, key number) and the next step last (CTA at the end of a flow/card). |
 | Aesthetic-usability | Polished UIs feel easier to use. | Consistent spacing scale (4/8/12/16/24/32/48), aligned edges, no orphaned text, consistent radius (`rounded-xl` cards, `rounded-lg` buttons). |
 | Doherty threshold | Responses under 400 ms keep people engaged. | Every action gives feedback < 100 ms (pressed state, spinner, optimistic UI). Loading shows **skeletons that match the final layout**, never blank pages. |
-| Goal-gradient | People speed up as they near a goal. | Show progress: deck wizard steps ("Step 2 of 4"), wallet progress to Rs 100, decks left, swipers toward a decision. |
+| Goal-gradient | People speed up as they near a goal. | Show progress: test wizard steps ("Step 2 of 4"), wallet progress to Rs 100, tests left, swipers toward a decision. |
 | Zeigarnik effect | Unfinished tasks stay on the mind. | Surface unfinished work: drafts, "Needs your review", incomplete profile — with a direct link to finish. |
-| Peak-end rule | Experiences are judged by their peak and their end. | Make the end of key flows feel good: clear success state after publishing a deck, claiming a reward, finishing practice — with what happens next. |
+| Peak-end rule | Experiences are judged by their peak and their end. | Make the end of key flows feel good: clear success state after publishing a test, claiming a reward, finishing practice — with what happens next. |
 | Tesler's law | Complexity can't vanish; someone must absorb it. | The product absorbs it: smart defaults, AI drafts, prefilled fields; never ask for what we can infer. |
 | Postel's law | Be liberal in what you accept. | Forgiving inputs (trim spaces, accept "Rs 299" or "299"), helpful inline errors that say how to fix it. |
-| Cognitive load | Every extra word costs attention. | Microcopy: short, plain, verb-first buttons ("Publish deck", not "Submit"); one idea per sentence; no jargon ("Flagsmith experiment" only where the founder needs it). |
+| Cognitive load | Every extra word costs attention. | Microcopy: short, plain, verb-first buttons ("Publish test", not "Submit"); one idea per sentence; no jargon ("Flagsmith experiment" only where the founder needs it). |
 
 ## Visual system
 

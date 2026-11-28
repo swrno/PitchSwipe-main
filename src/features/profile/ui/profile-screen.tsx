@@ -72,7 +72,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 function StatusTile({ tone, title, body, children }: { tone: string; title: string; body: string; children?: React.ReactNode }) {
   return (
     <section className={cn("rounded-xl relative overflow-hidden p-5 md:p-5", tone)}>
-      <h1 className="text-2xl font-semibold tracking-tight md:text-3xl max-w-[14ch] md:max-w-[20ch] md:text-4xl">{title}</h1>
+      <h2 className="text-2xl font-semibold tracking-tight max-w-[14ch] md:max-w-[20ch] md:text-3xl">{title}</h2>
       <p className="mt-2 max-w-[40ch] text-sm text-muted-foreground md:text-base">{body}</p>
       {children}
     </section>
@@ -255,7 +255,7 @@ function FinishProfile({ complete, next, onDone }: { complete: boolean; next: st
   return (
     <Shell>
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-[2.1rem] md:text-5xl">Finish your profile</h1>
+        <h2 className="text-xl font-semibold tracking-tight md:text-2xl">Finish your profile</h2>
         <p className="max-w-[52ch] text-muted-foreground">
           A few details so we can show you ideas that fit, and so founders see answers from the right people. You can change them later.
         </p>
@@ -353,9 +353,9 @@ function ProfileHeader({ profile }: { profile: ProfileView }) {
           {initials(profile.name)}
         </span>
         <div className="min-w-0">
-          <h1 id="profile-name" className="truncate text-[1.75rem] md:text-4xl">
+          <h2 id="profile-name" className="truncate text-[1.5rem] md:text-3xl">
             {profile.name}
-          </h1>
+          </h2>
           <p className="truncate text-sm font-semibold text-muted-foreground md:text-base">{profile.email}</p>
         </div>
       </div>
@@ -625,7 +625,7 @@ function DangerZone({
           Delete account
         </h2>
         <p className="mt-1 max-w-[62ch] text-sm text-muted-foreground">
-          This removes your profile, your sign-in, your wallet and your reward claims. If you are a founder, it also deletes your products and decks, with every answer and claim collected on them. Answers you gave on other founders&apos; decks stay in their results without your name, email or comments. It cannot be undone.
+          This removes your profile, your sign-in, your wallet and your reward claims. If you are a founder, it also deletes your products and tests, with every answer and claim collected on them. Answers you gave on other founders&apos; tests stay in their results without your name, email or comments. It cannot be undone.
         </p>
       </div>
       {!verified ? (

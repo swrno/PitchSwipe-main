@@ -13,14 +13,10 @@ export const dynamic = "force-dynamic";
 export default function DeckPlansPage() {
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Deck plans</h1>
-        <p className="mt-2 text-muted-foreground">
-          One deck = one test with 2 or 3 versions.
-          <span className="hidden md:inline"> Boost is bought per deck, on the deck&apos;s Audience and Boost page.</span>
-        </p>
-      </div>
+    <div className="space-y-6">
+      <p className="text-muted-foreground">
+        One test has 2 or 3 versions. Boost is bought per test, on its Audience &amp; Boost tab.
+      </p>
 
       <DecksLeftCard />
 
@@ -28,32 +24,29 @@ export default function DeckPlansPage() {
         <Plan
           name="Flagsmith Hackathon"
           price="Rs 0"
-          unit="1,000 decks"
-          perks={["1,000 free decks", "Everything in 100 decks", "For Flagsmith Hackathon teams"]}
+          unit="1,000 tests"
+          perks={["1,000 free tests", "Everything in 100 tests", "For Flagsmith Hackathon teams"]}
           current
         />
-        <Plan name="Free" price="Rs 0" perks={["1 live deck", "Personal link only"]} soon />
+        <Plan name="Free" price="Rs 0" perks={["1 live test", "Personal link only"]} soon />
         <Plan
-          name="10 decks"
+          name="10 tests"
           price="Rs 200"
-          unit="Rs 20 a deck"
+          unit="Rs 20 a test"
           perks={["Listed in the swipe feed", "Free audience targeting", "AI drafting and AI preview"]}
           soon
         />
         <Plan
-          name="100 decks"
+          name="100 tests"
           price="Rs 1,600"
-          unit="Rs 16 a deck"
-          perks={["Everything in 10 decks", "For founders testing many ideas or products"]}
+          unit="Rs 16 a test"
+          perks={["Everything in 10 tests", "For founders testing many ideas or products"]}
           badge="Save 20%"
           soon
         />
       </div>
 
-      <p className="text-center text-sm text-muted-foreground md:hidden">
-        Boost is bought per deck, on the deck&apos;s Audience and Boost page. Prices are placeholders.
-      </p>
-      <p className="hidden text-sm text-muted-foreground md:block">Prices are placeholders.</p>
+      <p className="text-sm text-muted-foreground">Paid plans are coming soon; prices are placeholders.</p>
     </div>
   );
 }

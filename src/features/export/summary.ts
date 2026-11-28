@@ -18,7 +18,7 @@ const pctCell = (v: number | null): XlsxValue => (v === null ? null : { v, perce
 const num = (v: number | null | undefined): number | null => (v === null || v === undefined ? null : v);
 
 export const VERSION_HEADER = [
-  "Deck",
+  "Test",
   "Version",
   "What it says",
   "Swipers",
@@ -35,7 +35,7 @@ export const VERSION_HEADER = [
   "Tag",
 ];
 
-export const SEGMENT_HEADER = ["Deck", "Split", "Group", "Swipers", "Said yes", "Joined waitlist", "Join rate", "Tag"];
+export const SEGMENT_HEADER = ["Test", "Split", "Group", "Swipers", "Said yes", "Joined waitlist", "Join rate", "Tag"];
 
 export function versionRows(decks: readonly ExportDeckData[]): XlsxValue[][] {
   const rows: XlsxValue[][] = [];

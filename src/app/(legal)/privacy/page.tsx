@@ -145,7 +145,7 @@ export default function PrivacyPage() {
         </ul>
         <h3>If you are a founder</h3>
         <ul>
-          <li>Your products, decks and cards, audience settings, and whether your name is shown on cards.</li>
+          <li>Your products, tests and cards, audience settings, and whether your name is shown on cards.</li>
           <li>
             If you connect your website: its domain and the text of the elements you test. The snippet on your site sends
             us those elements; the caller&apos;s address is reduced to a one-way hash and used only for rate limiting.
@@ -221,7 +221,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Groq</strong> (running OpenAI&apos;s open-weight gpt-oss models): powers founder tools such as drafting
-            cards, the results assistant and insights, and translates voice notes into English. It may receive a founder&apos;s product and deck content,
+            cards, the results assistant and insights, and translates voice notes into English. It may receive a founder&apos;s product and test content,
             results, and swipers&apos; comment and voice-note text (never the audio). We do not attach swipers&apos; names or
             emails, but comments are sent as written, so avoid putting personal details in them.
           </li>
@@ -286,11 +286,11 @@ export default function PrivacyPage() {
           <li>Rate-limit counters: up to about ten minutes, in server memory only.</li>
           <li>
             When you delete your account (section 9): your profile, your sign-in, your wallet and your reward claims
-            are erased. If you are a founder, your products, decks, connected sites, and every answer and claim collected on
+            are erased. If you are a founder, your products, tests, connected sites, and every answer and claim collected on
             them are erased too.
           </li>
           <li>
-            Answers you gave on other founders&apos; decks stay in their results, but are cut off from you: the link to your
+            Answers you gave on other founders&apos; tests stay in their results, but are cut off from you: the link to your
             account is replaced by a random id, and your comments and voice notes are removed. The answer, the card, your
             role and estimated state at the time, and timing stay, so the founder&apos;s totals do not change.
           </li>

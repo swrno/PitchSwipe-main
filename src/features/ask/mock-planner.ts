@@ -172,7 +172,7 @@ export function askMockResponder(request: LlmRequest): string {
   if (results.length === 0) return calls({ tool: "get_results", args: { deck: current.id } });
   const res = find("get_results");
   return done(
-    "Ask about your cards, states, price or comments. Here is where this deck stands.",
+    "Ask about your cards, states, price or comments. Here is where this test stands.",
     res ? [{ component: "statRow", source: res.id }, { component: "barList", source: res.id }] : [],
   );
 }

@@ -81,13 +81,11 @@ export function HistoryScreen() {
   const yesShare = summary.total ? Math.round((summary.yes / summary.total) * 100) : 0;
 
   return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">History</h1>
-
+    <div className="space-y-6">
       {items.length === 0 ? (
         <section className="rounded-xl border border-border bg-card p-8 text-center">
           <p className="text-lg font-semibold">No swipes yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Answer a card and it shows up here.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Cards you answer show up here.</p>
           <Link href="/swipe" className={cn(buttonVariants(), "mt-4")}>
             Start swiping
           </Link>

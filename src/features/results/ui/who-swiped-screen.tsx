@@ -12,6 +12,7 @@ import {
 } from "@/features/results/types";
 import { cn } from "@/shared/lib/utils";
 import { MovableBlocks } from "@/shared/ui/movable-blocks";
+import { useDeckResults } from "./use-results";
 
 import {
   InsightCard,
@@ -252,7 +253,7 @@ function InterestsPanel({ data }: { data: ResultsPayload }) {
 }
 
 /**
- * "Who swiped" section of the deck results page (anchor #who-swiped): four tabs on phone, all four panels on web.
+ * "Who swiped" tab of a test: four tabs on phone, all four panels on web.
  * Every panel is a Lead view: the winner is decided only on the full experiment.
  */
 export function WhoSwipedSection({ data }: { data: ResultsPayload }) {
@@ -353,4 +354,19 @@ export function WhoSwipedSection({ data }: { data: ResultsPayload }) {
       <p className="text-sm text-muted-foreground">{LEADS_FOOTNOTE}</p>
     </section>
   );
+}
+
+/** The test's Who swiped tab: loads the results and shows the draggable cards. */
+export function WhoSwipedScreen({ deckId }: { deckId: string }) {
+  const { data, error } = useDeckResults(deckId);
+  if (!data) {
+    return error ? (
+      <p role="alert" className="rounded-xl bg-warning-soft p-4 text-sm font-medium text-warning">
+        {error}
+      </p>
+    ) : (
+      <div aria-busy className="h-64 rounded-xl bg-muted motion-safe:animate-pulse" />
+    );
+  }
+  return <WhoSwipedSection data={data} />;
 }

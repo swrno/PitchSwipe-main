@@ -51,7 +51,7 @@ export function validateProduct(input: unknown): ValidationResult & { value?: Pr
   const states = listOf(errors, "audience.states", audienceIn.states, STATES, "state");
   const interests = listOf(errors, "audience.interests", audienceIn.interests, INDUSTRIES, "industry");
   if (who === "targetOnly" && targetUsers.length === 0) {
-    errors.push({ path: "targetUsers", message: "Pick at least one target user to show decks to target users only." });
+    errors.push({ path: "targetUsers", message: "Pick at least one target user to show tests to target users only." });
   }
 
   const iconRaw = typeof input.icon === "string" ? input.icon.trim() : "";

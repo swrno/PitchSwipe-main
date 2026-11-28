@@ -78,7 +78,7 @@ export async function inviteMember(
       await opts.mailer.send({
         to: email,
         subject: `You are invited to ${product.name} on PitchSwipe`,
-        text: `You were invited as a co-founder of ${product.name} on PitchSwipe. You will see its decks, results and insights, and can build decks with the team.\n\nAccept (sign in with this email address): ${inviteUrl}\n\nThe link works once and expires in 14 days.`,
+        text: `You were invited as a co-founder of ${product.name} on PitchSwipe. You will see its tests, results and insights, and can build tests with the team.\n\nAccept (sign in with this email address): ${inviteUrl}\n\nThe link works once and expires in 14 days.`,
         attachments: [],
       });
       emailed = true;

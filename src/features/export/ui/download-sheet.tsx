@@ -164,7 +164,7 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
     }
   }
 
-  const deckName = options?.deckLabel ?? "this deck";
+  const deckName = options?.deckLabel ?? "this test";
   const productDecks = options?.productDecks ?? 1;
 
   const footer = (
@@ -240,7 +240,7 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
             value: "product",
             label: (
               <>
-                Whole product<span className="hidden md:inline">: {productDecks} {productDecks === 1 ? "deck" : "decks"}</span>
+                Whole product<span className="hidden md:inline">: {productDecks} {productDecks === 1 ? "test" : "tests"}</span>
               </>
             ),
           },

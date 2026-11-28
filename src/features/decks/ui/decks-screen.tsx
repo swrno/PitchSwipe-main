@@ -43,8 +43,8 @@ export function DecksScreen() {
         title="Products"
         description={
           overview
-            ? `${deckTotal} ${deckTotal === 1 ? "deck" : "decks"} across ${products.length} ${products.length === 1 ? "product" : "products"}. Each deck tests one thing, with 2 or 3 versions.`
-            : "Each deck tests one thing, with 2 or 3 versions."
+            ? `${deckTotal} ${deckTotal === 1 ? "test" : "tests"} across ${products.length} ${products.length === 1 ? "product" : "products"}. Each tests one thing, with 2 or 3 versions.`
+            : "Each tests one thing, with 2 or 3 versions."
         }
         actions={
           <Link href="/products/new" className={cn(buttonVariants({ variant: "outline", size: "default" }), "shrink-0")}>
@@ -57,7 +57,7 @@ export function DecksScreen() {
       <ReadyToShipAlert />
 
       <div className="flex items-center justify-between gap-3">
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1" role="group" aria-label="Filter decks">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1" role="group" aria-label="Filter tests">
           {DECK_FILTERS.map((f) => (
             <ToggleChip
               key={f}
@@ -79,7 +79,7 @@ export function DecksScreen() {
       ) : null}
       {!overview && !error ? (
         <div aria-busy className="space-y-3">
-          <span className="sr-only">Loading your decks</span>
+          <span className="sr-only">Loading your tests</span>
           {[0, 1].map((i) => (
             <div key={i} className="h-32 rounded-xl bg-muted motion-safe:animate-pulse" />
           ))}
@@ -93,11 +93,11 @@ export function DecksScreen() {
       {overview && visible.length === 0 ? (
         <div className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-6">
           <p className="text-muted-foreground">
-            {filter === "all" ? "No decks yet. Test your first idea in a few minutes." : "No decks match this filter."}
+            {filter === "all" ? "No tests yet. Test your first idea in a few minutes." : "No tests match this filter."}
           </p>
           {filter === "all" ? (
             <Link href="/decks/new" className={cn(buttonVariants({ size: "default" }))}>
-              <Plus /> New deck
+              <Plus /> New test
             </Link>
           ) : null}
         </div>
@@ -113,13 +113,13 @@ export function DecksScreen() {
       <div className="hidden gap-4 md:grid md:grid-cols-2">
         <Card className="p-5">
           <p className="mb-2 flex items-center gap-2 font-bold">
-            <Wallet className="size-4 text-accent" /> Deck pack
+            <Wallet className="size-4 text-accent" /> Test pack
           </p>
           <p className="mb-4 text-muted-foreground">
-            Rs 200 buys 10 decks.
+            Rs 200 buys 10 tests.
           </p>
           <Link href="/settings/plan" className={cn(buttonVariants({ variant: "outline" }), "w-full")}>
-            Buy 10 decks
+            Buy 10 tests
           </Link>
         </Card>
         <Card className="p-5">
@@ -147,7 +147,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
               {product.name}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {product.deckCount} {product.deckCount === 1 ? "deck" : "decks"} · {product.waitlist} on waitlist
+              {product.deckCount} {product.deckCount === 1 ? "test" : "tests"} · {product.waitlist} on waitlist
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
               <Sparkles className="text-accent" /> Insights
             </Link>
             <Link href={`/decks/new?product=${product.id}`} className={cn(smallButton, "hidden md:inline-flex")}>
-              <Plus /> Add deck
+              <Plus /> Add test
             </Link>
           </div>
         </div>

@@ -21,9 +21,9 @@ export type ParseResult = { ok: true; value: ExportRequest } | { ok: false; erro
 /** Accepts query strings (`files=report,summary`) and JSON bodies (`files: ["report"]`). */
 export function parseExportRequest(raw: { deckId?: unknown; scope?: unknown; files?: unknown; delivery?: unknown }): ParseResult {
   const deckId = typeof raw.deckId === "string" ? raw.deckId.trim() : "";
-  if (!deckId) return { ok: false, error: "Pick a deck to export." };
+  if (!deckId) return { ok: false, error: "Pick a test to export." };
   const scope = raw.scope === undefined || raw.scope === "" ? "deck" : raw.scope;
-  if (!EXPORT_SCOPES.includes(scope as ExportScope)) return { ok: false, error: "Scope must be deck or product." };
+  if (!EXPORT_SCOPES.includes(scope as ExportScope)) return { ok: false, error: "Scope must be test or product." };
   const list = Array.isArray(raw.files) ? raw.files : typeof raw.files === "string" ? raw.files.split(",") : [];
   const files = [...new Set(list.map((f) => String(f).trim()).filter(Boolean))];
   if (files.length === 0) return { ok: false, error: "Pick at least one file." };
@@ -63,7 +63,7 @@ export async function runExport(ownerId: string, req: ExportRequest, deps: Expor
   }
   const now = deps.now ?? new Date();
   const decks = await deps.load(ownerId, req.deckId, req.scope, now);
-  if (!decks || decks.length === 0) return { kind: "error", status: 404, error: "Deck not found." };
+  if (!decks || decks.length === 0) return { kind: "error", status: 404, error: "Test not found." };
 
   const bundle = bundleExport(
     { productName: decks[0].payload.deck.productName, scope: req.scope, decks, files: req.files, now },

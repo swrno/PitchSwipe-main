@@ -10,7 +10,7 @@ const TABS = [
 export default function SettingsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div>
-      <PageHeader title="Settings" description="Your profile, how the app looks, and your plan." tabs={TABS} tabsLabel="Settings sections" />
+      <PageHeader title="Settings" description="Manage your profile, colours and test plan." tabs={TABS} tabsLabel="Settings sections" />
       {children}
     </div>
   );
