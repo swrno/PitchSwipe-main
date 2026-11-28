@@ -535,7 +535,8 @@ function swipeToWaitlist(p: ResultsPayload): PdfBlock[] {
 
 function whoSwipedBlocks(p: ResultsPayload): PdfBlock[] {
   const w = p.whoSwiped;
-  const blocks: PdfBlock[] = [{ type: "heading", text: "Who swiped" }];
+  // Each app tab (Results, Who swiped, Waitlist users) starts on its own page, like switching tabs.
+  const blocks: PdfBlock[] = [{ type: "pagebreak" }, { type: "heading", text: "Who swiped" }];
   if (!w.hasData) return [...blocks, { type: "text", text: "No counted swipes yet, so there is nobody to show.", muted: true }];
   const loc = w.location;
   blocks.push(
@@ -611,7 +612,7 @@ function deckBlocks(p: ResultsPayload, stamp: string): PdfBlock[] {
   if (p.priceCurve) blocks.push(...priceBlocks(p));
   else if (!empty) blocks.push(funnelCard(p), ...leaderCards(p));
   else blocks.push({ type: "text", text: "No counted swipes yet. Only swipes from people whose quality score is 70 or more count here.", muted: true });
-  blocks.push(...whoSwipedBlocks(p), { type: "heading", text: "Waitlist" }, waitlistBlock(p));
+  blocks.push(...whoSwipedBlocks(p), { type: "pagebreak" }, { type: "heading", text: "Waitlist users" }, waitlistBlock(p));
   return blocks;
 }
 

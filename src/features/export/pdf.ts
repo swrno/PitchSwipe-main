@@ -263,7 +263,8 @@ export function buildPdf(doc: PdfDocument): Buffer {
         y += block.height ?? 8;
         break;
       case "pagebreak":
-        newPage();
+        // Never leave an empty page: only break when something is already on this one.
+        if (y > MARGIN) newPage();
         break;
       case "insight": {
         const body = wrap(block.body, CONTENT_W - 20, 9.5);

@@ -76,7 +76,7 @@ export function pdfSections(tests: number): string[] {
     "Verdict and key numbers",
     "Funnel",
     "Leaderboard",
-    "Waitlist",
+    "Waitlist users",
     "Who swiped: state, source, interests, target users, with a lead note for each",
   ];
 }

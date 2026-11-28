@@ -301,7 +301,7 @@ describe("report PDF", () => {
     const pdf = buildPdf(reportDocument({ productName: "Voice Khata", scopeText: "this deck", decks: [deck], now: NOW })).toString("latin1");
     assert.match(pdf, /0\.231 0\.478 0\.047 rg/); // accent #3b7a0c fill
     assert.match(pdf, / c h f/); // curves: rounded rects and circles
-    for (const title of ["From swipe to waitlist", "Leaderboard", "Waitlist", "Who swiped", "Where swipers came from", "Joined waitlist", "Said yes", "Share who joined", "JK"]) {
+    for (const title of ["From swipe to waitlist", "Leaderboard", "Waitlist users", "Who swiped", "Where swipers came from", "Joined waitlist", "Said yes", "Share who joined", "JK"]) {
       assert.ok(pdf.includes(`(${title})`), title);
     }
     const t = deck.payload.totals;
