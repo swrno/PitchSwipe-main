@@ -11,9 +11,11 @@ import { accentFor, type ProductInput } from "@/features/decks/product";
 import { reachView } from "@/features/share/reach";
 import type { DeckListItem, DecksOverview, ProductRecord } from "@/features/decks/views";
 import { api, ApiError, errorFor } from "./api";
+import { CardPreview } from "./card-preview";
 import { ChipPicker } from "./chip-picker";
 import { ErrorText, FieldLabel, Notice, ProductTile, Segmented, StatusText, TextInput, ToggleChip } from "./primitives";
 import type { FieldError } from "@/features/decks/types";
+import type { PreviewCard } from "@/features/decks/wizard";
 
 const EMPTY: ProductInput = {
   name: "",
@@ -31,6 +33,18 @@ export interface ProductScreenData {
 }
 
 /** F2 Product settings (phone 03, web 04) and /products/new. */
+/** The card copy belongs to each test; the product preview shows its own fields and empty placeholders for the rest. */
+const PREVIEW_PLACEHOLDER: PreviewCard = {
+  headline: "",
+  description: "",
+  reward: "",
+  price: "",
+  question: "Would you use this?",
+  positiveLabel: "Yes",
+  negativeLabel: "No",
+  productUI: [],
+};
+
 export function ProductScreen({ productId, aside }: { productId?: string; aside?: React.ReactNode }) {
   const router = useRouter();
   const [data, setData] = React.useState<ProductScreenData | undefined>(productId ? undefined : { decks: [] });
@@ -213,14 +227,27 @@ export function ProductScreen({ productId, aside }: { productId?: string; aside?
           </Button>
         </div>
 
-        {!isNew || aside ? (
-          <div className="space-y-6">
+        <div className="space-y-6 md:sticky md:top-20">
+          {/* Live preview: how this product looks on a swiper's card while the founder types. Each test adds its own copy. */}
+          <Card className="p-5">
+            <h2 className="text-lg font-semibold tracking-tight">Card preview</h2>
+            <p className="mb-4 mt-1 text-sm text-muted-foreground">How swipers see this product. Each test fills in its own headline, price and reward.</p>
+            <CardPreview
+              card={PREVIEW_PLACEHOLDER}
+              productName={form.name}
+              category={form.category}
+              icon={form.icon || (form.name.trim()[0]?.toUpperCase() ?? "")}
+              accent={accentFor(form.name)}
+              madeFor={form.targetUsers}
+              founderLine={form.showOwnerName ? "Shown with your name" : `The founder of ${form.name.trim() || "this product"}`}
+            />
+          </Card>
             {!isNew ? (
               <Card className="hidden h-fit p-5 md:block">
                 <div className="mb-2 flex items-baseline justify-between">
                   <h2 className="text-lg font-semibold tracking-tight">Tests in this product</h2>
                   <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
-                    {data.decks.length} decks · {data.decks.reduce((n, d) => n + d.waitlist, 0)} on the waitlist
+                    {data.decks.length} {data.decks.length === 1 ? "test" : "tests"} · {data.decks.reduce((n, d) => n + d.waitlist, 0)} on the waitlist
                   </span>
                 </div>
                 <ul className="divide-y divide-border">
@@ -235,8 +262,7 @@ export function ProductScreen({ productId, aside }: { productId?: string; aside?
               </Card>
             ) : null}
             {aside}
-          </div>
-        ) : null}
+        </div>
       </div>
     </div>
   );
