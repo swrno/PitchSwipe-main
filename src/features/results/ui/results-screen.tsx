@@ -5,7 +5,14 @@ import { Sparkles } from "lucide-react";
 
 import { assistantJson } from "@/features/assistant/ui/api";
 import { ShipWinnerButton } from "@/features/assistant/ui";
-import { DemandCurve } from "@/features/demand-curve/ui";
+import {
+  DemandCurveHeader,
+  demandStatTiles,
+  HowToReadCard,
+  JoinRateCard,
+  PriceNumbersCard,
+  RevenueCard,
+} from "@/features/demand-curve/ui";
 import { WebsiteShippedView } from "@/features/sites/ui";
 import { Card } from "@/shared/ui/card";
 import { LIMITS } from "@/shared/lib/limits";
@@ -515,29 +522,23 @@ export function ResultsScreen({ deckId }: { deckId: string }) {
 
   const blocks: MovableBlock[] = [];
   if (!priceCurve && !empty)
-    blocks.push({ id: "funnel", label: "Swipe to waitlist funnel", node: <Funnel data={data} /> });
-  if (priceCurve)
-    blocks.push({
-      id: "demand-curve",
-      label: "Demand curve",
-      node: <DemandCurve data={priceCurve} />,
-    });
-  else {
-    blocks.push({
-      id: "stats",
-      label: "Stat tiles",
-      node: (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 md:gap-4">
-          <Stat value={totals.swipers} label="Swipers" />
-          <RingStat value={totals.saidYes} pct={share(totals.saidYes, totals.swipers)} label="Said yes" of={totals.swipers} />
-          <RingStat value={totals.joined} pct={share(totals.joined, totals.swipers)} label="Joined waitlist" of={totals.swipers} />
-          <SplitStat feed={totals.feed} link={totals.link} />
-        </div>
-      ),
-    });
+    blocks.push({ id: "funnel", label: "Swipe to waitlist funnel", size: "full", node: <Funnel data={data} /> });
+  if (priceCurve) {
+    for (const t of demandStatTiles(priceCurve))
+      blocks.push({ id: t.id, label: t.label, size: "quarter", className: t.className, node: t.node });
+    blocks.push({ id: "dc-join-rate", label: "Who joined at each price", size: "half", node: <JoinRateCard data={priceCurve} /> });
+    blocks.push({ id: "dc-revenue", label: "Revenue per 100 swipers", size: "half", node: <RevenueCard data={priceCurve} /> });
+    blocks.push({ id: "dc-numbers", label: "Every price, in numbers", size: "full", className: "hidden md:block", node: <PriceNumbersCard data={priceCurve} /> });
+    blocks.push({ id: "dc-how-to-read", label: "How to read this", size: "full", className: "hidden md:block", node: <HowToReadCard data={priceCurve} /> });
+  } else {
+    blocks.push({ id: "stat-swipers", label: "Swipers", size: "quarter", node: <Stat value={totals.swipers} label="Swipers" /> });
+    blocks.push({ id: "stat-yes", label: "Said yes", size: "quarter", node: <RingStat value={totals.saidYes} pct={share(totals.saidYes, totals.swipers)} label="Said yes" of={totals.swipers} /> });
+    blocks.push({ id: "stat-joined", label: "Joined waitlist", size: "quarter", node: <RingStat value={totals.joined} pct={share(totals.joined, totals.swipers)} label="Joined waitlist" of={totals.swipers} /> });
+    blocks.push({ id: "stat-source", label: "Where swipers came from", size: "quarter", node: <SplitStat feed={totals.feed} link={totals.link} /> });
     blocks.push({
       id: "leaderboard",
       label: "Leaderboard",
+      size: "full",
       node: empty ? (
         <Card className="p-5 text-muted-foreground">
           {deck.status === "draft"
@@ -553,6 +554,7 @@ export function ResultsScreen({ deckId }: { deckId: string }) {
     blocks.push({
       id: "assistant",
       label: "Split and Flagsmith note",
+      size: "full",
       node: <AssistantCard data={data} />,
     });
 
@@ -577,6 +579,7 @@ export function ResultsScreen({ deckId }: { deckId: string }) {
             }
             onChanged={bump}
           />
+          <DemandCurveHeader data={priceCurve} />
         </>
       ) : (
         <>
@@ -595,7 +598,7 @@ export function ResultsScreen({ deckId }: { deckId: string }) {
         </>
       )}
 
-      <MovableBlocks blocks={blocks} storageKey="ps:results-layout" />
+      <MovableBlocks blocks={blocks} storageKey="ps:results-layout-v2" />
 
       <p className="text-xs text-muted-foreground">
         {deck.localSplitReason !== undefined

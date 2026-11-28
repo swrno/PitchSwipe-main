@@ -330,7 +330,6 @@ export function WhoSwipedSection({ data }: { data: ResultsPayload }) {
 
           <MovableBlocks
             storageKey="ps:who-swiped-layout"
-            groupClassName="grid gap-5 md:grid-cols-2 md:items-start md:gap-6"
             blocks={(
               [
                 ["location", "Location", <LocationPanel key="l" data={data} />],
@@ -341,6 +340,7 @@ export function WhoSwipedSection({ data }: { data: ResultsPayload }) {
             ).map(([id, label, node]) => ({
               id,
               label,
+              size: "half" as const,
               className: show(id),
               node: (
                 <div id={`who-panel-${id}`} role="tabpanel" aria-labelledby={`who-tab-${id}`}>
