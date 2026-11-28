@@ -55,7 +55,8 @@ const csp = [
     "https://api.flagsmith.com",
     ...(isDev ? ["ws:", "wss:"] : []),
   ].join(" "),
-  `frame-src 'self' ${firebaseFrames.join(" ")}`,
+  // blob: lets the download dialog preview the generated PDF (a blob URL our own script creates).
+  `frame-src 'self' blob: ${firebaseFrames.join(" ")}`,
   `worker-src 'self'${isDev ? " blob:" : ""}`,
   "manifest-src 'self'",
   "object-src 'none'",

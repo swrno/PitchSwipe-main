@@ -77,8 +77,7 @@ export function pdfSections(tests: number): string[] {
     "Funnel",
     "Leaderboard",
     "Waitlist",
-    "Who swiped: state, source, interests, target users",
-    "Insights",
+    "Who swiped: state, source, interests, target users, with a lead note for each",
   ];
 }
 

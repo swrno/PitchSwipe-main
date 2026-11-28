@@ -98,3 +98,12 @@ export async function fetchExportPreview(deckId: string, scope: ExportScope): Pr
   if (!res.ok) return fail(res, "Could not load the preview.");
   return (await res.json()) as ExportPreview;
 }
+
+/** One file as the raw response body (a single file is not zipped): the PDF, or a CSV for the sheet previews. */
+export async function fetchExportFile(deckId: string, scope: ExportScope, file: ExportFile, format?: "csv"): Promise<Blob> {
+  const query = new URLSearchParams({ deckId, scope, files: file });
+  if (format) query.set("format", format);
+  const res = await authed(`/api/export?${query}`);
+  if (!res.ok) return fail(res, "Could not load the file preview.");
+  return res.blob();
+}

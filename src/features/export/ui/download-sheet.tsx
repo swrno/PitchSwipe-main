@@ -4,12 +4,13 @@ import * as React from "react";
 import { Download, Loader2, X } from "lucide-react";
 
 import { ModalSheet } from "@/features/claims/ui/modal-sheet";
-import type { ExportPreview, PdfPreview, TablePreview } from "@/features/export/preview";
+import type { ExportPreview, PdfPreview } from "@/features/export/preview";
 import { EXPORT_FILES, type ExportFile, type ExportScope } from "@/features/export/types";
 import { cn } from "@/shared/lib/utils";
 import { LIMITS } from "@/shared/lib/limits";
 import { Icon, type IconName } from "@/shared/ui/icon";
 
+import { PdfFrame, PreviewError, PreviewSkeleton, SheetGrid, useFilePreview, useIsWide } from "./file-preview";
 import { downloadExport, emailExport, fetchExportOptions, fetchExportPreview, type ExportChoice, type ExportOptions } from "./api";
 
 type TabId = ExportFile;
@@ -27,7 +28,7 @@ const TABS: { id: TabId; label: string; icon: IconName; blurb: string; privacy?:
     label: "Spreadsheet",
     icon: "leaderboard",
     blurb: "One row per version with the totals, to sort, chart or paste into your own sheet.",
-    privacy: `Groups with fewer than ${LIMITS.groupMinSize} swipers are grouped as "${LIMITS.otherLabel}", so no one can be identified.`,
+    privacy: `The Excel download has the same data with formatting. Groups with fewer than ${LIMITS.groupMinSize} swipers are grouped as "${LIMITS.otherLabel}", so no one can be identified.`,
     button: "Download Excel",
   },
   {
@@ -43,7 +44,7 @@ const TABS: { id: TabId; label: string; icon: IconName; blurb: string; privacy?:
     label: "Waitlist emails",
     icon: "waitlist",
     blurb: "The people who joined your waitlist, so you can email them when you launch.",
-    privacy: "These are real email addresses, shown partly hidden here. Keep the file private.",
+    privacy: "These are real email addresses, the same as in the file. Keep it private.",
     button: "Download CSV",
   },
 ];
@@ -158,43 +159,6 @@ function PdfMock({ pdf, stamp }: { pdf: PdfPreview; stamp: string }) {
   );
 }
 
-function TableMock({ table, empty }: { table: TablePreview; empty: string }) {
-  if (table.total === 0) return <p className="rounded-xl bg-muted px-3 py-3 text-sm text-muted-foreground">{empty}</p>;
-  const shown = table.rows.length;
-  return (
-    <div>
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-max border-collapse text-left text-xs">
-          <thead>
-            <tr className="bg-muted">
-              {table.header.map((h) => (
-                <th key={h} scope="col" className="whitespace-nowrap px-2.5 py-1.5 font-bold">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {table.rows.map((r, i) => (
-              <tr key={i} className="border-t border-border">
-                {r.map((c, j) => (
-                  <td key={j} className="max-w-[14rem] truncate whitespace-nowrap px-2.5 py-1.5 text-muted-foreground">
-                    {c || "-"}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-1.5 text-xs text-muted-foreground">
-        First {shown} of {table.total} {table.unit}
-        {table.total === 1 ? "" : "s"}. The file has every row.
-      </p>
-    </div>
-  );
-}
-
 /**
  * Download results: full-screen sheet on phone, centred dialog on web. One tab per file, each with a
  * short purpose, a preview of what is inside and its own download button.
@@ -209,6 +173,8 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
   const [busy, setBusy] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
+  const wide = useIsWide();
+  const file = useFilePreview(deckId, scope, tab, tab === "report" && !wide);
   const tabRefs = React.useRef<Record<string, HTMLButtonElement | null>>({});
 
   React.useEffect(() => {
@@ -323,7 +289,6 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
     </>
   );
 
-  const table = preview && (tab === "summary" ? preview.summary : tab === "swipes" ? preview.swipes : tab === "waitlist" ? preview.waitlist : null);
   const emptyText = tab === "waitlist" ? "No one has joined the waitlist yet. The file will only have its header." : tab === "swipes" ? "No counted swipes yet." : "No versions yet.";
 
   return (
@@ -331,7 +296,7 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
       labelledBy="download-results-title"
       onDismiss={onClose}
       footer={footer}
-      className="max-md:h-dvh max-md:max-h-none max-md:rounded-none md:max-w-[40rem]"
+      className="max-md:h-dvh max-md:max-h-none max-md:rounded-none md:max-w-6xl"
     >
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 id="download-results-title" className="text-2xl font-extrabold tracking-tight md:text-[1.75rem]">
@@ -400,48 +365,86 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
         })}
       </div>
 
-      <div role="tabpanel" id="dl-panel" aria-labelledby={`dl-tab-${active.id}`} tabIndex={0} className="mt-4 outline-none">
-        <p className="text-base leading-snug md:text-sm">{active.blurb}</p>
-
-        <div className="mt-4 min-h-40" aria-live="polite">
-          {previewError ? (
-            <p role="alert" className="rounded-xl bg-warning-soft px-3 py-2 text-sm font-semibold text-warning">
-              {previewError} You can still download.
-            </p>
-          ) : !preview ? (
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" aria-hidden /> Loading preview
-            </p>
-          ) : tab === "report" ? (
-            <PdfMock pdf={preview.pdf} stamp={preview.stamp} />
-          ) : table ? (
-            <TableMock table={table} empty={emptyText} />
+      <div role="tabpanel" id="dl-panel" aria-labelledby={`dl-tab-${active.id}`} tabIndex={0} className="mt-4 outline-none lg:grid lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)] lg:gap-6">
+        <div className="min-w-0" aria-live="polite">
+          {tab === "report" ? (
+            !wide ? (
+              previewError ? (
+                <PreviewError message={previewError} />
+              ) : !preview ? (
+                <PreviewSkeleton label="Loading preview" className="h-40" />
+              ) : (
+                <PdfMock pdf={preview.pdf} stamp={preview.stamp} />
+              )
+            ) : !file ? (
+              <PreviewSkeleton label="Loading the PDF" className="h-[620px]" />
+            ) : file.kind === "error" ? (
+              <PreviewError message={file.message} />
+            ) : file.kind === "pdf" ? (
+              <PdfFrame url={file.url} />
+            ) : null
+          ) : !file ? (
+            <PreviewSkeleton label="Loading the file" className="h-[520px]" />
+          ) : file.kind === "error" ? (
+            <PreviewError message={file.message} />
+          ) : file.kind === "sheet" ? (
+            <SheetGrid sheet={file.sheet} empty={emptyText} />
           ) : null}
         </div>
 
-        {active.privacy && <p className="mt-3 text-xs leading-snug text-muted-foreground">{active.privacy}</p>}
-        {preview && <p className="mt-1 text-xs text-muted-foreground">Numbers as of {preview.stamp}.</p>}
+        <div className="mt-4 min-w-0 lg:mt-0">
+          <p className="text-base leading-snug md:text-sm">{active.blurb}</p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <button
-            type="button"
-            disabled={busy !== null}
-            onClick={() => save([active.id], active.id === "summary" ? "xlsx" : undefined)}
-            className={cn(primary, "w-full sm:w-auto")}
-          >
-            {busy === active.id ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Download className="size-5" aria-hidden />}
-            {active.button}
-          </button>
-          {active.id === "summary" && (
+          {tab === "report" && wide && preview && (
+            <>
+              <p className="mb-1.5 mt-4 text-sm font-bold">Inside</p>
+              <ol className="space-y-1 text-sm text-muted-foreground">
+                {preview.pdf.sections.map((s, i) => (
+                  <li key={s} className="flex gap-2">
+                    <span className="w-4 shrink-0 text-right font-bold text-foreground">{i + 1}</span>
+                    <span>{s}</span>
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+          {file?.kind === "sheet" && file.sheet.rows[0] && (
+            <>
+              <p className="mb-1.5 mt-4 text-sm font-bold">Inside</p>
+              <ul className="flex flex-wrap gap-1.5">
+                {file.sheet.rows[0].map((h, i) => (
+                  <li key={i} className="rounded-md bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                    {h}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {active.privacy && <p className="mt-3 text-xs leading-snug text-muted-foreground">{active.privacy}</p>}
+          {preview && <p className="mt-1 text-xs text-muted-foreground">Numbers as of {preview.stamp}.</p>}
+
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
             <button
               type="button"
               disabled={busy !== null}
-              onClick={() => save(["summary"], "csv", "summary-csv")}
-              className="text-sm font-bold underline underline-offset-2 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              onClick={() => save([active.id], active.id === "summary" ? "xlsx" : undefined)}
+              className={cn(primary, "w-full sm:w-auto")}
             >
-              or download CSV
+              {busy === active.id ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Download className="size-5" aria-hidden />}
+              {active.button}
             </button>
-          )}
+            {active.id === "summary" && (
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => save(["summary"], "csv", "summary-csv")}
+                className="text-sm font-bold underline underline-offset-2 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              >
+                or download CSV
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </ModalSheet>
