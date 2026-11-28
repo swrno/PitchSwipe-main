@@ -1,18 +1,14 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus } from "lucide-react";
-import { buttonVariants } from "@/shared/ui/button";
 import { useBreadcrumb } from "@/shared/shell/breadcrumb";
 import { PageHeader } from "@/shared/shell/page-header";
 import { isTabActive, type PageTab } from "@/shared/shell/page-tabs";
 import type { ProductRecord } from "@/features/decks/views";
-import { cn } from "@/shared/lib/utils";
 import { api } from "./api";
 
-/** Header of every product page: name, Add test, and the Overview · Tests · Website · Settings tabs. */
+/** Header of every product page: name and the Overview · Tests · Website · Settings tabs (Add test lives on the Tests tab). */
 export function ProductHeader({ productId }: { productId: string }) {
   const pathname = usePathname();
   const [name, setName] = React.useState<{ id: string; name: string; category: string } | null>(null);
@@ -50,11 +46,6 @@ export function ProductHeader({ productId }: { productId: string }) {
       icon="products"
       title={loaded?.name ?? <span className="inline-block h-8 w-48 rounded-lg bg-muted align-middle motion-safe:animate-pulse" />}
       description="Test ideas for this product and see which test is winning."
-      actions={
-        <Link href={`/decks/new?product=${productId}`} className={cn(buttonVariants({ variant: "default" }))}>
-          <Plus /> Add test
-        </Link>
-      }
       tabs={tabs}
       tabsLabel="Product sections"
     />

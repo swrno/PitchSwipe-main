@@ -10,7 +10,7 @@ import { api } from "./api";
 import { DeckRow } from "./decks-screen";
 import { Notice } from "./primitives";
 
-/** A product's Decks tab: its decks with status, swipers and waitlist. */
+/** A product's Tests tab: the Add test action, then its tests with status, swipers and waitlist. */
 export function ProductDecks({ productId }: { productId: string }) {
   const [product, setProduct] = React.useState<ProductListItem | null | undefined>();
   const [error, setError] = React.useState<string>();
@@ -35,9 +35,20 @@ export function ProductDecks({ productId }: { productId: string }) {
     );
   if (product === null) return <Notice tone="error">Product not found.</Notice>;
 
+  const count = product.decks.length;
   return (
-    <div className="space-y-6">
-      {product.decks.length === 0 ? (
+    <div className="space-y-4">
+      {count > 0 ? (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            {count} {count === 1 ? "test" : "tests"} · {product.decks.filter((d) => d.status === "live").length} live
+          </p>
+          <Link href={`/decks/new?product=${product.id}`} className={cn(buttonVariants({ variant: "default" }))}>
+            <Plus /> Add test
+          </Link>
+        </div>
+      ) : null}
+      {count === 0 ? (
         <div className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-6">
           <p className="text-muted-foreground">No tests yet. Test your first idea for {product.name} in a few minutes.</p>
           <Link href={`/decks/new?product=${product.id}`} className={cn(buttonVariants({ variant: "default" }))}>
