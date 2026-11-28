@@ -27,8 +27,8 @@ export function buildExportFiles(input: ExportInput): ExportOutputFile[] {
     if (kind === "report") {
       out.push({ name: `${base}-report-${stamp}.pdf`, contentType: "application/pdf", data: reportPdf(ctx) });
     } else if (kind === "summary") {
-      out.push({ name: `${base}-summary-${stamp}.xlsx`, contentType: XLSX_TYPE, data: summaryXlsx(ctx) });
-      out.push({ name: `${base}-summary-${stamp}.csv`, contentType: "text/csv; charset=utf-8", data: Buffer.from(summaryCsv(ctx), "utf8") });
+      if (input.summaryFormat !== "csv") out.push({ name: `${base}-summary-${stamp}.xlsx`, contentType: XLSX_TYPE, data: summaryXlsx(ctx) });
+      if (input.summaryFormat !== "xlsx") out.push({ name: `${base}-summary-${stamp}.csv`, contentType: "text/csv; charset=utf-8", data: Buffer.from(summaryCsv(ctx), "utf8") });
     } else if (kind === "swipes") {
       out.push({ name: `${base}-every-swipe-${stamp}.csv`, contentType: "text/csv; charset=utf-8", data: Buffer.from(swipesCsv(decks, now), "utf8") });
     } else {

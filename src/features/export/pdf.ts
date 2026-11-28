@@ -12,7 +12,9 @@ export type PdfColor = number | string;
 export interface PdfCanvas {
   rect(x: number, y: number, w: number, h: number, fill: PdfColor): void;
   roundRect(x: number, y: number, w: number, h: number, r: number, fill: PdfColor | null, stroke?: { color: PdfColor; width?: number }): void;
-  line(x1: number, y1: number, x2: number, y2: number, color: PdfColor, width?: number): void;
+  line(x1: number, y1: number, x2: number, y2: number, color: PdfColor, width?: number, dash?: [number, number]): void;
+  /** Open path through `pts` with round caps and joins. */
+  polyline(pts: [number, number][], color: PdfColor, width?: number): void;
   circle(cx: number, cy: number, r: number, fill: PdfColor): void;
   /** A ring gauge: a full track plus an arc from 12 o'clock covering `frac` (0 to 1). */
   ring(cx: number, cy: number, r: number, thickness: number, frac: number, color: PdfColor, track: PdfColor): void;
@@ -30,9 +32,9 @@ export type PdfBlock =
   | { type: "title"; text: string }
   | { type: "heading"; text: string }
   | { type: "text"; text: string; bold?: boolean; muted?: boolean; size?: number }
-  | { type: "table"; columns: PdfColumn[]; rows: string[][]; boldLastRow?: boolean }
+  | { type: "table"; columns: PdfColumn[]; rows: string[][]; boldLastRow?: boolean; /** Row indexes drawn bold on the soft accent. */ highlight?: number[] }
   /** `lead` insights are counted: at most `maxLeadsPerPage` per page. */
-  | { type: "insight"; title: string; body: string; footnote?: string; lead?: boolean }
+  | { type: "insight"; title: string; body: string; footnote?: string; lead?: boolean; warning?: boolean }
   /** Vector drawing in a box `height` tall; `x` and `w` are the content column. Never split over pages. */
   | { type: "draw"; height: number; draw: (c: PdfCanvas, x: number, y: number, w: number) => void }
   | { type: "spacer"; height?: number }
@@ -202,8 +204,15 @@ export function buildPdf(doc: PdfDocument): Buffer {
       else if (fill !== null) page.ops.push(`${colorOps(fill, false)} ${ops[0]} f`);
       else if (stroke) page.ops.push(`${colorOps(stroke.color, true)} ${stroke.width ?? 0.75} w ${ops[0]} S`);
     },
-    line: (x1, y1, x2, y2, color, width = 0.75) =>
-      page.ops.push(`${colorOps(color, true)} ${width} w 1 J ${f(x1)} ${f(PAGE_H - y1)} m ${f(x2)} ${f(PAGE_H - y2)} l S`),
+    line: (x1, y1, x2, y2, color, width = 0.75, dash) =>
+      page.ops.push(
+        `${colorOps(color, true)} ${width} w ${dash ? `0 J [${dash[0]} ${dash[1]}] 0 d` : "1 J"} ${f(x1)} ${f(PAGE_H - y1)} m ${f(x2)} ${f(PAGE_H - y2)} l S${dash ? " [] 0 d" : ""}`,
+      ),
+    polyline: (pts, color, width = 1) => {
+      if (pts.length < 2) return;
+      const path = pts.map(([px, py], i) => `${f(px)} ${f(PAGE_H - py)} ${i === 0 ? "m" : "l"}`).join(" ");
+      page.ops.push(`${colorOps(color, true)} ${width} w 1 J 1 j ${path} S`);
+    },
     circle: (cx, cy, r, fill) => page.ops.push(`${colorOps(fill, false)} ${arcPath(cx, cy, r, 1)} h f`),
     ring: (cx, cy, r, t, frac, color, track) => {
       const fr = Math.max(0, Math.min(1, frac));
@@ -234,7 +243,7 @@ export function buildPdf(doc: PdfDocument): Buffer {
         y += 4;
         break;
       case "heading":
-        ensure(50);
+        ensure(110);
         y += 10;
         paragraph(block.text, 13, true, INK);
         rule(y + 1, BORDER);
@@ -263,8 +272,7 @@ export function buildPdf(doc: PdfDocument): Buffer {
         if (block.lead && page.leads >= maxLeads) newPage();
         ensure(h);
         if (block.lead) page.leads += 1;
-        canvas.roundRect(MARGIN, y + 2, CONTENT_W, h - 8, 5, ACCENT_SOFT);
-        canvas.roundRect(MARGIN, y + 2, 4, h - 8, 2, ACCENT);
+        canvas.roundRect(MARGIN, y + 2, CONTENT_W, h - 8, 8, TRACK);
         let yy = y + 8;
         text(fit(block.title, CONTENT_W - 20, 10.5, true), MARGIN + 10, yy + 10.5, 10.5, true);
         yy += 15;
@@ -273,7 +281,7 @@ export function buildPdf(doc: PdfDocument): Buffer {
           yy += 12.5;
         }
         for (const l of foot) {
-          text(l, MARGIN + 10, yy + 8.5, 8.5, false, MUTED_INK);
+          text(l, MARGIN + 10, yy + 8.5, 8.5, true, block.warning ? "#c62828" : "#c2410c");
           yy += 11.5;
         }
         y += h + 2;
@@ -284,9 +292,9 @@ export function buildPdf(doc: PdfDocument): Buffer {
         const widths = block.columns.map((c) => (c.weight / total) * CONTENT_W);
         const size = 8.5;
         const rowH = 16;
-        const drawRow = (cells: string[], bold: boolean, shade: boolean) => {
+        const drawRow = (cells: string[], bold: boolean, shade: boolean, tint = ACCENT_SOFT) => {
           ensure(rowH);
-          if (shade) canvas.rect(MARGIN, y - 4, CONTENT_W, rowH, ACCENT_SOFT);
+          if (shade) canvas.rect(MARGIN, y - 4, CONTENT_W, rowH, tint);
           let x = MARGIN;
           block.columns.forEach((col, i) => {
             const cell = fit(cells[i] ?? "", widths[i] - 8, size, bold);
@@ -297,14 +305,15 @@ export function buildPdf(doc: PdfDocument): Buffer {
           });
           y += rowH;
         };
-        drawRow(block.columns.map((c) => c.header), true, true);
+        drawRow(block.columns.map((c) => c.header), true, true, TRACK);
         block.rows.forEach((row, i) => {
           // A table that runs onto a new page repeats its header.
           if (y + rowH > BOTTOM) {
             newPage();
-            drawRow(block.columns.map((c) => c.header), true, true);
+            drawRow(block.columns.map((c) => c.header), true, true, TRACK);
           }
-          drawRow(row, !!block.boldLastRow && i === block.rows.length - 1, false);
+          const hi = !!block.highlight?.includes(i);
+          drawRow(row, hi || (!!block.boldLastRow && i === block.rows.length - 1), hi);
         });
         rule(y + 2, 0.9);
         y += 8;

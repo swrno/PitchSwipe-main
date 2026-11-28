@@ -49,6 +49,8 @@ export interface ExportInput {
   scope: ExportScope;
   decks: ExportDeckData[];
   files: ExportFile[];
+  /** Summary table only: just the .xlsx or just the .csv. Both when omitted. */
+  summaryFormat?: "xlsx" | "csv";
   /** The moment the numbers were taken. Stamped on every file. */
   now: Date;
 }

@@ -1,88 +1,63 @@
 "use client";
 
 import * as React from "react";
-import { Check, Download, Loader2, X } from "lucide-react";
+import { Download, Loader2, X } from "lucide-react";
 
 import { ModalSheet } from "@/features/claims/ui/modal-sheet";
-import { cn } from "@/shared/lib/utils";
+import type { ExportPreview, PdfPreview, TablePreview } from "@/features/export/preview";
 import { EXPORT_FILES, type ExportFile, type ExportScope } from "@/features/export/types";
+import { cn } from "@/shared/lib/utils";
 import { LIMITS } from "@/shared/lib/limits";
+import { Icon, type IconName } from "@/shared/ui/icon";
 
-import { downloadExport, emailExport, fetchExportOptions, type ExportOptions } from "./api";
+import { downloadExport, emailExport, fetchExportOptions, fetchExportPreview, type ExportChoice, type ExportOptions } from "./api";
 
-const FILE_COPY: Record<ExportFile, { title: string; format: string; phone: string; web: string }> = {
-  report: {
-    title: "Results report",
-    format: "PDF",
-    phone: "Winner and chance each version is best, Swipers → Said yes → Joined waitlist for every version, who swiped, and AI insights. Ready to share with your team or investors.",
-    web: "Winner and chance each version is best, Swipers → Said yes → Joined waitlist for every version, who swiped, and AI insights. Ready to share with your team or investors.",
+type TabId = ExportFile;
+
+const TABS: { id: TabId; label: string; icon: IconName; blurb: string; privacy?: string; button: string }[] = [
+  {
+    id: "report",
+    label: "PDF report",
+    icon: "results",
+    blurb: "A designed report to share with your team or investors: the winner, the funnel and who swiped.",
+    button: "Download PDF",
   },
-  summary: {
-    title: "Summary table",
-    format: "Excel · CSV",
-    phone: "One row per version, split by state, source, interest and target user, with totals.",
-    web: "One row per version, split by state, source, interest and target user, with totals.",
+  {
+    id: "summary",
+    label: "Spreadsheet",
+    icon: "leaderboard",
+    blurb: "One row per version with the totals, to sort, chart or paste into your own sheet.",
+    privacy: `Groups with fewer than ${LIMITS.groupMinSize} swipers are grouped as "${LIMITS.otherLabel}", so no one can be identified.`,
+    button: "Download Excel",
   },
-  swipes: {
-    title: "Every swipe",
-    format: "CSV",
-    phone: "One row per swipe: time, version, yes or no, comment, state, source, interest. Swipers stay anonymous.",
-    web: "One row per swipe: time, version, yes or no, comment, state, source, interest. Swipers stay anonymous.",
+  {
+    id: "swipes",
+    label: "Every swipe",
+    icon: "swipe",
+    blurb: "One row per swipe, for your own analysis. Handy for finding patterns in the comments.",
+    privacy: "Swipers stay anonymous: no names, emails or IP addresses, and the time is cut to the minute.",
+    button: "Download CSV",
   },
-  waitlist: {
-    title: "Waitlist emails",
-    format: "CSV",
-    phone: "Email, the version it came from and when it was claimed.",
-    web: "Email, the version it came from and when it was claimed.",
+  {
+    id: "waitlist",
+    label: "Waitlist emails",
+    icon: "waitlist",
+    blurb: "The people who joined your waitlist, so you can email them when you launch.",
+    privacy: "These are real email addresses, shown partly hidden here. Keep the file private.",
+    button: "Download CSV",
   },
-};
+];
 
-const DEFAULT_FILES: ExportFile[] = ["report", "summary", "waitlist"];
+const TAB_KEY = "pitchswipe.downloadTab";
 
-/** "18:20" in Indian time, the same clock the files are stamped with. */
-function clockLabel(d: Date): string {
-  return new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" }).format(d);
-}
-
-function FileCard({
-  kind,
-  checked,
-  onChange,
-  detail,
-}: {
-  kind: ExportFile;
-  checked: boolean;
-  onChange: (on: boolean) => void;
-  detail: string;
-}) {
-  const copy = FILE_COPY[kind];
-  return (
-    <label
-      className={cn(
-        "relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-background p-4 md:gap-3 md:rounded-xl md:px-3.5 md:py-3",
-        checked ? "border-2 border-primary" : "border-border",
-        "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2",
-      )}
-    >
-      <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span
-        aria-hidden
-        className={cn(
-          "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border-2 md:size-5 md:rounded",
-          checked ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background",
-        )}
-      >
-        {checked && <Check className="size-4 md:size-3.5" strokeWidth={3} />}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-start justify-between gap-3">
-          <span className="text-lg font-extrabold leading-tight tracking-tight md:text-base">{copy.title}</span>
-          <span className="shrink-0 rounded-lg bg-muted px-2.5 py-1 text-sm font-bold text-muted-foreground md:px-2 md:py-0.5 md:text-xs">{copy.format}</span>
-        </span>
-        <span className="mt-1 block text-base leading-snug text-muted-foreground md:text-sm">{detail}</span>
-      </span>
-    </label>
-  );
+function readTab(): TabId {
+  try {
+    const v = window.localStorage.getItem(TAB_KEY);
+    if (v && (EXPORT_FILES as readonly string[]).includes(v)) return v as TabId;
+  } catch {
+    /* storage blocked: use the default */
+  }
+  return "report";
 }
 
 function Segmented({
@@ -114,19 +89,132 @@ function Segmented({
   );
 }
 
+/** Mini mock of page 1 of the PDF, drawn from the same numbers. */
+function PdfMock({ pdf, stamp }: { pdf: PdfPreview; stamp: string }) {
+  const funnel = [
+    { label: "Swipers", n: pdf.swipers, pct: 100 },
+    { label: "Said yes", n: pdf.saidYes, pct: pdf.swipers ? (pdf.saidYes / pdf.swipers) * 100 : 0 },
+    { label: "Joined waitlist", n: pdf.joined, pct: pdf.swipers ? (pdf.joined / pdf.swipers) * 100 : 0 },
+  ];
+  return (
+    <div className="flex flex-col gap-4 sm:flex-row">
+      <div
+        role="img"
+        aria-label={`Page 1 of the PDF: ${pdf.testLabel}, ${pdf.swipers} swipers, ${pdf.saidYes} said yes, ${pdf.joined} joined the waitlist`}
+        className="w-full max-w-[17rem] shrink-0 self-center overflow-hidden rounded-lg border border-border bg-white text-[#111] shadow-sm sm:self-start"
+      >
+        <div className="bg-[#3b7a0c] px-3 py-2.5 text-white">
+          <p className="text-[8px] font-bold tracking-widest opacity-80">PITCHSWIPE</p>
+          <p className="text-[15px] font-extrabold leading-tight">Results report</p>
+          <p className="mt-0.5 truncate text-[8px] opacity-90">
+            {pdf.productName} · numbers as of {stamp}
+          </p>
+        </div>
+        <div className="space-y-2 p-3">
+          <div>
+            <p className="truncate text-[7px] font-bold uppercase tracking-wider text-[#666]">{pdf.productName}</p>
+            <p className="truncate text-[13px] font-extrabold leading-tight">{pdf.testLabel}</p>
+            <p className="mt-0.5 line-clamp-2 text-[9px] font-bold leading-snug">{pdf.headline}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[
+              ["Swipers", pdf.swipers, null],
+              ["Said yes", pdf.saidYes, pdf.saidYesPct],
+              ["Joined", pdf.joined, pdf.joinedPct],
+            ].map(([label, n, pct]) => (
+              <div key={String(label)} className="rounded-md border border-[#e5e5e5] p-1.5">
+                <p className="text-[6px] font-bold uppercase tracking-wider text-[#666]">{label}</p>
+                <p className="text-[15px] font-extrabold leading-none">{n}</p>
+                {pct !== null && <p className="text-[7px] text-[#666]">{pct}%</p>}
+              </div>
+            ))}
+          </div>
+          <div className="space-y-1">
+            <p className="text-[8px] font-extrabold">Funnel</p>
+            {funnel.map((f) => (
+              <div key={f.label} className="flex items-center gap-1.5">
+                <span className="w-14 shrink-0 text-[7px] font-bold">{f.label}</span>
+                <span className="h-2 flex-1 rounded-sm bg-[#eee]">
+                  <span className="block h-2 rounded-sm bg-[#3b7a0c]" style={{ width: `${Math.max(f.pct, f.n > 0 ? 4 : 0)}%` }} />
+                </span>
+                <span className="w-5 text-right text-[7px] font-bold">{f.n}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="mb-1.5 text-sm font-bold">Inside the PDF</p>
+        <ol className="space-y-1 text-sm text-muted-foreground">
+          {pdf.sections.map((s, i) => (
+            <li key={s} className="flex gap-2">
+              <span className="w-4 shrink-0 text-right font-bold text-foreground">{i + 1}</span>
+              <span>{s}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+function TableMock({ table, empty }: { table: TablePreview; empty: string }) {
+  if (table.total === 0) return <p className="rounded-xl bg-muted px-3 py-3 text-sm text-muted-foreground">{empty}</p>;
+  const shown = table.rows.length;
+  return (
+    <div>
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <table className="w-full min-w-max border-collapse text-left text-xs">
+          <thead>
+            <tr className="bg-muted">
+              {table.header.map((h) => (
+                <th key={h} scope="col" className="whitespace-nowrap px-2.5 py-1.5 font-bold">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((r, i) => (
+              <tr key={i} className="border-t border-border">
+                {r.map((c, j) => (
+                  <td key={j} className="max-w-[14rem] truncate whitespace-nowrap px-2.5 py-1.5 text-muted-foreground">
+                    {c || "-"}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        First {shown} of {table.total} {table.unit}
+        {table.total === 1 ? "" : "s"}. The file has every row.
+      </p>
+    </div>
+  );
+}
+
 /**
- * Download results: bottom sheet on phone (designs phone 16), centred dialog on web (web 18).
- * Phone shows one black "Download N files" button; web adds "Email me the files".
+ * Download results: full-screen sheet on phone, centred dialog on web. One tab per file, each with a
+ * short purpose, a preview of what is inside and its own download button.
  */
 export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: () => void }) {
   const [options, setOptions] = React.useState<ExportOptions | null>(null);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [scope, setScope] = React.useState<ExportScope>("deck");
-  const [files, setFiles] = React.useState<ExportFile[]>(DEFAULT_FILES);
-  const [busy, setBusy] = React.useState<"download" | "email" | null>(null);
+  const [tab, setTab] = React.useState<TabId>("report");
+  const [preview, setPreview] = React.useState<ExportPreview | null>(null);
+  const [previewError, setPreviewError] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
-  const [openedAt] = React.useState(() => new Date());
+  const tabRefs = React.useRef<Record<string, HTMLButtonElement | null>>({});
+
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage exists only on the client
+    setTab(readTab());
+  }, []);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -138,25 +226,44 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
     };
   }, [deckId]);
 
-  const toggle = (kind: ExportFile, on: boolean) => setFiles((cur) => EXPORT_FILES.filter((f) => (f === kind ? on : cur.includes(f))));
-  const count = files.length;
-  const plural = count === 1 ? "file" : "files";
-  const waitlistText = options ? `${options.waitlistCount} ${options.waitlistCount === 1 ? "email" : "emails"}.` : "";
+  React.useEffect(() => {
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- show the spinner while the new scope loads
+    setPreview(null);
+    setPreviewError(null);
+    fetchExportPreview(deckId, scope)
+      .then((p) => !cancelled && setPreview(p))
+      .catch((e: unknown) => !cancelled && setPreviewError(e instanceof Error ? e.message : "Could not load the preview."));
+    return () => {
+      cancelled = true;
+    };
+  }, [deckId, scope]);
 
-  async function run(kind: "download" | "email") {
-    if (count === 0 || busy) return;
-    setBusy(kind);
+  function pick(id: TabId, focus = false) {
+    setTab(id);
+    try {
+      window.localStorage.setItem(TAB_KEY, id);
+    } catch {
+      /* ignore */
+    }
+    if (focus) tabRefs.current[id]?.focus();
+  }
+
+  function onTabKey(e: React.KeyboardEvent, index: number) {
+    const last = TABS.length - 1;
+    const next = e.key === "ArrowRight" ? (index === last ? 0 : index + 1) : e.key === "ArrowLeft" ? (index === 0 ? last : index - 1) : e.key === "Home" ? 0 : e.key === "End" ? last : null;
+    if (next === null) return;
+    e.preventDefault();
+    pick(TABS[next].id, true);
+  }
+
+  async function run(key: string, task: () => Promise<void>) {
+    if (busy) return;
+    setBusy(key);
     setError(null);
     setNotice(null);
     try {
-      const choice = { deckId, scope, files };
-      if (kind === "download") {
-        await downloadExport(choice);
-        onClose();
-      } else {
-        const out = await emailExport(choice);
-        setNotice(`Sent to ${out.to}. Check your inbox.`);
-      }
+      await task();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong. Try again.");
     } finally {
@@ -164,8 +271,31 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
     }
   }
 
+  const save = (files: ExportFile[], format?: "xlsx" | "csv", key = files.join()) =>
+    run(key, async () => {
+      const choice: ExportChoice = { deckId, scope, files, ...(format ? { format } : {}) };
+      await downloadExport(choice);
+    });
+  const everything = () =>
+    run("zip", async () => {
+      await downloadExport({ deckId, scope, files: [...EXPORT_FILES] });
+      onClose();
+    });
+  const email = () =>
+    run("email", async () => {
+      const out = await emailExport({ deckId, scope, files: [...EXPORT_FILES] });
+      setNotice(`Sent to ${out.to}. Check your inbox.`);
+    });
+
   const deckName = options?.deckLabel ?? "this test";
   const productDecks = options?.productDecks ?? 1;
+  const emailOff = options !== null && !options.emailAvailable;
+  const active = TABS.find((t) => t.id === tab) ?? TABS[0];
+
+  const primary =
+    "inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-base font-extrabold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50";
+  const secondary =
+    "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background px-3 text-sm font-bold hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 
   const footer = (
     <>
@@ -179,51 +309,39 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
           {notice}
         </p>
       )}
-
-      <div className="flex flex-col gap-3 md:flex-row-reverse">
-        <button
-          type="button"
-          onClick={() => run("download")}
-          disabled={count === 0 || busy !== null}
-          className="inline-flex h-16 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-xl font-extrabold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 md:h-12 md:flex-1 md:rounded-xl md:text-base"
-        >
-          {busy === "download" ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Download className="size-5" aria-hidden />}
-          {count === 0 ? "Pick a file" : `Download ${count} ${plural}`}
-          {count > 1 && <span className="hidden md:inline">(.zip)</span>}
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <button type="button" onClick={everything} disabled={busy !== null} className={secondary}>
+          {busy === "zip" ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Download className="size-4" aria-hidden />}
+          Download everything (.zip)
         </button>
-        <button
-          type="button"
-          onClick={() => run("email")}
-          disabled={count === 0 || busy !== null}
-          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 md:h-12 md:flex-1 md:rounded-xl md:border md:border-border md:bg-background md:text-base md:font-extrabold"
-        >
+        <button type="button" onClick={email} disabled={busy !== null || emailOff} className={secondary}>
           {busy === "email" && <Loader2 className="size-4 animate-spin" aria-hidden />}
           Email me the files
         </button>
       </div>
+      {emailOff && <p className="mt-2 text-xs text-muted-foreground">Email is not set up yet. Download the files instead.</p>}
     </>
   );
 
+  const table = preview && (tab === "summary" ? preview.summary : tab === "swipes" ? preview.swipes : tab === "waitlist" ? preview.waitlist : null);
+  const emptyText = tab === "waitlist" ? "No one has joined the waitlist yet. The file will only have its header." : tab === "swipes" ? "No counted swipes yet." : "No versions yet.";
+
   return (
-    <ModalSheet labelledBy="download-results-title" onDismiss={onClose} footer={footer} className="md:max-w-[35rem]">
-      <div className="mb-4 flex items-center justify-between gap-3 md:mb-5">
-        <h2 id="download-results-title" className="text-3xl font-extrabold tracking-tight md:text-[1.75rem]">
+    <ModalSheet
+      labelledBy="download-results-title"
+      onDismiss={onClose}
+      footer={footer}
+      className="max-md:h-dvh max-md:max-h-none max-md:rounded-none md:max-w-[40rem]"
+    >
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 id="download-results-title" className="text-2xl font-extrabold tracking-tight md:text-[1.75rem]">
           Download results
         </h2>
-        <button type="button" onClick={onClose} className="text-lg font-bold text-muted-foreground hover:text-foreground md:hidden">
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="hidden size-10 items-center justify-center rounded-full bg-muted hover:bg-border md:flex"
-        >
+        <button type="button" onClick={onClose} aria-label="Close" className="flex size-10 items-center justify-center rounded-full bg-muted hover:bg-border">
           <X className="size-5" />
         </button>
       </div>
 
-      <p className="mb-2 hidden text-sm font-bold md:block">Include</p>
       <Segmented
         value={scope}
         onChange={setScope}
@@ -232,7 +350,7 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
             value: "deck",
             label: (
               <>
-                This deck<span className="hidden md:inline">: {deckName}</span>
+                This test<span className="hidden md:inline">: {deckName}</span>
               </>
             ),
           },
@@ -253,23 +371,79 @@ export function DownloadSheet({ deckId, onClose }: { deckId: string; onClose: ()
         </p>
       )}
 
-      <p className="mb-2 mt-4 hidden text-sm font-bold md:block">Files</p>
-      <div className="mt-4 space-y-3 md:mt-0 md:space-y-2.5">
-        {EXPORT_FILES.map((kind) => (
-          <FileCard
-            key={kind}
-            kind={kind}
-            checked={files.includes(kind)}
-            onChange={(on) => toggle(kind, on)}
-            detail={kind === "waitlist" && options ? `${FILE_COPY.waitlist.phone} ${waitlistText}` : FILE_COPY[kind].phone}
-          />
-        ))}
+      <div role="tablist" aria-label="Files" className="-mx-5 mt-4 flex gap-1 overflow-x-auto border-b border-border px-5 md:mx-0 md:px-0">
+        {TABS.map((t, i) => {
+          const on = t.id === tab;
+          return (
+            <button
+              key={t.id}
+              ref={(el) => {
+                tabRefs.current[t.id] = el;
+              }}
+              type="button"
+              role="tab"
+              id={`dl-tab-${t.id}`}
+              aria-selected={on}
+              aria-controls="dl-panel"
+              tabIndex={on ? 0 : -1}
+              onClick={() => pick(t.id)}
+              onKeyDown={(e) => onTabKey(e, i)}
+              className={cn(
+                "-mb-px flex min-h-11 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                on ? "border-accent font-bold text-foreground" : "border-transparent font-medium text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Icon icon={t.icon} active={on} />
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
-      <p className="mt-4 text-base leading-snug text-muted-foreground md:text-sm">
-        Numbers as of today, {clockLabel(openedAt)}. Groups with fewer than {LIMITS.groupMinSize} swipers are grouped as &quot;{LIMITS.otherLabel}&quot;, so no one can be identified.
-      </p>
+      <div role="tabpanel" id="dl-panel" aria-labelledby={`dl-tab-${active.id}`} tabIndex={0} className="mt-4 outline-none">
+        <p className="text-base leading-snug md:text-sm">{active.blurb}</p>
 
+        <div className="mt-4 min-h-40" aria-live="polite">
+          {previewError ? (
+            <p role="alert" className="rounded-xl bg-warning-soft px-3 py-2 text-sm font-semibold text-warning">
+              {previewError} You can still download.
+            </p>
+          ) : !preview ? (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" aria-hidden /> Loading preview
+            </p>
+          ) : tab === "report" ? (
+            <PdfMock pdf={preview.pdf} stamp={preview.stamp} />
+          ) : table ? (
+            <TableMock table={table} empty={emptyText} />
+          ) : null}
+        </div>
+
+        {active.privacy && <p className="mt-3 text-xs leading-snug text-muted-foreground">{active.privacy}</p>}
+        {preview && <p className="mt-1 text-xs text-muted-foreground">Numbers as of {preview.stamp}.</p>}
+
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <button
+            type="button"
+            disabled={busy !== null}
+            onClick={() => save([active.id], active.id === "summary" ? "xlsx" : undefined)}
+            className={cn(primary, "w-full sm:w-auto")}
+          >
+            {busy === active.id ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Download className="size-5" aria-hidden />}
+            {active.button}
+          </button>
+          {active.id === "summary" && (
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => save(["summary"], "csv", "summary-csv")}
+              className="text-sm font-bold underline underline-offset-2 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            >
+              or download CSV
+            </button>
+          )}
+        </div>
+      </div>
     </ModalSheet>
   );
 }

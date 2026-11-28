@@ -1,8 +1,7 @@
-import { User } from "lucide-react";
 import { PageHeader } from "@/shared/shell/page-header";
 
 const TABS = [
-  { icon: User, label: "Profile", href: "/profile" },
+  { icon: "profile", label: "Profile", href: "/profile" },
   { icon: "appearance", label: "Appearance", href: "/appearance" },
   { icon: "plan", label: "Plan", href: "/settings/plan" },
 ] as const;

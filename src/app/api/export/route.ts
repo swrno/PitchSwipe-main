@@ -4,6 +4,7 @@ import { verifyRequestToken } from "@/features/auth/server/server";
 import { readJson, resolveOwnerId } from "@/features/decks/server/owner";
 import { limitKey, limitRequest } from "@/shared/lib/ratelimit";
 import { exportOptions, loadExportDecks } from "@/features/export/server/load";
+import { buildExportPreview } from "@/features/export/preview";
 import { mailerFromEnv } from "@/features/export/server/mailer";
 import { parseExportRequest, runExport, type ExportRequest } from "@/features/export/server/service";
 
@@ -55,6 +56,7 @@ async function handle(request: Request, req: ExportRequest) {
 
 /**
  * GET  /api/export?deckId=&scope=deck|product&files=report,summary,swipes,waitlist   download
+ * GET  /api/export?deckId=&scope=&preview=1   first rows of each file (waitlist emails partly hidden)
  * GET  /api/export?deckId=&options=1   what the Download sheet needs (decks in the product, waitlist size)
  * POST /api/export { deckId, scope, files, delivery: "download" | "email" }
  *
@@ -74,11 +76,28 @@ export async function GET(request: Request) {
     if (!opts) return NextResponse.json({ error: "Test not found." }, { status: 404, headers: NO_STORE });
     return NextResponse.json({ ...opts, emailAvailable: Boolean(process.env.RESEND_API_KEY) }, { headers: NO_STORE });
   }
+  if (url.searchParams.get("preview")) {
+    const early = limitRequest(request, "export:preview", { limit: 30, windowMs: 60_000 }, NO_STORE);
+    if (early) return early;
+    const who = await resolveOwnerId(request);
+    if ("response" in who) return who.response;
+    const deckId = url.searchParams.get("deckId") ?? "";
+    const scope = url.searchParams.get("scope") === "product" ? "product" : "deck";
+    try {
+      const decks = deckId ? await loadExportDecks(who.ownerId, deckId, scope, new Date()) : null;
+      if (!decks || decks.length === 0) return NextResponse.json({ error: "Test not found." }, { status: 404, headers: NO_STORE });
+      return NextResponse.json(buildExportPreview(decks, scope, new Date()), { headers: NO_STORE });
+    } catch (error) {
+      console.error("export: preview failed", error instanceof Error ? error.message : error);
+      return NextResponse.json({ error: "Could not load the preview." }, { status: 500, headers: NO_STORE });
+    }
+  }
   const parsed = parseExportRequest({
     deckId: url.searchParams.get("deckId") ?? undefined,
     scope: url.searchParams.get("scope") ?? undefined,
     files: url.searchParams.get("files") ?? undefined,
     delivery: "download",
+    format: url.searchParams.get("format") ?? undefined,
   });
   if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400, headers: NO_STORE });
   return handle(request, parsed.value);

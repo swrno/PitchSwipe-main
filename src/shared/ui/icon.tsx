@@ -1,5 +1,5 @@
 import * as React from "react";
-import {
+import { UserRound,
   Activity, BarChart3, Briefcase, CheckCircle2, CircleDot, Clock, CreditCard, Eye, Filter, FlaskConical, Globe, Heart, History,
   Home, IndianRupee, Layers, LayoutDashboard, Loader2, Mail, MapPin, Package, Palette, PencilLine, Settings, Share2, Sparkles,
   Split, Target, ThumbsUp, Trophy, UserCheck, UserPlus, Users, Wallet,
@@ -24,6 +24,7 @@ export const ICONS = {
   wallet: Wallet,
   history: History,
   settings: Settings,
+  profile: UserRound,
   appearance: Palette,
   plan: CreditCard,
   newTest: Sparkles,

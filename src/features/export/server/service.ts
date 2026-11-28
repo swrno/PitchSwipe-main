@@ -14,12 +14,14 @@ export interface ExportRequest {
   scope: ExportScope;
   files: ExportFile[];
   delivery: ExportDelivery;
+  /** Summary table as one file instead of both. */
+  format?: "xlsx" | "csv";
 }
 
 export type ParseResult = { ok: true; value: ExportRequest } | { ok: false; error: string };
 
 /** Accepts query strings (`files=report,summary`) and JSON bodies (`files: ["report"]`). */
-export function parseExportRequest(raw: { deckId?: unknown; scope?: unknown; files?: unknown; delivery?: unknown }): ParseResult {
+export function parseExportRequest(raw: { deckId?: unknown; scope?: unknown; files?: unknown; delivery?: unknown; format?: unknown }): ParseResult {
   const deckId = typeof raw.deckId === "string" ? raw.deckId.trim() : "";
   if (!deckId) return { ok: false, error: "Pick a test to export." };
   const scope = raw.scope === undefined || raw.scope === "" ? "deck" : raw.scope;
@@ -31,7 +33,8 @@ export function parseExportRequest(raw: { deckId?: unknown; scope?: unknown; fil
   if (bad) return { ok: false, error: `Unknown file: ${bad.slice(0, 30)}.` };
   const delivery = raw.delivery === undefined || raw.delivery === "" ? "download" : raw.delivery;
   if (delivery !== "download" && delivery !== "email") return { ok: false, error: "Delivery must be download or email." };
-  return { ok: true, value: { deckId, scope: scope as ExportScope, files: files as ExportFile[], delivery } };
+  const format = raw.format === "xlsx" || raw.format === "csv" ? raw.format : undefined;
+  return { ok: true, value: { deckId, scope: scope as ExportScope, files: files as ExportFile[], delivery, ...(format ? { format } : {}) } };
 }
 
 export interface ExportDeps {
@@ -66,7 +69,7 @@ export async function runExport(ownerId: string, req: ExportRequest, deps: Expor
   if (!decks || decks.length === 0) return { kind: "error", status: 404, error: "Test not found." };
 
   const bundle = bundleExport(
-    { productName: decks[0].payload.deck.productName, scope: req.scope, decks, files: req.files, now },
+    { productName: decks[0].payload.deck.productName, scope: req.scope, decks, files: req.files, summaryFormat: req.format, now },
     { forceZip: req.delivery === "email" },
   );
   if (req.delivery === "download") return { kind: "download", bundle };

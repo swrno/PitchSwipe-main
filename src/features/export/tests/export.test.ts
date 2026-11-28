@@ -301,14 +301,15 @@ describe("report PDF", () => {
     const pdf = buildPdf(reportDocument({ productName: "Voice Khata", scopeText: "this deck", decks: [deck], now: NOW })).toString("latin1");
     assert.match(pdf, /0\.231 0\.478 0\.047 rg/); // accent #3b7a0c fill
     assert.match(pdf, / c h f/); // curves: rounded rects and circles
-    for (const title of ["Funnel", "Leaderboard", "Waitlist", "Who swiped", "SAID YES", "JOINED WAITLIST", "SOURCE"]) {
+    for (const title of ["From swipe to waitlist", "Leaderboard", "Waitlist", "Who swiped", "Where swipers came from", "Joined waitlist", "Said yes", "Share who joined", "JK"]) {
       assert.ok(pdf.includes(`(${title})`), title);
     }
     const t = deck.payload.totals;
     assert.ok(pdf.includes(`(${t.swipers})`));
     assert.ok(pdf.includes(`(${t.saidYes})`));
     assert.ok(pdf.includes(`(${t.joined})`));
-    assert.ok(pdf.includes("(Leading)") || pdf.includes("(Winner)"));
+    assert.ok(pdf.includes("(Leading)"));
+    assert.match(pdf, /0.557 0.910 0.659 rg/); // state map step 4 (#14532d) or step 3 fill present
     assert.doesNotMatch(pdf, IPV4);
   });
 });
@@ -393,5 +394,34 @@ describe("request parsing and service", () => {
     assert.equal(seen?.url, "https://api.resend.com/emails");
     assert.equal(seen?.headers.authorization, "Bearer test-key");
     assert.equal(JSON.parse(seen!.body).attachments[0].content, Buffer.from("hi").toString("base64"));
+  });
+});
+
+describe("export preview", () => {
+  it("masks emails and keeps the real counts and headers", async () => {
+    const { buildExportPreview, maskEmail } = await import("../preview");
+    assert.equal(maskEmail("seedling@pitchswipe.invalid"), "seed…@pitchswipe.invalid");
+    assert.equal(maskEmail("ab@x.com"), "a…@x.com");
+    const deck = deckData();
+    const p = buildExportPreview([deck], "deck", NOW);
+    assert.equal(p.swipes.total, deck.swipes.length);
+    assert.equal(p.waitlist.total, deck.claimants.length);
+    assert.ok(p.swipes.rows.length <= 4 && p.summary.rows.length <= 4);
+    assert.equal(p.summary.header[0], "Version");
+    assert.equal(p.pdf.swipers, deck.payload.totals.swipers);
+    for (const r of p.waitlist.rows) assert.ok(!EMAIL.test(r[0]) || r[0].includes("…"));
+    for (const r of p.waitlist.rows) assert.match(r[0], /…@/);
+    assert.equal(p.summary.total, deck.payload.leaderboard.everyone.length);
+    const two = buildExportPreview([deck, deckData(SAMPLE_PRICE_DECK_ID, "Price test")], "product", NOW);
+    assert.equal(two.pdf.tests, 2);
+    assert.equal(two.pdf.sections[0], "Tests in this report");
+  });
+
+  it("summary format picks one file", () => {
+    const decks = [deckData()];
+    const base = { productName: "P", scope: "deck" as const, decks, files: ["summary" as ExportFile], now: NOW };
+    assert.equal(buildExportFiles(base).length, 2);
+    assert.deepEqual(buildExportFiles({ ...base, summaryFormat: "csv" }).map((f) => f.name.split(".").pop()), ["csv"]);
+    assert.deepEqual(buildExportFiles({ ...base, summaryFormat: "xlsx" }).map((f) => f.name.split(".").pop()), ["xlsx"]);
   });
 });

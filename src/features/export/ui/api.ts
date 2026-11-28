@@ -2,6 +2,7 @@
 
 import { isFirebaseClientConfigured } from "@/features/auth/config";
 import { getFirebaseClientAuth } from "@/shared/lib/firebase/client";
+import type { ExportPreview } from "@/features/export/preview";
 import type { ExportFile, ExportScope } from "@/features/export/types";
 
 export interface ExportOptions {
@@ -55,6 +56,8 @@ export interface ExportChoice {
   deckId: string;
   scope: ExportScope;
   files: ExportFile[];
+  /** Summary table as just the .xlsx or just the .csv. */
+  format?: "xlsx" | "csv";
 }
 
 function fileNameFrom(res: Response): string {
@@ -65,6 +68,7 @@ function fileNameFrom(res: Response): string {
 /** Fetches the files with the sign-in token (a plain link would not carry it) and saves them. */
 export async function downloadExport(choice: ExportChoice): Promise<string> {
   const query = new URLSearchParams({ deckId: choice.deckId, scope: choice.scope, files: choice.files.join(",") });
+  if (choice.format) query.set("format", choice.format);
   const res = await authed(`/api/export?${query}`);
   if (!res.ok) return fail(res, "Could not make the files. Try again.");
   const name = fileNameFrom(res);
@@ -87,4 +91,10 @@ export async function emailExport(choice: ExportChoice): Promise<{ to: string }>
   });
   if (!res.ok) return fail(res, "Could not email the files. Try again.");
   return (await res.json()) as { to: string };
+}
+
+export async function fetchExportPreview(deckId: string, scope: ExportScope): Promise<ExportPreview> {
+  const res = await authed(`/api/export?preview=1&deckId=${encodeURIComponent(deckId)}&scope=${scope}`);
+  if (!res.ok) return fail(res, "Could not load the preview.");
+  return (await res.json()) as ExportPreview;
 }
