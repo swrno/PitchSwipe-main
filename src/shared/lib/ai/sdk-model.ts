@@ -78,3 +78,13 @@ export function sdkModel(env: Env = process.env): SdkModel | null {
   }
   return null;
 }
+
+/** The fast Groq model on its own (no wrapper), for a plain-text retry when a structured call failed. Same model for Claude. */
+export function sdkFastModel(env: Env = process.env): LanguageModel | null {
+  const vendor = llmVendor(env);
+  if (vendor === "groq") {
+    const apiKey = (env.GROQ_API_KEY?.trim() || env.LLM_API_KEY?.trim()) ?? "";
+    return createGroq({ apiKey })(GROQ_FAST_MODEL) as unknown as LanguageModel;
+  }
+  return sdkModel(env)?.model ?? null;
+}

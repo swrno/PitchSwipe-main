@@ -4,7 +4,7 @@ import * as React from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import { Card } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { IDEA_MAX, IDEA_MIN, type IdeaDraft } from "@/features/decks/idea";
+import { IDEA_MAX, IDEA_MIN, looksLikeNewProduct, type IdeaDraft } from "@/features/decks/idea";
 import { api, ApiError } from "./api";
 import { PageHeader } from "@/shared/shell/page-header";
 import { ErrorText, StepProgress, TextArea } from "./primitives";
@@ -74,6 +74,50 @@ export function IdeaStep({ onDrafted, onSkip }: { onDrafted: (r: IdeaResult) => 
         <p className="text-sm text-muted-foreground" role="status">
           AI never invents prices or numbers. You still choose what to test.
         </p>
+      </Card>
+    </div>
+  );
+}
+
+/** After drafting, when a product is already selected: add the test to it, or create a new product from the draft. */
+export function ProductChoice({
+  draft,
+  current,
+  busy,
+  error,
+  onUseCurrent,
+  onCreate,
+}: {
+  draft: IdeaDraft;
+  current: { name: string; industry: string };
+  busy: boolean;
+  error?: string;
+  onUseCurrent: () => void;
+  onCreate: () => void;
+}) {
+  const newName = draft.name || "New product";
+  const [choice, setChoice] = React.useState<"current" | "new">(looksLikeNewProduct(draft, current) ? "new" : "current");
+  const options = [
+    { id: "current" as const, label: `Add this test to ${current.name}` },
+    { id: "new" as const, label: `Create a new product: ${newName}` },
+  ];
+  return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      <PageHeader icon="newTest" title="Which product is this for?" description="Your draft looks like it may be a different product from the one selected." className="mb-0" />
+      <Card className="space-y-4 p-5">
+        <fieldset className="space-y-3" disabled={busy}>
+          <legend className="sr-only">Product for this test</legend>
+          {options.map((o) => (
+            <label key={o.id} className="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-4 font-semibold has-[:checked]:border-primary">
+              <input type="radio" name="idea-product" checked={choice === o.id} onChange={() => setChoice(o.id)} className="size-4" />
+              {o.label}
+            </label>
+          ))}
+        </fieldset>
+        <ErrorText message={error} />
+        <Button size="lg" disabled={busy} onClick={choice === "new" ? onCreate : onUseCurrent}>
+          {busy ? <Loader2 className="animate-spin" /> : null} Continue
+        </Button>
       </Card>
     </div>
   );

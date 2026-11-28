@@ -126,3 +126,37 @@ export function checkIdeaText(value: unknown): { ok: true; text: string } | { ok
   if (text.length > IDEA_MAX) return { ok: false, message: `Keep it under ${IDEA_MAX} characters.` };
   return { ok: true, text };
 }
+
+export const IDEA_JSON_SYSTEM = `${IDEA_SYSTEM} Reply with ONE JSON object only, no prose, with exactly these keys: name, industry, audience, headline, description, reward. industry must be one of: ${INDUSTRIES.join(", ")}. audience must be one of: ${ROLES.join(", ")}.`;
+
+/**
+ * Lenient parse of a model reply: finds the JSON object (even inside prose or a code fence), then validates field by
+ * field through cleanDraft, so one bad field (wrong enum, invented digit, missing key) never discards the rest.
+ * Returns null only when no JSON object can be read at all.
+ */
+export function parseLenientDraft(reply: string, source: string): IdeaDraft | null {
+  const start = reply.indexOf("{");
+  const end = reply.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  let obj: unknown;
+  try {
+    obj = JSON.parse(reply.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+  if (typeof obj !== "object" || obj === null || Array.isArray(obj)) return null;
+  const draft = cleanDraft(obj as Record<string, unknown>, source);
+  const tmpl = templateDraft(source);
+  return { ...draft, headline: draft.headline || tmpl.headline, description: draft.description || tmpl.description };
+}
+
+const words = (s: string) => new Set(s.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2));
+
+/** Should a drafted idea default to a new product? True when its name and industry both clearly differ from the current product. */
+export function looksLikeNewProduct(draft: Pick<IdeaDraft, "name" | "industry">, current: { name: string; industry: string }): boolean {
+  const a = words(draft.name);
+  const b = words(current.name);
+  const sameName = draft.name.trim() !== "" && ([...a].some((w) => b.has(w)) || draft.name.trim().toLowerCase() === current.name.trim().toLowerCase());
+  if (sameName) return false;
+  return draft.industry !== current.industry || draft.name.trim() !== "";
+}

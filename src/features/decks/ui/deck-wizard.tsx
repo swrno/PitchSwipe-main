@@ -31,7 +31,7 @@ import type { ProductRecord } from "@/features/decks/views";
 import { TEST_VARIABLES, TEST_VARIABLE_LABELS, type TestVariable } from "@/shared/lib/lists";
 import { cn } from "@/shared/lib/utils";
 import { AiPreviewSheet } from "./ai-preview-sheet";
-import { IdeaStep, type IdeaResult } from "./idea-step";
+import { IdeaStep, ProductChoice, type IdeaResult } from "./idea-step";
 import { api, ApiError, errorFor } from "./api";
 import { CardPreview } from "./card-preview";
 import {
@@ -91,7 +91,7 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
   const [changing, setChanging] = React.useState(false);
   const [editingShared, setEditingShared] = React.useState(false);
   const [uploadError, setUploadError] = React.useState<string>();
-  const [stage, setStage] = React.useState<"idea" | "wizard">(startWithIdea ? "idea" : "wizard");
+  const [stage, setStage] = React.useState<"idea" | "choose" | "wizard">(startWithIdea ? "idea" : "wizard");
   const [idea, setIdea] = React.useState<IdeaResult>();
   const [published, setPublished] = React.useState<{ id: string; slug: string; copied?: boolean }>();
   const [ideaApplied, setIdeaApplied] = React.useState(false);
@@ -100,6 +100,30 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
   if (idea && !ideaApplied && form) {
     setIdeaApplied(true);
     setForm(applyIdea(form, idea.draft));
+  }
+
+  const [creating, setCreating] = React.useState(false);
+  const [createError, setCreateError] = React.useState<string>();
+
+  /** Creates a product from the AI draft (name, industry, target user), then continues the wizard on it. */
+  async function createFromIdea(r: IdeaResult) {
+    setCreating(true);
+    setCreateError(undefined);
+    try {
+      const p = await api<ProductRecord>("/api/products", {
+        method: "POST",
+        body: { name: r.draft.name || "New product", industry: r.draft.industry, targetUsers: [r.draft.audience], audience: { who: "everyone", states: [], interests: [] } },
+      });
+      setProducts((list) => [...(list ?? []), p]);
+      setIdeaApplied(true);
+      setForm(applyIdea(emptyForm(p.id), r.draft));
+      setStage("wizard");
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : "Could not create the product.");
+      setStage("choose");
+    } finally {
+      setCreating(false);
+    }
   }
 
   // Load the founder's products (and the draft being reopened).
@@ -133,10 +157,19 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
         onSkip={() => setStage("wizard")}
         onDrafted={(r) => {
           setIdea(r);
-          setStage("wizard");
+          // A product exists (or may still be loading): ask which one. No product: create it from the draft.
+          if (products && products.length === 0) void createFromIdea(r);
+          else setStage("choose");
         }}
       />
     );
+  }
+
+  if (stage === "choose" && idea) {
+    if (!products) return <WizardPageSkeleton />;
+    const current = products.find((p) => p.id === form?.productId) ?? products.find((p) => p.id === productId) ?? products[0];
+    if (!current) return <WizardPageSkeleton />;
+    return <ProductChoice draft={idea.draft} current={current} busy={creating} error={createError} onUseCurrent={() => setStage("wizard")} onCreate={() => void createFromIdea(idea)} />;
   }
 
   if (!products)
