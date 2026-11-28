@@ -3,7 +3,6 @@ import type { Crumb } from "./breadcrumb";
 /** Tabs of one top-level page: moving between them is not "going back". */
 const TAB_GROUPS: readonly (readonly string[])[] = [
   ["/profile", "/appearance", "/settings/plan"],
-  ["/wallet", "/history"],
 ];
 
 /** Last URL segments that are tabs of a product or a test (docs/information-architecture.md). */

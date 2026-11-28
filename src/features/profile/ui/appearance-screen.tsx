@@ -1,5 +1,6 @@
 "use client";
 
+import { ThemePreview } from "./theme-preview";
 import { IconLabel } from "@/shared/ui/icon";
 import { SlidersHorizontal } from "lucide-react";
 import * as React from "react";
@@ -8,8 +9,8 @@ import { Button } from "@/shared/ui/button";
 import { haptic } from "@/shared/lib/feel/haptics";
 import { readPaletteChoice, savePaletteChoice } from "@/shared/lib/feel/palette";
 import {
-  CUSTOM_PRESET_ID, DEFAULT_PRESET_ID, PALETTE_PRESETS, TOKEN_KEYS, customFromTokens, failingPairs, normalizeHex, resolveTokens,
-  type CustomColors, type PaletteChoice, type PaletteMode, type TokenSet,
+  CUSTOM_PRESET_ID, DEFAULT_PRESET_ID, PALETTE_PRESETS, customFromTokens, failingPairs, normalizeHex, resolveTokens,
+  type CustomColors, type PaletteChoice, type PaletteMode,
 } from "@/shared/lib/feel/palettes";
 import { readTheme } from "@/shared/lib/feel/theme";
 import { cn } from "@/shared/lib/utils";
@@ -62,7 +63,7 @@ export function AppearanceScreen() {
         Pick a colour theme for light and dark mode. Saved on this device only.
       </p>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="space-y-6">
         <div className="space-y-6">
           <div role="tablist" aria-label="Mode to edit" className="inline-flex rounded-lg bg-muted p-1">
             {MODES.map((m) => (
@@ -114,11 +115,9 @@ export function AppearanceScreen() {
           </div>
         </div>
 
-        <aside aria-label="Preview" className="space-y-3 lg:sticky lg:top-6 lg:self-start">
-          <h2 className="text-sm font-semibold text-muted-foreground"><IconLabel icon="preview">Preview ({mode})</IconLabel></h2>
-          <Preview tokens={tokens} />
-        </aside>
       </div>
+
+      <ThemePreview mode={mode} edited={tokens} other={resolveTokens(mode === "light" ? "dark" : "light", choice[mode === "light" ? "dark" : "light"])} />
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="button" onClick={apply}>
@@ -249,32 +248,6 @@ function ColorRow({ label, value, onCommit }: { label: string; value: string; on
           Use a hex colour like #1a2b3c
         </span>
       )}
-    </div>
-  );
-}
-
-/** Mini app drawn with the candidate tokens only (set as custom properties on this element, not on the page). */
-function Preview({ tokens }: { tokens: TokenSet }) {
-  const style = Object.fromEntries(TOKEN_KEYS.map((k) => [`--${k}`, tokens[k]])) as React.CSSProperties;
-  return (
-    <div style={style} className="flex overflow-hidden rounded-xl border border-border bg-background text-foreground" aria-hidden>
-      <div className="w-16 shrink-0 space-y-2 border-r border-border bg-card p-2">
-        <div className="size-5 rounded-md bg-accent" />
-        <div className="rounded-md bg-accent-soft px-1.5 py-1 text-[10px] font-semibold text-foreground">Swipe</div>
-        <div className="px-1.5 py-1 text-[10px] text-muted-foreground">Tests</div>
-        <div className="px-1.5 py-1 text-[10px] text-muted-foreground">Wallet</div>
-      </div>
-      <div className="min-w-0 flex-1 space-y-3 p-3">
-        <div className="rounded-lg border border-border bg-card p-3 text-card-foreground">
-          <p className="text-xs text-muted-foreground">Ideas liked</p>
-          <p className="text-2xl font-semibold">128</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">Test an idea</span>
-          <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-accent-foreground">+12%</span>
-          <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">Draft</span>
-        </div>
-      </div>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { deckLink, displayLink, linkedinShareUrl, linkedinText, whatsappShareUrl
 import { cn } from "@/shared/lib/utils";
 import { QrCode } from "./qr-code";
 import { useDeckAndProduct, type BoostData } from "./use-deck-and-product";
+import { ShareSkeleton } from "@/shared/ui/page-skeletons";
 
 /** Share tab: the test's personal link, WhatsApp, LinkedIn, and its QR code (always visible). */
 export function ShareScreen({ deckId, origin }: { deckId: string; origin: string }) {
@@ -16,10 +17,7 @@ export function ShareScreen({ deckId, origin }: { deckId: string; origin: string
   if (loadError) return <Notice tone="error">{loadError}</Notice>;
   if (!data)
     return (
-      <div aria-busy className="space-y-3">
-        <span className="sr-only">Loading</span>
-        <div className="h-48 rounded-xl bg-muted motion-safe:animate-pulse" />
-      </div>
+      <ShareSkeleton />
     );
   return <Loaded data={data} origin={origin} />;
 }

@@ -24,6 +24,7 @@ import {
   StateMap,
   TotalBox,
 } from "./segment-parts";
+import { WhoSwipedSkeleton } from "@/shared/ui/page-skeletons";
 
 function LocationPanel({ data }: { data: ResultsPayload }) {
   const tab = data.whoSwiped.location;
@@ -368,7 +369,7 @@ export function WhoSwipedScreen({ deckId }: { deckId: string }) {
         {error}
       </p>
     ) : (
-      <div aria-busy className="h-64 rounded-xl bg-muted motion-safe:animate-pulse" />
+      <WhoSwipedSkeleton />
     );
   }
   return (

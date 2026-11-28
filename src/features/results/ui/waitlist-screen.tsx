@@ -10,6 +10,9 @@ import { Card } from "@/shared/ui/card";
 
 import { fetchWaitlistRows, type WaitlistRow } from "./api";
 import { useDeckResults } from "./use-results";
+import { SheetGrid } from "@/features/export/ui/file-preview";
+import type { SheetData } from "@/features/export/sheet";
+import { SheetGridSkeleton } from "@/shared/ui/page-skeletons";
 
 const fmtDate = (iso: string) => {
   const d = new Date(iso);
@@ -37,6 +40,15 @@ export function WaitlistScreen({ deckId }: { deckId: string }) {
 
   const q = query.trim().toLowerCase();
   const shown = (rows ?? []).filter((r) => r.email.toLowerCase().includes(q));
+  const sheet = React.useMemo<SheetData>(
+    () => ({
+      rows: shown.length ? [["email", "version", "date"], ...shown.map((r) => [r.email, r.card, fmtDate(r.claimedAt)])] : [],
+      total: shown.length,
+      columns: 3,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows, q],
+  );
   const count = rows ? rows.length : (data?.waitlist.count ?? 0);
 
   const copyAll = async () => {
@@ -98,28 +110,14 @@ export function WaitlistScreen({ deckId }: { deckId: string }) {
             </button>
           </div>
         ) : !rows ? (
-          <div aria-busy className="space-y-2">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-10 rounded-lg bg-muted motion-safe:animate-pulse" />
-            ))}
-          </div>
-        ) : shown.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{q ? "No email matches your search." : "No one has joined yet."}</p>
+          <SheetGridSkeleton label="the waitlist" />
         ) : (
-          <ul>
-            {shown.map((r, i) => (
-              <li
-                key={`${r.email}-${r.claimedAt}-${i}`}
-                className="flex items-center justify-between gap-3 border-t border-border py-2.5 first:border-t-0"
-              >
-                <span className="min-w-0 truncate text-sm font-medium">{r.email}</span>
-                <span className="flex shrink-0 items-center gap-3 text-xs">
-                  <span className="rounded-md border border-border px-2 py-0.5 font-medium">{r.card}</span>
-                  <span className="tnum w-24 text-right text-muted-foreground">{fmtDate(r.claimedAt)}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
+          <SheetGrid
+            sheet={sheet}
+            empty={q ? "No email matches your search." : "No one has joined yet."}
+            label="Waitlist"
+            frameClassName="h-[calc(100dvh-22rem)] min-h-64 md:h-[560px]"
+          />
         )}
       </div>
     </Card>

@@ -1,4 +1,4 @@
-import { Home, Layers, LayoutGrid, Settings, Wallet, type LucideIcon } from "lucide-react";
+import { Home, Layers, LayoutGrid, Settings, History as HistoryIcon, Wallet, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -33,8 +33,9 @@ const EARNINGS: NavItem = {
   href: "/wallet",
   label: "Earnings",
   icon: Wallet,
-  match: (p) => isActivePath(p, "/wallet") || isActivePath(p, "/history"),
+  match: (p) => isActivePath(p, "/wallet"),
 };
+const HISTORY: NavItem = { href: "/history", label: "History", icon: HistoryIcon, match: (p) => isActivePath(p, "/history") };
 const SETTINGS: NavItem = {
   href: "/profile",
   label: "Settings",
@@ -42,8 +43,8 @@ const SETTINGS: NavItem = {
   match: (p) => isActivePath(p, "/profile") || isActivePath(p, "/appearance") || isActivePath(p, "/settings"),
 };
 
-/** Sidebar (web): five items, no section labels. */
-export const NAV_ITEMS: readonly NavItem[] = [OVERVIEW, PRODUCTS, SWIPE, EARNINGS, SETTINGS];
+/** Sidebar (web): six items, no section labels. History is its own page (the swiper's answers). */
+export const NAV_ITEMS: readonly NavItem[] = [OVERVIEW, PRODUCTS, SWIPE, HISTORY, EARNINGS, SETTINGS];
 
 /** Phone bottom tab bar: Swipe · Earnings · Products · Settings. */
 export const TAB_ITEMS: readonly NavItem[] = [SWIPE, EARNINGS, PRODUCTS, SETTINGS];
@@ -70,7 +71,7 @@ export function breadcrumbFor(pathname: string): Crumb[] | null {
     case "wallet":
       return [EARNINGS_CRUMB, { label: "Wallet" }];
     case "history":
-      return [EARNINGS_CRUMB, { label: "History" }];
+      return [{ label: "History" }];
     case "profile":
       return [SETTINGS_CRUMB, { label: "Profile" }];
     case "appearance":

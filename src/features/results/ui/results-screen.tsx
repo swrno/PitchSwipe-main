@@ -29,6 +29,7 @@ import { cn } from "@/shared/lib/utils";
 
 import { MovableBlocks, type MovableBlock } from "@/shared/ui/movable-blocks";
 import { useDeckResults } from "./use-results";
+import { ResultsSkeleton } from "@/shared/ui/page-skeletons";
 
 const pct1 = (x: number) => `${(x * 100).toFixed(1)}%`;
 const share = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0);
@@ -503,16 +504,7 @@ function Skeleton({ error }: { error?: string }) {
       {error}
     </p>
   ) : (
-    <div aria-busy aria-live="polite" className="space-y-4">
-      <span className="sr-only">Loading results</span>
-      <div className="h-8 w-2/3 rounded-lg bg-muted motion-safe:animate-pulse" />
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-20 rounded-xl bg-muted motion-safe:animate-pulse" />
-        ))}
-      </div>
-      <div className="h-64 rounded-xl bg-muted motion-safe:animate-pulse" />
-    </div>
+    <ResultsSkeleton />
   );
 }
 

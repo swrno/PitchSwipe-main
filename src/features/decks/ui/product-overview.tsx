@@ -13,6 +13,7 @@ import { cn } from "@/shared/lib/utils";
 import { DownloadResultsButton } from "@/features/export/ui";
 import { api } from "./api";
 import { Notice, StatusText } from "./primitives";
+import { ProductOverviewSkeleton } from "@/shared/ui/page-skeletons";
 
 const CARD = "rounded-xl border border-border bg-card";
 const n = (x: number) => x.toLocaleString("en-US");
@@ -76,15 +77,7 @@ export function ProductOverview({ productId }: { productId: string }) {
   if (error) return <Notice tone="error">{error}</Notice>;
   if (product === undefined)
     return (
-      <div aria-busy className="space-y-6">
-        <span className="sr-only">Loading overview</span>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-20 rounded-xl bg-muted motion-safe:animate-pulse" />
-          ))}
-        </div>
-        <div className="h-40 rounded-xl bg-muted motion-safe:animate-pulse" />
-      </div>
+      <ProductOverviewSkeleton />
     );
   if (product === null) return <Notice tone="error">Product not found.</Notice>;
 

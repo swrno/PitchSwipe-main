@@ -1,12 +1,7 @@
 import { PageHeader } from "@/shared/shell/page-header";
 import { Badge } from "@/shared/ui/badge";
 
-const TABS = [
-  { icon: "wallet", label: "Wallet", href: "/wallet" },
-  { icon: "history", label: "History", href: "/history" },
-] as const;
-
-/** Earnings: Wallet and History share one header with tabs. */
+/** Earnings: the wallet (payouts coming soon). History is its own page. */
 export default function EarningsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div>
@@ -17,7 +12,7 @@ export default function EarningsLayout({ children }: Readonly<{ children: React.
             Earnings <Badge variant="coming">Coming soon</Badge>
           </span>
         }
-        description="What you earn for swiping and what you have answered. Payouts are coming soon." tabs={TABS} tabsLabel="Earnings sections" />
+        description="What you earn for swiping. Payouts are coming soon." />
       {children}
     </div>
   );

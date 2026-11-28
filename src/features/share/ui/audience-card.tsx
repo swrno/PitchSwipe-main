@@ -13,6 +13,7 @@ import { Notice, Segmented } from "@/features/decks/ui/primitives";
 import { INDUSTRIES, STATES } from "@/shared/lib/lists";
 import { describeAudience, reachView } from "@/features/share/reach";
 import { cn } from "@/shared/lib/utils";
+import { WhoSwipedSkeleton } from "@/shared/ui/page-skeletons";
 
 /** "Who sees it": the audience this test is shown to. It lives on the product; edited here or in Config. Top of the Who swiped tab. */
 export function AudienceCard({ deckId }: { deckId: string }) {
@@ -20,10 +21,7 @@ export function AudienceCard({ deckId }: { deckId: string }) {
   if (loadError) return <Notice tone="error">{loadError}</Notice>;
   if (!data)
     return (
-      <div aria-busy className="space-y-3">
-        <span className="sr-only">Loading</span>
-        <div className="h-32 rounded-xl bg-muted motion-safe:animate-pulse" />
-      </div>
+      <WhoSwipedSkeleton />
     );
   return <Loaded data={data} />;
 }

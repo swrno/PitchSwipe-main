@@ -555,19 +555,19 @@ export function DownloadSheet({
               previewError ? (
                 <PreviewError message={previewError} />
               ) : !preview ? (
-                <PreviewSkeleton label="Loading preview" className="h-40" />
+                <PreviewSkeleton kind="pdf" label="the preview" className="h-40" />
               ) : (
                 <PdfMock pdf={preview.pdf} stamp={preview.stamp} />
               )
             ) : !file ? (
-              <PreviewSkeleton label="Loading the PDF" className="h-full flex-1" />
+              <PreviewSkeleton kind="pdf" label="the PDF" className="h-full flex-1" />
             ) : file.kind === "error" ? (
               <PreviewError message={file.message} />
             ) : file.kind === "pdf" ? (
               <PdfFrame url={file.url} />
             ) : null
           ) : !file ? (
-            <PreviewSkeleton label="Loading the file" className="h-full flex-1" />
+            <PreviewSkeleton kind="sheets" label="the file" className="h-full flex-1" />
           ) : file.kind === "error" ? (
             <PreviewError message={file.message} />
           ) : file.kind === "sheet" ? (

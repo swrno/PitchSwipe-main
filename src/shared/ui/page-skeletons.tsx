@@ -348,3 +348,106 @@ export function WebsiteShippedSkeleton() {
     </SkeletonRegion>
   );
 }
+
+/** Test Results tab: takeaway line, KPI grid, funnel card, leaderboard card. */
+export function ResultsSkeleton() {
+  return (
+    <SkeletonRegion label="results" className="space-y-4">
+      <Skeleton className="h-8 w-2/3 rounded-lg" />
+      <SkeletonKpiRow count={4} />
+      <SkeletonCard>
+        <div aria-hidden className="space-y-3">
+          {[100, 72, 48, 30].map((w, i) => <Skeleton key={i} className="h-8 rounded-md" style={{ width: `${w}%` }} />)}
+        </div>
+      </SkeletonCard>
+      <SkeletonCard bodyClassName="py-0 px-4"><SkeletonList rows={3} avatar="none" /></SkeletonCard>
+    </SkeletonRegion>
+  );
+}
+
+/** Who swiped: audience card, then a two-column card grid. */
+export function WhoSwipedSkeleton() {
+  return (
+    <SkeletonRegion label="who swiped" className="space-y-4">
+      <SkeletonCard title={false}>
+        <div className="flex items-center gap-4"><Skeleton className="size-12 shrink-0 rounded-full" /><SkeletonText lines={2} className="flex-1" /></div>
+      </SkeletonCard>
+      <div className="grid gap-4 md:grid-cols-2">
+        <SkeletonCard><SkeletonText lines={4} /></SkeletonCard>
+        <SkeletonCard><SkeletonText lines={4} /></SkeletonCard>
+        <SkeletonCard><SkeletonText lines={4} /></SkeletonCard>
+        <SkeletonCard><SkeletonText lines={4} /></SkeletonCard>
+      </div>
+    </SkeletonRegion>
+  );
+}
+
+/** Waitlist users: count header and rows. */
+export function WaitlistSkeleton() {
+  return (
+    <SkeletonRegion label="the waitlist" className="space-y-4">
+      <div aria-hidden className="flex items-center justify-between gap-3"><Skeleton className="h-6 w-40" /><Skeleton className="h-10 w-48 rounded-lg" /></div>
+      <Skeleton className="h-11 w-full rounded-lg" />
+      <SheetGridSkeleton label="the waitlist" />
+    </SkeletonRegion>
+  );
+}
+
+/** Spreadsheet-grid frame (same height as the waitlist grid): header band plus rows. */
+export function SheetGridSkeleton({ label, className = "h-[28rem] md:h-[560px]" }: { label: string; className?: string }) {
+  return (
+    <SkeletonRegion label={label}>
+      <div aria-hidden className={`overflow-hidden rounded-xl border border-border bg-background ${className}`}>
+        <div className="flex h-6 border-b border-border bg-muted"><Skeleton className="m-1 h-4 w-8" /></div>
+        <div className="flex h-6 items-center gap-6 border-b border-border bg-muted px-2">
+          {[36, 16, 20].map((w, i) => <Skeleton key={i} className="h-3" style={{ width: `${w * 4}px` }} />)}
+        </div>
+        {Array.from({ length: 16 }, (_, r) => (
+          <div key={r} className="flex h-6 items-center gap-6 border-b border-border px-2">
+            {[36, 16, 20].map((w, i) => <Skeleton key={i} className="h-3" style={{ width: `${w * 4 - (r % 3) * 8}px` }} />)}
+          </div>
+        ))}
+      </div>
+    </SkeletonRegion>
+  );
+}
+
+/** Share: link card with a QR square. */
+export function ShareSkeleton() {
+  return (
+    <SkeletonRegion label="the share link">
+      <SkeletonCard>
+        <div className="flex flex-col gap-5 sm:flex-row">
+          <Skeleton className="size-40 shrink-0 rounded-lg" />
+          <div className="flex-1 space-y-3">
+            <Skeleton className="h-11 w-full rounded-lg" />
+            <div className="flex gap-2"><Skeleton className="h-10 w-28 rounded-lg" /><Skeleton className="h-10 w-28 rounded-lg" /></div>
+            <SkeletonText lines={2} />
+          </div>
+        </div>
+      </SkeletonCard>
+    </SkeletonRegion>
+  );
+}
+
+/** Download dialog preview: a PDF page frame or a grid of sheet thumbnails. */
+export function PreviewFrameSkeleton({ kind, label, className }: { kind: "pdf" | "sheets"; label: string; className?: string }) {
+  return (
+    <SkeletonRegion label={label} className={className}>
+      {kind === "pdf" ? (
+        <div aria-hidden className="flex h-full min-h-40 items-start justify-center rounded-xl border border-border bg-muted/40 p-4">
+          <div className="w-full max-w-sm space-y-3 rounded-md border border-border bg-card p-5">
+            <Skeleton className="h-6 w-2/3" />
+            <SkeletonText lines={4} />
+            <Skeleton className="h-24 w-full" />
+            <SkeletonText lines={3} />
+          </div>
+        </div>
+      ) : (
+        <div aria-hidden className="grid h-full grid-cols-2 gap-3 md:grid-cols-3">
+          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="aspect-[4/3] rounded-lg" />)}
+        </div>
+      )}
+    </SkeletonRegion>
+  );
+}
