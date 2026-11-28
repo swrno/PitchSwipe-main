@@ -192,7 +192,7 @@ export function DeckChrome({
   const tabs: PageTab[] = [
     { label: "Results", href: base, exact: true },
     { label: "Who swiped", href: `${base}/who-swiped` },
-    { label: "Waitlist", href: `${base}/waitlist` },
+    { label: "Waitlist users", href: `${base}/waitlist` },
     { label: "Share", href: `${base}/share` },
   ];
   const active = tabs.find((t) => isTabActive(pathname, t));
@@ -215,7 +215,7 @@ export function DeckChrome({
         description={
           !view
             ? undefined
-            : sub === "Waitlist"
+            : sub === "Waitlist users"
               ? "Everyone who joined the waitlist for this test."
               : sub === "Who swiped"
               ? "Where swipers are, who they are and what they care about."
