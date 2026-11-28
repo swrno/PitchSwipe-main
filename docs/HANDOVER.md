@@ -17,7 +17,7 @@ Nothing secret is written here. Keys, passwords and the server env are handed ov
 | Database | MongoDB 7 on the same VM, localhost only, auth on, nightly backups |
 | Accounts | Firebase Authentication, project `pitchswipe-cadfd` |
 | Experiments | Flagsmith Cloud, project **PitchSwipe** |
-| Code and deploys | GitHub `swrno/PitchSwipe` (public, the final submission repo; named `swrno/PitchSwipe` until 28 Nov 2026, and GitHub redirects the old name); every push to `main` that passes CI deploys itself |
+| Code and deploys | GitHub `swrno/PitchSwipe` (public, the final submission repo; named `swrno/PitchSwipe-main` until 28 Nov 2026, and GitHub redirects the old name); every push to `main` that passes CI deploys itself |
 | Apps | Android APK and iOS builds are published on the [releases page](https://github.com/swrno/PitchSwipe/releases). The iOS `.ipa` is unsigned and will not install on an iPhone until it is signed |
 
 ## Access you need

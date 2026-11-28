@@ -38,7 +38,7 @@ GitHub settings it needs (on `swrno/PitchSwipe`): secrets `DEPLOY_SSH_KEY` (a pr
 
 ## Uptime check
 
-`.github/workflows/uptime.yml` calls `${APP_URL}/api/health` every 30 minutes (and on demand: Actions -> Uptime -> Run workflow). A run passes only when the answer is HTTP 200 with `"ok":true`, `"db":"up"`, `"firebaseAdmin":true`. It tries 3 times, 10 s apart, before failing, so one slow answer or a deploy restart does not count as an outage. It runs only in `swrno/PitchSwipe` (not in forks), needs only the `APP_URL` variable, and has read-only permissions.
+`.github/workflows/uptime.yml` calls `${APP_URL}/api/health` every 30 minutes (and on demand: Actions -> Uptime -> Run workflow). A run passes only when the answer is HTTP 200 with `"ok":true`, `"db":"up"`, `"firebaseAdmin":true`. It tries 3 times, 10 s apart, before failing, so one slow answer or a deploy restart does not count as an outage. It runs only where the `APP_URL` variable is set (a fork skips it unless its owner sets one), needs nothing else, and has read-only permissions.
 
 Who hears about a failure: GitHub emails a failed **scheduled** run to one person, the user who created the workflow file; after that, the user who last changed its `cron:` line, or who last re-enabled the workflow. It does not email everyone who watches the repo. That person needs Actions notifications switched on (GitHub -> Settings -> Notifications -> Actions; on by default). To move the alerts to someone else, have them make a commit that changes the `cron:` line, or disable and re-enable the workflow themselves.
 
@@ -54,7 +54,7 @@ The nightly backup (02:15 UTC, `/var/backups/pitchswipe`) lives on the VM's own 
 2. The stream goes straight into `gpg --symmetric --cipher-algo AES256` with the `BACKUP_PASSPHRASE` secret, so the unencrypted backup never lands on the runner's disk.
 3. It checks the encrypted file is not empty and decrypts it in memory to check it holds a complete gzip archive, then uploads it as the artifact `pitchswipe-backup-<UTC date and time>`, kept for 30 days.
 
-Without `BACKUP_PASSPHRASE` the run fails before connecting and uploads nothing; it never uploads an unencrypted file. It runs only where the `DEPLOY_HOST` variable is set, so never in a fork.
+Without `BACKUP_PASSPHRASE` the run fails before connecting and uploads nothing; it never uploads an unencrypted file. It runs only where the `DEPLOY_HOST` variable is set: a fork skips it unless its owner sets their own variables and secrets, which would point it at their own server, not this one.
 
 **The repo is public: anyone signed in to GitHub can download these artifacts.** That is why they are encrypted, and why the passphrase must stay secret. **If the passphrase is lost, every copy is useless**: GitHub never shows a secret again, so keep the passphrase in a password manager and hand it over with the server env. When you change it, keep the old one for 30 days, because older artifacts still need it.
 

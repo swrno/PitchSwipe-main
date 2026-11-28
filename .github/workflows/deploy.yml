@@ -20,8 +20,8 @@ concurrency:
 jobs:
   deploy:
     # Only a successful CI run of a push to main (not a PR), or a manual run on main, and only in this repo: the repo
-    # is public, so forks get this workflow too: it runs only where the deploy settings exist (the DEPLOY_HOST variable),
-    # which forks never have. Checking the settings, not the repo name, keeps working after a rename or transfer.
+    # is public, so forks get this workflow too: it runs only where the deploy settings exist (the DEPLOY_HOST variable).
+    # A fork has none unless its owner adds their own, which would point at their own server, never this one. Checking the settings, not the repo name, keeps working after a rename or transfer.
     if: >-
       vars.DEPLOY_HOST != '' && (
         (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
