@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { siteUrl } from "@/components/landing/site-url";
+import { siteUrl } from "@/features/landing/ui/site-url";
 
 const PATHS: { path: string; priority: number }[] = [
   { path: "/", priority: 1 },

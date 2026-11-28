@@ -1,5 +1,5 @@
 // The PitchSwipe logo as plain SVG strings: the card character (cream card with a face, sky card behind) on lime.
-// Same drawing as src/components/ui/mascot.tsx. Used to write public/icons/*.svg and to render the PNG icons
+// Same drawing as src/shared/ui/mascot.tsx. Used to write public/icons/*.svg and to render the PNG icons
 // (render-icons.md describes how the PNGs were made).
 //
 //   node scripts/brand/mark.mjs   writes public/icons/icon.svg, public/icons/icon-maskable.svg, scripts/brand/mark.svg

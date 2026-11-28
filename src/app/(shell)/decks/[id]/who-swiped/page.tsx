@@ -1,14 +1,6 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
-import { WhoSwipedScreen } from "@/components/results/who-swiped-screen";
-import { DEMO_OWNER_ID } from "@/lib/decks/store-memory";
-import { isDemoMode } from "@/lib/decks/store";
-import { loadResults } from "@/lib/results/load";
-import { WHO_TABS, type WhoTab } from "@/lib/results/types";
-
-export const dynamic = "force-dynamic";
-
-/** F10 Who swiped: Location, Target users, Source, Interests. `?tab=` picks the phone tab. */
+/** Who swiped now lives on the deck results page. Old links land on its #who-swiped section. */
 export default async function WhoSwipedPage({
   params,
   searchParams,
@@ -18,9 +10,6 @@ export default async function WhoSwipedPage({
 }) {
   const { id } = await params;
   const { tab } = await searchParams;
-  const initialTab: WhoTab = WHO_TABS.find((t) => t === tab) ?? "location";
-  if (!isDemoMode()) return <WhoSwipedScreen deckId={id} initialTab={initialTab} />;
-  const initial = await loadResults(DEMO_OWNER_ID, id);
-  if (!initial) notFound();
-  return <WhoSwipedScreen deckId={id} initial={initial} initialTab={initialTab} />;
+  const query = tab ? `?tab=${encodeURIComponent(tab)}` : "";
+  redirect(`/decks/${encodeURIComponent(id)}${query}#who-swiped`);
 }

@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
 
-import { verifyRequestToken } from "@/lib/auth/server";
-import { isDemoMode } from "@/lib/decks/store";
-import { readJson, resolveOwnerId } from "@/lib/decks/owner";
-import { limitKey, limitRequest } from "@/lib/ratelimit";
-import { exportOptions, loadExportDecks } from "@/lib/export/load";
-import { mailerFromEnv } from "@/lib/export/mailer";
-import { parseExportRequest, runExport, type ExportRequest } from "@/lib/export/service";
+import { verifyRequestToken } from "@/features/auth/server/server";
+import { readJson, resolveOwnerId } from "@/features/decks/server/owner";
+import { limitKey, limitRequest } from "@/shared/lib/ratelimit";
+import { exportOptions, loadExportDecks } from "@/features/export/server/load";
+import { mailerFromEnv } from "@/features/export/server/mailer";
+import { parseExportRequest, runExport, type ExportRequest } from "@/features/export/server/service";
 
 const NO_STORE = { "cache-control": "no-store" };
 
-/** The signed-in founder's own address (never taken from the request). Null in demo mode. */
+/** The signed-in founder's own address (never taken from the request). Null when there is none. */
 async function founderEmail(request: Request): Promise<string | null> {
-  if (isDemoMode()) return null;
   try {
     const token = await verifyRequestToken(request);
     // Never mail files to an address the token has not verified.

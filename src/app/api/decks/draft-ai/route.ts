@@ -1,21 +1,20 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
-import { getLlmProvider } from "@/lib/ai";
-import { LlmDeclinedError, LlmTruncatedError } from "@/lib/ai/anthropic-provider";
-import { LlmHttpError } from "@/lib/ai/groq-provider";
-import { LANGUAGE_FIELD_LIMITS, draftLanguageVersionsLive, draftTextVersionsLive, isLiveTextVariable } from "@/lib/decks/ai-live";
-import { AI_NOT_CONFIGURED_MESSAGE, draftAvailability, draftLanguageVersions, draftTextVersions, type LanguageBase } from "@/lib/decks/ai-stub";
-import { CARD_LANGUAGES, LANGUAGE_TEXT_KEYS, type CardLanguage } from "@/lib/decks/fields";
-import { readJson, resolveOwnerId } from "@/lib/decks/owner";
-import { getStore, isDemoMode } from "@/lib/decks/store";
-import { limitKey, limitRequest } from "@/lib/ratelimit";
+import { getLlmProvider } from "@/shared/lib/ai";
+import { LlmDeclinedError, LlmTruncatedError } from "@/shared/lib/ai/anthropic-provider";
+import { LlmHttpError } from "@/shared/lib/ai/groq-provider";
+import { LANGUAGE_FIELD_LIMITS, draftLanguageVersionsLive, draftTextVersionsLive, isLiveTextVariable } from "@/features/decks/server/ai-live";
+import { AI_NOT_CONFIGURED_MESSAGE, draftAvailability, type LanguageBase } from "@/features/decks/server/ai-availability";
+import { CARD_LANGUAGES, LANGUAGE_TEXT_KEYS, type CardLanguage } from "@/features/decks/fields";
+import { readJson, resolveOwnerId } from "@/features/decks/server/owner";
+import { getStore } from "@/features/decks/server/store";
+import { limitKey, limitRequest } from "@/shared/lib/ratelimit";
 
 /**
  * POST /api/decks/draft-ai
  * { kind: "language", base: {headline,...}, languages: ["Hindi","Bengali"] }               -> { versions, failed? }
  * { kind: "versions", variable, count, productId, idea: { headline, description } }       -> { versions }
- * Demo mode: fixture copy ("demo: true", the UI labels it Demo data). Real mode never returns fixture copy:
- * 503 not_configured without LLM_API_KEY; with one, Claude drafts and code checks every draft (src/lib/decks/ai-live.ts).
+ * 503 not_configured without an LLM key; with one, the model drafts and code checks every draft (src/features/decks/server/ai-live.ts).
  * AI only drafts text; it never publishes, ships or invents numbers.
  */
 export async function POST(request: Request) {
@@ -26,11 +25,10 @@ export async function POST(request: Request) {
   // Each call is a paid model request: cap per founder.
   const limited = limitKey(`draft-ai:owner:${who.ownerId}`, { limit: 15, windowMs: 60_000 });
   if (limited) return limited;
-  const availability = draftAvailability({ demo: isDemoMode(), env: process.env });
+  const availability = draftAvailability({ env: process.env });
   if (availability === "not_configured") {
     return NextResponse.json({ error: AI_NOT_CONFIGURED_MESSAGE, code: "not_configured" }, { status: 503 });
   }
-  const live = availability === "live";
   const body = (await readJson(request)) as Record<string, unknown> | null;
   if (!body) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
 
@@ -46,16 +44,14 @@ export async function POST(request: Request) {
       if (LANGUAGE_TEXT_KEYS.some((k) => (base[k] as string).length > LANGUAGE_FIELD_LIMITS[k])) {
         return NextResponse.json({ error: "A field of the English card is too long to translate." }, { status: 422 });
       }
-      if (!live) return NextResponse.json({ versions: await draftLanguageVersions(base as never, validLanguages), demo: true });
       const out = await draftLanguageVersionsLive(liveProvider(), base as unknown as LanguageBase, validLanguages);
-      return NextResponse.json({ versions: out.versions, failed: out.failed, demo: false });
+      return NextResponse.json({ versions: out.versions, failed: out.failed });
     }
     if (body.kind === "versions") {
       const count = Math.min(3, Math.max(2, Number(body.count) || 3));
       const variable = String(body.variable);
-      if (!live) return NextResponse.json({ versions: await draftTextVersions(variable, count), demo: true });
       // Only headline and description are drafted live; the UI asks for the rest by hand.
-      if (!isLiveTextVariable(variable)) return NextResponse.json({ versions: [], demo: false });
+      if (!isLiveTextVariable(variable)) return NextResponse.json({ versions: [] });
       const product = typeof body.productId === "string" ? await (await getStore()).getProduct(who.ownerId, body.productId) : null;
       if (!product) return NextResponse.json({ error: "Pick one of your products first." }, { status: 422 });
       const idea = (body.idea ?? {}) as Record<string, unknown>;
@@ -65,7 +61,7 @@ export async function POST(request: Request) {
         product: { name: product.name, category: product.category, targetUsers: product.targetUsers },
         idea: { headline: String(idea.headline ?? "").slice(0, 300), description: String(idea.description ?? "").slice(0, 600) },
       });
-      return NextResponse.json({ versions, demo: false });
+      return NextResponse.json({ versions });
     }
     return NextResponse.json({ error: "kind must be 'language' or 'versions'." }, { status: 400 });
   } catch (e) {

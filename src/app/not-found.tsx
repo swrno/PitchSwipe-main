@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
-import { ArrowChip, Mascot } from "@/components/ui/mascot";
-import { BrandMark } from "@/components/shell/brand-mark";
-import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/shared/ui/button";
+import { ArrowChip } from "@/shared/ui/mascot";
+import { BrandMark } from "@/shared/shell/brand-mark";
+import { cn } from "@/shared/lib/utils";
 
 export const metadata: Metadata = {
   title: "Page not found",
@@ -26,13 +26,12 @@ export default function NotFound() {
 
       <main className="mx-auto flex w-full max-w-3xl flex-1 items-center pb-16">
         <section aria-labelledby="not-found-title" className="rise-children w-full space-y-4">
-          <div className="tile relative overflow-hidden bg-lilac p-6 md:p-10">
-            <Mascot mood="wow" color="var(--cream)" back="var(--coral)" className="size-28 md:absolute md:right-8 md:top-8 md:size-44" />
-            <span className="mt-4 inline-flex rounded-full bg-ink px-3 py-1 text-xs font-bold text-ink-foreground md:mt-0">Error 404</span>
+          <div className="rounded-xl relative overflow-hidden bg-card border border-border neutral-ink p-5 md:p-5">
+            <span className="mt-4 inline-flex rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground md:mt-0">Error 404</span>
             <h1 id="not-found-title" className="mt-3 max-w-[12ch] text-[2.3rem] leading-[1.05] md:text-6xl">
               This page swiped left.
             </h1>
-            <p className="mt-3 max-w-[38ch] text-base text-ink/75 md:text-lg">
+            <p className="mt-3 max-w-[38ch] text-base text-muted-foreground md:text-lg">
               The link may be old, or the idea may have been taken down. Nothing you did.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -47,7 +46,7 @@ export default function NotFound() {
                 href="/"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
-                  "border-ink text-ink hover:bg-ink/10 focus-visible:ring-offset-lilac",
+                  "border-ink text-ink hover:bg-ink/10",
                 )}
               >
                 Go home

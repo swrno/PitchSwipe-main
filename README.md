@@ -35,14 +35,14 @@ then, use the web app on iPhone.
 
 <p>
   <img src="docs/images/screens/1-landing.png" width="32%" alt="The landing page in the dark theme: the PitchSwipe logo, a theme switch and an Open the app button; a black tag pill reading Experiments run on Flagsmith; the headline Test your pitch. Then build. with a lime marker under Then build.; the lead text; a lime Test an idea button with a round arrow and an outlined Swipe on ideas button; below, the top of an example pitch card with the character peeking over it.">
-  <img src="docs/images/screens/2-swipe-home.png" width="32%" alt="Swipe home: the headline Swipe on new ideas. Get paid for it.; a lime tile with a black Rs 0.25 per paid card pill, the question Ready for the next idea?, category chips and a black Start swiping button; below, lilac and blue tiles for Earned today and Valid swipes today with a Demo data label.">
+  <img src="docs/images/screens/2-swipe-home.png" width="32%" alt="Swipe home: the headline Swipe on new ideas. Get paid for it.; a lime tile with a black Rs 0.25 per paid card pill, the question Ready for the next idea?, category chips and a black Start swiping button; below, lilac and blue tiles for Earned today and Valid swipes today.">
   <img src="docs/images/screens/3-card.png" width="32%" alt="A pitch card for Voice Khata: the headline Speak your sales. The ledger writes itself., a description, three product screen previews, the price Rs 299 per month and a Get 3 months free at launch button; below, a Paid card note, the question Would you pay Rs 299 a month for this? and round No and Yes buttons."><br>
-  <img src="docs/images/screens/4-wallet.png" width="32%" alt="The wallet: a lime balance tile reading Rs 46.75 with a Demo earnings label, a winking card character, a progress bar to the Rs 100 withdrawal minimum and a disabled Withdraw button; below, the history of swipes with what each one earned.">
+  <img src="docs/images/screens/4-wallet.png" width="32%" alt="The wallet: a lime balance tile reading Rs 46.75, a winking card character, a progress bar to the Rs 100 withdrawal minimum and a disabled Withdraw button; below, the history of swipes with what each one earned.">
   <img src="docs/images/screens/5-decks.png" width="32%" alt="My decks: a yellow Test decided alert saying Voice Khata headline test: B has a 96% chance of being best, with Review and ship and Later buttons; filter pills; and a product card for Voice Khata listing its decks with statuses like Ready to ship, Won and Leading 88% sure.">
   <img src="docs/images/screens/6-results.png" width="32%" alt="Results for a price test: the headline Rs 199 earns the most., an 88% chance, not decided yet pill, lilac, blue and yellow tiles for swipers, said yes and joined waitlist, and a chart of who joined at each price with likely ranges.">
 </p>
 
-The screenshots show demo data, which the app labels as such.
+The screenshots were taken from a test account.
 
 ## Features
 
@@ -66,7 +66,7 @@ The screenshots show demo data, which the app labels as such.
 - See new ideas before they launch. Read a card, answer one question, and claim early rewards from founders you
   like.
 - Paid cards are clearly marked: Rs 0.25 for every valid swipe, meaning you read the card for at least 2
-  seconds. A yes and a no pay the same, so the only thing that pays is honesty. Earnings are demo earnings for
+  seconds. A yes and a no pay the same, so the only thing that pays is honesty. Payouts are not live yet, so earnings are shown for
   now: no real money moves yet.
 - A short practice round and simple quality checks keep the answers honest. A low score never locks you out; it
   only stops your swipes counting until it recovers.
@@ -102,7 +102,7 @@ accounts and a real database.
 
 ### Known limitations
 
-- Swiper earnings are demo earnings. Withdrawals to UPI and paid plans are shown but not available.
+- Payouts are not live yet. Withdrawals to UPI and paid plans are shown but not available.
 - Without Flagsmith keys, versions are assigned by the app itself rather than by a Flagsmith experiment.
 - AI drafting and the English translation of voice notes need a Claude API key; email needs a Resend key.
   Without a key, that feature says so (a voice note asks the swiper to type the English) and the rest of the app
@@ -150,7 +150,7 @@ The Next.js app lives at the repository root; everything else sits in a few top-
 docs/         architecture, deploy and handover notes; spec/ (product spec, build plan), designs/, marketing/, releases/, images/ (README screenshots)
 infra/        server setup: vm/ holds the nginx, systemd, cron, sudoers, release-activate and backup-export files for the Azure VM
 mobile/       Capacitor shell: android/ and ios/ native projects, www/ offline fallback page
-public/       static files served by the app (icons, demo card images, service worker, offline page)
+public/       static files served by the app (icons, service worker, offline page)
 scripts/      test runner, seed data, index sync, service doctor, Flagsmith lifecycle check, icon tools
 src/          the app: app/ routes and API, components/, lib/ (domain logic; lib/ai/engine is the AI rules engine), models/, types/, fixtures/
 ```
@@ -161,7 +161,7 @@ You need Node.js 22 or newer and npm.
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in values; without them the app runs on labelled demo data
+cp .env.example .env.local   # fill in MongoDB and Firebase; without them the app answers 503 "Server not configured"
 npm run dev                  # http://localhost:3000
 ```
 
@@ -179,7 +179,7 @@ npm run db:sync-indexes -- --yes   # create the MongoDB indexes (once per databa
 
 **Environment.** Every variable is listed and explained in [.env.example](.env.example). Server secrets stay on
 the server; the only values the browser sees are the public Firebase web config and the Flagsmith client key.
-With `PITCHSWIPE_DEMO=1` the app runs on fixture data, labelled "Demo data".
+There is no demo mode: storage is always MongoDB and sign-in is always Firebase. Without `MONGODB_URI` and the Firebase keys the API answers 503 ("Server not configured: set MONGODB_URI and the Firebase keys in .env") and pages show that message.
 
 **Android.** With the Android SDK and a JDK installed:
 

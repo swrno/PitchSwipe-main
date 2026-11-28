@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { resolveOwnerId } from "@/lib/decks/owner";
-import { loadResults, loadSwitcher, loadWaitlistCsv } from "@/lib/results/load";
+import { resolveOwnerId } from "@/features/decks/server/owner";
+import { loadResults, loadSwitcher, loadWaitlistCsv } from "@/features/results/server/load";
 
 type Ctx = { params: Promise<{ deckId: string }> };
 

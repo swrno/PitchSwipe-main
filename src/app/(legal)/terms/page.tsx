@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MAX_COMMENT_CHARS } from "@/lib/claims/rules";
-import { INTERACTION_FLOOR_MS, MIN_READ_MS, PAID_RATE_RS } from "@/lib/swipe/validity";
-import { formatRs } from "@/lib/utils";
+import { MAX_COMMENT_CHARS } from "@/features/claims/rules";
+import { INTERACTION_FLOOR_MS, MIN_READ_MS, PAID_RATE_RS } from "@/features/swipe/validity";
+import { formatRs } from "@/shared/lib/utils";
 import { Contents, DraftBanner, LegalHeader, Prose, SupportContact, ToConfirm } from "../_components/legal-parts";
 import { supportEmail } from "../_lib/support";
 
 export const metadata: Metadata = {
   title: "Terms",
-  description: "Draft terms of use for PitchSwipe: accounts, swiping, demo earnings and founder content.",
+  description: "Draft terms of use for PitchSwipe: accounts, swiping, earnings and founder content.",
 };
 
 const SECTIONS = [
   { id: "about", label: "What PitchSwipe is" },
   { id: "account", label: "Your account" },
   { id: "swipers", label: "Swiping" },
-  { id: "earnings", label: "Demo earnings" },
+  { id: "earnings", label: "Earnings" },
   { id: "founders", label: "Founders" },
   { id: "content", label: "Content and comments" },
   { id: "not-allowed", label: "Not allowed" },
@@ -29,7 +29,7 @@ const SECTIONS = [
 export default function TermsPage() {
   const email = supportEmail();
   return (
-    <div className="rise-children space-y-8">
+    <div className="rise-children space-y-6">
       <DraftBanner />
       <LegalHeader
         kicker="Terms of use"
@@ -75,9 +75,9 @@ export default function TermsPage() {
           </li>
         </ul>
 
-        <h2 id="earnings">4. Demo earnings</h2>
+        <h2 id="earnings">4. Earnings</h2>
         <p>
-          Paid cards show {formatRs(PAID_RATE_RS)} per valid, counted answer. <strong>These are demo earnings for now.</strong>{" "}
+          Paid cards show {formatRs(PAID_RATE_RS)} per valid, counted answer. <strong>Payouts are not live yet.</strong>{" "}
           No real money moves. The wallet balance is not money we owe you, it cannot be withdrawn or exchanged, and it may be
           reset. If we start real payouts, they will come with new terms that you will need to accept first.
         </p>

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { resolveOwnerId } from "@/lib/decks/owner";
-import { getWebsiteShipped } from "@/lib/sites/service";
-import { siteDeps } from "@/lib/sites/server";
+import { resolveOwnerId } from "@/features/decks/server/owner";
+import { getWebsiteShipped } from "@/features/sites/server/service";
+import { siteDeps } from "@/features/sites/server/server";
 
 const NO_STORE = { "cache-control": "no-store" };
 

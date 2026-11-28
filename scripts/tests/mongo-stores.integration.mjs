@@ -4,7 +4,7 @@
 //
 // Skips (exit 0) when MONGODB_TEST_URI is unset. The database name must start with "pitchswipe_it_" (refused
 // otherwise, before connecting); the whole database is dropped at the end, also when a test fails. MONGODB_URI is
-// never read: it is overwritten with MONGODB_TEST_URI because connectDb() (src/lib/db.ts) connects to MONGODB_URI.
+// never read: it is overwritten with MONGODB_TEST_URI because connectDb() (src/shared/lib/db.ts) connects to MONGODB_URI.
 // Not registered in scripts/run-tests.mjs, whose judge() fails a suite that runs no tests.
 import assert from "node:assert/strict";
 import { register } from "node:module";
@@ -35,11 +35,11 @@ if (skip) {
 // src/models imports `models` by name from mongoose, which Node's ESM interop does not expose; the seed's shim fixes
 // that. Registered before the app modules load, hence the dynamic imports. Importing them does not connect.
 register("../seed/mongoose-hooks.mjs", import.meta.url);
-const { connectDb } = await import("../../src/lib/db.ts");
-const { createMongoStore } = await import("../../src/lib/decks/store-mongo.ts");
-const { EDIT_LOCK_TTL_MS, PUBLISH_CLAIM_TTL_MS, isPublishClaimed } = await import("../../src/lib/decks/store.ts");
-const { createMongoSwipeStore } = await import("../../src/lib/swipe/store-mongo.ts");
-const { createMongoClaimsStore } = await import("../../src/lib/claims/store-mongo.ts");
+const { connectDb } = await import("../../src/shared/lib/db.ts");
+const { createMongoStore } = await import("../../src/features/decks/server/store-mongo.ts");
+const { EDIT_LOCK_TTL_MS, PUBLISH_CLAIM_TTL_MS, isPublishClaimed } = await import("../../src/features/decks/server/store.ts");
+const { createMongoSwipeStore } = await import("../../src/features/swipe/server/store-mongo.ts");
+const { createMongoClaimsStore } = await import("../../src/features/claims/server/store-mongo.ts");
 const { Card, Claim, Deck, Product, Response } = await import("../../src/models/index.ts");
 
 /** Throws unless the live connection is on a pitchswipe_it_ database. Called before any write and before the drop. */

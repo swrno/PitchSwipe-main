@@ -1,8 +1,8 @@
 // Writes docs/images/qr-latest-release.svg: a QR code that opens the latest GitHub release.
 //   node --import ./scripts/register-ts.mjs scripts/brand/qr-release.mjs
-// Uses the app's own encoder (src/lib/share/qr.ts), so there is no extra dependency.
+// Uses the app's own encoder (src/features/share/qr.ts), so there is no extra dependency.
 import { mkdirSync, writeFileSync } from "node:fs";
-import { encodeQr, qrPath } from "../../src/lib/share/qr.ts";
+import { encodeQr, qrPath } from "../../src/features/share/qr.ts";
 
 const URL = "https://github.com/swrno/PitchSwipe-main/releases/latest";
 const BORDER = 3;

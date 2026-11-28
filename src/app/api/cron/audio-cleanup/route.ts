@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { cronAuth } from "@/lib/claims/cron";
-import { getClaimsStore } from "@/lib/claims/store";
+import { cronAuth } from "@/features/claims/server/cron";
+import { getClaimsStore } from "@/features/claims/server/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

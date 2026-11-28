@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { resolveOwnerId } from "@/lib/decks/owner";
-import { loadInsights } from "@/lib/insights";
+import { resolveOwnerId } from "@/features/decks/server/owner";
+import { loadInsights } from "@/features/insights";
 
 export const dynamic = "force-dynamic";
 

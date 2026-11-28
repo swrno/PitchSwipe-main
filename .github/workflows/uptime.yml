@@ -42,11 +42,11 @@ jobs:
             body="${response%$'\n'*}"
             echo "attempt ${attempt}: GET /api/health -> ${code} ${body:0:300}"
             if [[ "$code" == "200" ]] \
-              && jq -e '.ok == true and .db == "up" and .firebaseAdmin == true and .demo == false' >/dev/null 2>&1 <<<"$body"; then
+              && jq -e '.ok == true and .db == "up" and .firebaseAdmin == true' >/dev/null 2>&1 <<<"$body"; then
               echo "healthy"
               exit 0
             fi
             [[ "$attempt" == 3 ]] || sleep 10
           done
-          echo "::error::/api/health did not report ok=true, db=up, firebaseAdmin=true, demo=false after 3 attempts."
+          echo "::error::/api/health did not report ok=true, db=up, firebaseAdmin=true after 3 attempts."
           exit 1

@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { RegisterSW } from "@/components/pwa/register-sw";
-import { ThemeSync } from "@/components/pwa/theme-sync";
-import { THEME_BOOT_SCRIPT, THEME_COLORS } from "@/lib/feel/theme";
-import { siteUrl } from "@/components/landing/site-url";
+import { RegisterSW } from "@/shared/shell/pwa/register-sw";
+import { ThemeSync } from "@/shared/shell/pwa/theme-sync";
+import { THEME_BOOT_SCRIPT, THEME_COLORS } from "@/shared/lib/feel/theme";
+import { siteUrl } from "@/features/landing/ui/site-url";
 
 export const metadata: Metadata = {
   // Absolute URLs for og:image and canonical links on every route (not localhost in production).

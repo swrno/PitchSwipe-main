@@ -6,10 +6,10 @@ Paths: `spec/NN` means `docs/spec/NN-….md` (this folder) and `designs/` means 
 
 ## Contracts (WP0 produces; everyone consumes)
 - **Types** in `src/types/` mirror the data model in `spec/06-…` (note new fields: `decks.variable` incl. `language`, `priceMode`, statuses `draft|live|decided|shipped|closed`, `products.targetUsers/audience.who`, `users.role/qualityScore/counting`, `sites`, `assistantEvents`, `responses.commentVoice`). Don't rename.
-- **Standard lists** (roles, industries, states) in one module `src/lib/lists.ts` from `spec/03` §5.12 / `spec/08` §13.5. No free text anywhere.
+- **Standard lists** (roles, industries, states) in one module `src/shared/lib/lists.ts` from `spec/03` §5.12 / `spec/08` §13.5. No free text anywhere.
 - **Fixtures** `src/fixtures/` from `spec/08-build-reference.md` (exact numbers/labels).
-- **Flagsmith wrapper** `src/lib/flagsmith/` — the only module that talks to Flagsmith (admin + client).
-- **Results/insight rules** in `src/lib/results/`: Result needs 95% + ≥50 identities + no SRM; segments are Leads; groups <10 → "Other". Shared by UI, export, assistant and chat.
+- **Flagsmith wrapper** `src/features/flagsmith/` — the only module that talks to Flagsmith (admin + client).
+- **Results/insight rules** in `src/features/results/`: Result needs 95% + ≥50 identities + no SRM; segments are Leads; groups <10 → "Other". Shared by UI, export, assistant and chat.
 - **Env** in `.env.example`: `MONGODB_URI`, `FLAGSMITH_ADMIN_API_KEY`, org/project/env ids, `NEXT_PUBLIC_FLAGSMITH_ENV_KEY`, `LLM_API_KEY`, `SARVAM_API_KEY` (voice). Never commit secrets.
 
 ## WP0 — Foundation (blocks all)

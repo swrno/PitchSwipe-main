@@ -30,7 +30,7 @@ internet :80  -> nginx -> 301 to https (except /.well-known/acme-challenge/)
 2. It uploads the bundle as the `deploy` user, whose key can run only these as root: `sudo /usr/local/bin/pitchswipe-activate <bundle> <sha>`, and (once installed, see "Off-site backup") `sudo /usr/local/bin/pitchswipe-backup-export` with no arguments.
 3. The script unpacks into `releases/<sha>`, reuses `node_modules` when the lockfile is unchanged, switches `current`, restarts, and checks (for up to a minute) that `/swipe` answers 200, that `/api/claims/wallet` (which loads the server modules) answers below 500, and that `/api/health` answers 200 with `"ok":true`. If not, it switches back to the previous release and the workflow fails. The workflow then repeats the three checks from outside over https.
 
-`/api/health` returns `{ ok, db, firebaseAdmin, demo, version }`: `db` is `up`, `down` or `off` (demo mode or no `MONGODB_URI`), `firebaseAdmin` says whether the Admin credentials parse, `version` is the commit sha baked in at build. `ok` is true in demo mode, or in real mode when MongoDB answers a ping within 2 s and the Firebase Admin credentials parse (a missing or mangled `FIREBASE_ADMIN_*` value makes it 503, so the deploy rolls back). It never returns error text or config values.
+`/api/health` returns `{ ok, db, firebaseAdmin, version }`: `db` is `up`, `down` or `off` (no `MONGODB_URI`), `firebaseAdmin` says whether the Admin credentials parse, `version` is the commit sha baked in at build. `ok` is true when MongoDB answers a ping within 2 s and the Firebase Admin credentials parse (a missing or mangled `FIREBASE_ADMIN_*` value makes it 503, so the deploy rolls back). It never returns error text or config values.
 
 Manual run: Actions -> Deploy -> Run workflow (on `main`).
 
@@ -38,7 +38,7 @@ GitHub settings it needs (on `swrno/PitchSwipe-main`): secrets `DEPLOY_SSH_KEY` 
 
 ## Uptime check
 
-`.github/workflows/uptime.yml` calls `${APP_URL}/api/health` every 30 minutes (and on demand: Actions -> Uptime -> Run workflow). A run passes only when the answer is HTTP 200 with `"ok":true`, `"db":"up"`, `"firebaseAdmin":true` and `"demo":false`, so it also fails when the site has fallen back to demo mode. It tries 3 times, 10 s apart, before failing, so one slow answer or a deploy restart does not count as an outage. It runs only in `swrno/PitchSwipe-main` (not in forks), needs only the `APP_URL` variable, and has read-only permissions.
+`.github/workflows/uptime.yml` calls `${APP_URL}/api/health` every 30 minutes (and on demand: Actions -> Uptime -> Run workflow). A run passes only when the answer is HTTP 200 with `"ok":true`, `"db":"up"`, `"firebaseAdmin":true`. It tries 3 times, 10 s apart, before failing, so one slow answer or a deploy restart does not count as an outage. It runs only in `swrno/PitchSwipe-main` (not in forks), needs only the `APP_URL` variable, and has read-only permissions.
 
 Who hears about a failure: GitHub emails a failed **scheduled** run to one person, the user who created the workflow file; after that, the user who last changed its `cron:` line, or who last re-enabled the workflow. It does not email everyone who watches the repo. That person needs Actions notifications switched on (GitHub -> Settings -> Notifications -> Actions; on by default). To move the alerts to someone else, have them make a commit that changes the `cron:` line, or disable and re-enable the workflow themselves.
 
@@ -136,7 +136,7 @@ sudo nano /etc/pitchswipe.env
 sudo systemctl restart pitchswipe
 ```
 
-The VM starts in demo mode (`PITCHSWIPE_DEMO=1`). For real mode remove that line and add the keys. Releases ship only the built app (no `scripts/`), so check the same values with `npm run doctor` in a local checkout first.
+Add the keys to `/etc/pitchswipe.env`. Releases ship only the built app (no `scripts/`), so check the same values with `npm run doctor` in a local checkout first.
 
 ## Real mode on the VM
 
@@ -170,12 +170,11 @@ MONGODB_URI='mongodb://pitchswipe:...@127.0.0.1:27018/pitchswipe?...' npm run db
 
 ### Switch over
 
-1. In `/etc/pitchswipe.env`: check `MONGODB_URI`, the three `FIREBASE_ADMIN_*` values, and `SWIPE_SIGNING_SECRET` (a new random value, 16+ characters, e.g. `openssl rand -hex 32`). Then **delete the `PITCHSWIPE_DEMO=1` line** (it wins over `MONGODB_URI`). `NEXT_PUBLIC_APP_URL` is baked in at build from the `APP_URL` repo variable.
+1. In `/etc/pitchswipe.env`: check `MONGODB_URI`, the three `FIREBASE_ADMIN_*` values, and `SWIPE_SIGNING_SECRET` (a new random value, 16+ characters, e.g. `openssl rand -hex 32`). `NEXT_PUBLIC_APP_URL` is baked in at build from the `APP_URL` repo variable.
 2. `sudo systemctl restart pitchswipe`
-3. `curl -s http://127.0.0.1:3000/api/health` should show `"ok":true,"db":"up","firebaseAdmin":true,"demo":false`.
+3. `curl -s http://127.0.0.1:3000/api/health` should show `"ok":true,"db":"up","firebaseAdmin":true`.
 4. Run `npm run doctor` locally with the same values: it says `Real mode ... ready` only when MongoDB and Firebase Admin answer, the web Firebase config is set, `SWIPE_SIGNING_SECRET` is 16+ characters and `NEXT_PUBLIC_APP_URL` is set.
 
-To go back to demo data, add `PITCHSWIPE_DEMO=1` again and restart.
 
 ## Rollback by hand
 

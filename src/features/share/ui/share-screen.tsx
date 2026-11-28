@@ -1,0 +1,101 @@
+"use client";
+
+import * as React from "react";
+import { Check, Copy, Link2, MessageSquare, QrCode as QrIcon } from "lucide-react";
+import { Button, buttonVariants } from "@/shared/ui/button";
+import { Notice } from "@/features/decks/ui/primitives";
+import { deckLink, displayLink, linkedinShareUrl, linkedinText, whatsappShareUrl, whatsappText } from "@/features/share/links";
+import { cn } from "@/shared/lib/utils";
+import { QrCode } from "./qr-code";
+import { useDeckAndProduct, type BoostData } from "./use-deck-and-product";
+
+/** Share tab: the deck's personal link, WhatsApp, LinkedIn and QR code. */
+export function ShareScreen({ deckId, origin }: { deckId: string; origin: string }) {
+  const { data, loadError } = useDeckAndProduct(deckId);
+  if (loadError) return <Notice tone="error">{loadError}</Notice>;
+  if (!data) return <p className="text-muted-foreground">Loading...</p>;
+  return <Loaded data={data} origin={origin} />;
+}
+
+function Loaded({ data, origin }: { data: BoostData; origin: string }) {
+  const { deck, product } = data;
+  const [message, setMessage] = React.useState<string>();
+  const [copied, setCopied] = React.useState<"link" | "linkedin">();
+  const [showQr, setShowQr] = React.useState(false);
+
+  const url = deckLink(origin, deck.slug);
+  const copy = { productName: product.name, tagline: product.category || undefined };
+  const waText = whatsappText(copy, url);
+  const liText = linkedinText(copy, url);
+
+  const clip = async (text: string, what: "link" | "linkedin") => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(what);
+      window.setTimeout(() => setCopied(undefined), 1800);
+    } catch {
+      setMessage("Could not copy. Select the text and copy it by hand.");
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      {message ? <Notice tone="error">{message}</Notice> : null}
+          <section aria-labelledby="link-title" className="space-y-3 rounded-xl border border-border bg-card p-5">
+            <div>
+              <h2 id="link-title" className="text-lg font-extrabold md:text-xl">
+                Your personal link
+              </h2>
+              <p className="text-muted-foreground">
+                Opens the feed with your deck first. After one swipe, the feed goes random.
+                <span className="hidden md:inline"> Swipes are tagged as &quot;Your link&quot;.</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2 md:border-0 md:bg-transparent md:p-0">
+              <Link2 className="ml-3 size-5 shrink-0 text-accent md:hidden" aria-hidden />
+              <input
+                readOnly
+                aria-label="Your personal link"
+                value={displayLink(url)}
+                onFocus={(e) => e.currentTarget.select()}
+                className="h-12 min-w-0 flex-1 truncate bg-transparent text-base font-medium focus-visible:outline-none md:rounded-xl md:bg-muted md:px-4"
+              />
+              <Button onClick={() => clip(url, "link")} className="shrink-0">
+                {copied === "link" ? <Check /> : <Copy />} {copied === "link" ? "Copied" : "Copy"}
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap">
+              <a
+                href={whatsappShareUrl(waText)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(buttonVariants({ variant: "outline" }), "md:h-11")}
+              >
+                <MessageSquare /> WhatsApp
+              </a>
+              <a
+                href={linkedinShareUrl(url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => clip(liText, "linkedin")}
+                className={cn(buttonVariants({ variant: "outline" }), "md:h-11")}
+              >
+                {copied === "linkedin" ? <Check /> : null} {copied === "linkedin" ? "Post text copied" : "LinkedIn"}
+              </a>
+              <Button variant="outline" className="md:h-11" aria-expanded={showQr} onClick={() => setShowQr((v) => !v)}>
+                <QrIcon /> QR code
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              WhatsApp opens with a ready message. LinkedIn opens its share page and copies the post text, so paste it into your post.
+            </p>
+            {showQr ? (
+              <div className="flex items-center gap-4 rounded-xl bg-muted p-4">
+                <QrCode value={url} label={`QR code for ${displayLink(url)}`} className="size-40 shrink-0 rounded-lg" />
+                <p className="text-sm text-muted-foreground">Scan to open {displayLink(url)}. Print it or show it on a screen.</p>
+              </div>
+            ) : null}
+          </section>
+    </div>
+  );
+}

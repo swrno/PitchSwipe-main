@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { clientKey, rateLimit } from "@/lib/ratelimit";
-import { AuthError, ServiceUnavailableError, defaultDeps, resolveSwiper } from "@/lib/swipe/server";
-import { nextCard, parseNextBody } from "@/lib/swipe/service";
+import { notConfiguredResponse } from "@/shared/lib/not-configured";
+import { clientKey, rateLimit } from "@/shared/lib/ratelimit";
+import { AuthError, ServiceUnavailableError, defaultDeps, resolveSwiper } from "@/features/swipe/server/server";
+import { nextCard, parseNextBody } from "@/features/swipe/server/service";
 
 export const runtime = "nodejs";
 
@@ -15,8 +16,8 @@ function tooManyRequests(retryAfterSeconds: number) {
 /**
  * POST /api/responses/next: the next card for this swiper.
  * Random deck order, each deck once; the personal-link deck (firstSlug) comes first. Flagsmith picks
- * which card of the deck the swiper gets (via src/lib/flagsmith); without Flagsmith or Mongo env the
- * demo decks from src/lib/swipe/demo.ts are served. Every card carries a server-signed `token` (deck,
+ * which card of the deck the swiper gets (via src/features/flagsmith). 503 when MongoDB or Firebase is not
+ * configured. Every card carries a server-signed `token` (deck,
  * swiper, card, servedAt, source) that /api/responses and the claim routes require. Without
  * SWIPE_SIGNING_SECRET in production this refuses to serve (503).
  */
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof AuthError) return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof ServiceUnavailableError) {
-      return NextResponse.json({ error: "This service is temporarily unavailable." }, { status: 503 });
+      return notConfiguredResponse();
     }
     console.error("responses/next: could not load a card", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Could not load the next idea." }, { status: 500 });

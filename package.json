@@ -13,12 +13,11 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/run-tests.mjs",
-    "test:flagsmith": "node --import ./scripts/register-ts.mjs --test scripts/tests/flagsmith.test.mjs",
-    "test:seed": "node --import ./scripts/register-ts.mjs --test scripts/seed/seed.test.mjs",
+    "test:flagsmith": "node --import ./scripts/register-ts.mjs --test src/features/flagsmith/tests/flagsmith.test.mjs",
     "test:mongo": "node --import ./scripts/register-ts.mjs --test scripts/tests/mongo-stores.integration.mjs",
     "doctor": "node --import ./scripts/register-ts.mjs scripts/doctor.mjs",
-    "seed": "node scripts/seed/seed.mjs",
     "seed:feed": "node --import ./scripts/register-ts.mjs scripts/seed/feed-decks.mjs",
+    "seed:swipes": "node --import ./scripts/register-ts.mjs scripts/seed/seed-swipes.mjs",
     "db:sync-indexes": "node --import ./scripts/register-ts.mjs scripts/db/sync-indexes.mjs",
     "cap:sync": "cap sync",
     "cap:android": "cap open android",
@@ -26,12 +25,16 @@
     "cap:doctor": "cap doctor"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "4.0.103",
+    "@ai-sdk/groq": "4.0.82",
+    "@ai-sdk/react": "4.0.175",
     "@anthropic-ai/sdk": "1.10.0",
     "@capacitor-community/speech-recognition": "7.0.1",
     "@capacitor/android": "8.6.2",
     "@capacitor/core": "8.6.2",
     "@capacitor/haptics": "8.0.2",
     "@capacitor/ios": "8.6.2",
+    "ai": "7.0.171",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "firebase": "13.3.0",
@@ -42,7 +45,8 @@
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "tailwind-merge": "3.7.0"
+    "tailwind-merge": "3.7.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@capacitor/cli": "8.6.2",

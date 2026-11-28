@@ -1,4 +1,4 @@
-import { AuthProvider } from "@/lib/auth/provider";
+import { AuthProvider } from "@/features/auth/ui/provider";
 
 /**
  * /practice is the swiper's step 3 of 3 (designs 30, 31): a focused page without the app shell,

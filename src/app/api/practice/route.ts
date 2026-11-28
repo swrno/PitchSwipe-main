@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { connectDb } from "@/lib/db";
-import { AuthError, isFirebaseAdminConfigured, verifyRequestToken } from "@/lib/auth/server";
+import { connectDb } from "@/shared/lib/db";
+import { AuthError, verifyRequestToken } from "@/features/auth/server/server";
+import { isServerConfigured } from "@/shared/lib/config";
+import { notConfiguredResponse } from "@/shared/lib/not-configured";
 import {
   buildDeck,
   deckShape,
@@ -9,27 +11,26 @@ import {
   parseMode,
   prepareSubmission,
   toPublicCard,
-} from "@/lib/quality";
-import { limitKey, limitRequest } from "@/lib/ratelimit";
-import { isSwipeDemoMode } from "@/lib/swipe/store";
+} from "@/features/quality";
+import { limitKey, limitRequest } from "@/shared/lib/ratelimit";
 import { User } from "@/models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * GET  /api/practice?mode=initial|recheck  A fresh practice deck (public: the cards are demo content and
- *                                          carry no answer key). 30 cards, or 20 for a re-check.
+ * GET  /api/practice?mode=initial|recheck  A fresh practice deck (public: the cards are fixed practice
+ *                                          cards and carry no answer key). 30 cards, or 20 for a re-check.
  * POST /api/practice                       { mode, swipes: [{ cardId, answer, dwellMs }] } -> score.
- *                                          Signed in + Mongo: saves qualityScore, counting, checkReasons on the user.
- *                                          Firebase Admin not configured: demo mode, scores the run, saves nothing.
+ *                                          Signed in: saves qualityScore, counting, checkReasons on the user.
+ *                                          503 when MongoDB or Firebase is not configured.
  */
 export async function GET(request: Request) {
   const early = limitRequest(request, "practice:get", { limit: 60, windowMs: 60_000 });
   if (early) return early;
   const mode = parseMode(new URL(request.url).searchParams.get("mode"));
   const cards = buildDeck(mode).map((id) => toPublicCard(getLibraryCard(id)!));
-  return NextResponse.json({ mode, size: deckShape(mode).size, cards, demo: isSwipeDemoMode() });
+  return NextResponse.json({ mode, size: deckShape(mode).size, cards });
 }
 
 export async function POST(request: Request) {
@@ -42,12 +43,9 @@ export async function POST(request: Request) {
   const mode = parseMode(body.mode);
   const checked = prepareSubmission(mode, body.swipes);
   if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
+  if (!isServerConfigured()) return notConfiguredResponse();
   const result = evaluateSwipes(checked.swipes);
   const payload = { mode, ...result };
-
-  if (!isFirebaseAdminConfigured()) {
-    return NextResponse.json({ ...payload, demo: true, persisted: false });
-  }
 
   try {
     const token = await verifyRequestToken(request);
@@ -65,16 +63,15 @@ export async function POST(request: Request) {
     if (updated.matchedCount === 0) {
       return NextResponse.json({ error: "Create your profile first.", code: "no_profile" }, { status: 404 });
     }
-    return NextResponse.json({ ...payload, demo: false, persisted: true });
+    return NextResponse.json({ ...payload, persisted: true });
   } catch (error) {
     if (error instanceof AuthError) {
-      // Never tell a caller which env vars are missing.
-      const message = error.code === "not_configured" ? "Sign-in is not available right now." : error.message;
-      return NextResponse.json({ error: message, code: error.code }, { status: error.status });
+      if (error.code === "not_configured") return notConfiguredResponse();
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
     }
     if (error instanceof Error && error.message.startsWith("MONGODB_URI")) {
       console.error("practice route: storage not configured");
-      return NextResponse.json({ error: "Saving is not available right now.", code: "not_configured" }, { status: 503 });
+      return notConfiguredResponse();
     }
     console.error("practice route", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Could not save your score." }, { status: 500 });

@@ -82,6 +82,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   ...(devOrigins.length ? { allowedDevOrigins: devOrigins } : {}),
   ...(buildSha ? { env: { GIT_SHA: buildSha } } : {}),
+  async redirects() {
+    return [
+      { source: "/decks", destination: "/products", permanent: false },
+      { source: "/decks/plans", destination: "/settings/plan", permanent: false },
+      { source: "/products/:id/connect", destination: "/products/:id/site", permanent: false },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

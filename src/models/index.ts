@@ -2,10 +2,10 @@
  * Mongoose models for the data model in docs/spec/06 §8.2 (v2).
  *
  * Importing this module does NOT connect to MongoDB. Connection happens only
- * when a server path calls connectDb() from src/lib/db.ts.
+ * when a server path calls connectDb() from src/shared/lib/db.ts.
  */
 import { Schema, model, models, type Model } from "mongoose";
-import { INDUSTRIES, ROLES, STATES, TEST_VARIABLES } from "@/lib/lists";
+import { INDUSTRIES, ROLES, STATES, TEST_VARIABLES } from "@/shared/lib/lists";
 import {
   ACCOUNT_ROLES,
   ANSWERS,
@@ -80,9 +80,9 @@ const deckSchema = new Schema<Shape>({
   optionIds: { type: Schema.Types.Mixed },
   rewardMetricId: { type: String },
   flagsmithError: { type: String },
-  // Publish claim while the Flagsmith hook runs (src/lib/decks/store.ts claimPublish); null when no publish is running.
+  // Publish claim while the Flagsmith hook runs (src/features/decks/server/store.ts claimPublish); null when no publish is running.
   publishingAt: { type: Date },
-  // Set while a draft save replaces the cards (src/lib/decks/store-mongo.ts updateDeck), so no publish claims mid-replace.
+  // Set while a draft save replaces the cards (src/features/decks/server/store-mongo.ts updateDeck), so no publish claims mid-replace.
   editingAt: { type: Date },
   status: { type: String, enum: strings(DECK_STATUSES), default: "draft", index: true },
   decidedAt: { type: Date },
@@ -195,6 +195,24 @@ const creditsSchema = new Schema<Shape>({
   purchases: { type: [Schema.Types.Mixed], default: [] },
 });
 
+// Co-founders of a product. Access needs status "active" (an accepted invite). `tokenHash` is the sha-256 of the invite
+// token and is removed on accept; the sparse unique index lets the accept step find the invite by hash.
+const productMemberSchema = new Schema<Shape>({
+  productId: { ...ref("Product"), required: true },
+  email: { type: String, required: true, lowercase: true, trim: true },
+  uid: { ...ref("User") },
+  role: { type: String, enum: ["cofounder"], default: "cofounder" },
+  status: { type: String, enum: ["invited", "active"], default: "invited" },
+  tokenHash: { type: String },
+  invitedBy: { ...ref("User"), required: true },
+  createdAt: { type: Date, default: Date.now },
+  acceptedAt: { type: Date },
+  expiresAt: { type: Date, required: true },
+});
+productMemberSchema.index({ productId: 1, email: 1 }, { unique: true });
+productMemberSchema.index({ tokenHash: 1 }, { unique: true, sparse: true });
+productMemberSchema.index({ uid: 1, status: 1 });
+
 function getModel(name: string, schema: Schema<Shape>): Model<Shape> {
   return models[name] || model(name, schema);
 }
@@ -209,6 +227,7 @@ export const Site = getModel("Site", siteSchema);
 export const AssistantEvent = getModel("AssistantEvent", assistantEventSchema);
 export const Wallet = getModel("Wallet", walletSchema);
 export const Credits = getModel("Credits", creditsSchema);
+export const ProductMember = getModel("ProductMember", productMemberSchema);
 
 export const modelNames = [
   "User",
@@ -221,4 +240,5 @@ export const modelNames = [
   "AssistantEvent",
   "Wallet",
   "Credits",
+  "ProductMember",
 ] as const;

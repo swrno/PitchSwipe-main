@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { readJson, resolveOwnerId } from "@/lib/decks/owner";
-import { limitKey } from "@/lib/ratelimit";
-import { connectSite, getSiteView } from "@/lib/sites/service";
-import { siteDeps } from "@/lib/sites/server";
+import { readJson, resolveOwnerId } from "@/features/decks/server/owner";
+import { limitKey } from "@/shared/lib/ratelimit";
+import { connectSite, getSiteView } from "@/features/sites/server/service";
+import { siteDeps } from "@/features/sites/server/server";
 
 const NO_STORE = { "cache-control": "no-store" };
 
