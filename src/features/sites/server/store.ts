@@ -12,6 +12,8 @@ export interface SitesStore {
   getByProduct(productId: string): Promise<SiteRecord | null>;
   /** Creates (no id yet) or replaces by id. Returns the stored record. */
   save(site: Omit<SiteRecord, "id"> & { id?: string }): Promise<SiteRecord>;
+  /** Deletes the connection record only (tests and flags live elsewhere). */
+  remove(id: string): Promise<void>;
 }
 
 export function createMemorySitesStore(): SitesStore {
@@ -31,6 +33,9 @@ export function createMemorySitesStore(): SitesStore {
       const rec: SiteRecord = { ...structuredClone(site), id };
       rows.set(id, rec);
       return structuredClone(rec);
+    },
+    async remove(id) {
+      rows.delete(id);
     },
   };
 }
@@ -88,6 +93,10 @@ export function createMongoSitesStore(): SitesStore {
       }
       const created = await Site.create(toDoc(site));
       return fromRow(created.toObject() as unknown as Row);
+    },
+    async remove(id) {
+      const { Site, isValidObjectId } = await model();
+      if (isValidObjectId(id)) await Site.findByIdAndDelete(id);
     },
   };
 }

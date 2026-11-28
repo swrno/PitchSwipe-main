@@ -2,11 +2,12 @@
 
 import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
-import { Check, Copy, Loader2, Mail, RefreshCw, TriangleAlert } from "lucide-react";
+import { Check, Code2, Copy, Loader2, Mail, RefreshCw, TriangleAlert } from "lucide-react";
 
 import { assistantJson } from "@/features/assistant/ui/api";
 import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
+import { ModalSheet } from "@/features/claims/ui/modal-sheet";
 import { agoLabel } from "@/features/sites/status";
 import {
   buildFrameworkSetup,
@@ -43,6 +44,7 @@ export function ConnectWebsite({
   const [error, setError] = React.useState<string | null>(null);
   const [now, setNow] = React.useState(() => Date.now());
   const [editing, setEditing] = React.useState(false);
+  const [confirmRemove, setConfirmRemove] = React.useState(false);
   const [framework, setFramework] = React.useState<FrameworkId>(DEFAULT_FRAMEWORK);
 
   React.useEffect(() => {
@@ -137,6 +139,9 @@ export function ConnectWebsite({
             <Button variant="outline" size="sm" onClick={() => setEditing(true)} className="ml-auto">
               Change
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setConfirmRemove(true)} className="border-destructive text-destructive hover:bg-destructive/10">
+              Remove
+            </Button>
           </div>
         ) : (
           <AddressForm
@@ -150,6 +155,18 @@ export function ConnectWebsite({
           />
         )}
       </Card>
+      {confirmRemove && view.site ? (
+        <RemoveDialog
+          productId={productId}
+          domain={view.site.domain}
+          onCancel={() => setConfirmRemove(false)}
+          onDone={async () => {
+            setConfirmRemove(false);
+            setEditing(false);
+            await load();
+          }}
+        />
+      ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <Card className="p-5 md:p-5">
@@ -240,24 +257,55 @@ function Step({ n, done, title, children, last, disabled }: { n: number; done: b
 function FrameworkPicker({ value, onChange }: { value: FrameworkId; onChange: (id: FrameworkId) => void }) {
   return (
     <div className="mb-6">
-      <p id="framework-h" className="text-sm font-medium">What is your site built with?</p>
-      <div role="group" aria-labelledby="framework-h" className="-mx-1 mt-2 flex gap-1 overflow-x-auto px-1 pb-1">
-        {FRAMEWORKS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            aria-pressed={value === f.id}
-            onClick={() => onChange(f.id)}
-            className={cn(
-              "h-10 shrink-0 rounded-full border px-4 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              value === f.id ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted",
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
+      <label htmlFor="site-framework" className="text-sm font-medium">What is your site built with?</label>
+      <div className="relative mt-2">
+        <Code2 aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <select
+          id="site-framework"
+          value={value}
+          onChange={(e) => onChange(e.target.value as FrameworkId)}
+          className="h-12 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {FRAMEWORKS.map((f) => (
+            <option key={f.id} value={f.id}>{f.label}</option>
+          ))}
+        </select>
       </div>
     </div>
+  );
+}
+
+function RemoveDialog({ productId, domain, onCancel, onDone }: { productId: string; domain: string; onCancel: () => void; onDone: () => Promise<void> }) {
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  async function remove() {
+    setBusy(true);
+    setError(null);
+    try {
+      await assistantJson("DELETE", "/api/sites", { productId });
+      await onDone();
+    } catch (err) {
+      setError((err as Error).message);
+      setBusy(false);
+    }
+  }
+  return (
+    <ModalSheet
+      labelledBy="remove-site-h"
+      onDismiss={busy ? undefined : onCancel}
+      footer={
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <Button variant="ghost" onClick={onCancel} disabled={busy}>Cancel</Button>
+          <Button variant="destructive" onClick={remove} disabled={busy}>
+            {busy ? <Loader2 className="animate-spin" /> : null} Remove
+          </Button>
+        </div>
+      }
+    >
+      <h2 id="remove-site-h" className="text-lg font-semibold tracking-tight">Remove {domain}?</h2>
+      <p className="mt-2 text-sm text-muted-foreground">The snippet stops showing winners on that site; your tests keep running.</p>
+      {error ? <p role="alert" className="mt-2 text-sm text-warning">{error}</p> : null}
+    </ModalSheet>
   );
 }
 

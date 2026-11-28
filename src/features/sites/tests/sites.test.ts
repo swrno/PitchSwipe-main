@@ -9,6 +9,7 @@ import { corsHeaders, normalizeDomain, originMatches } from "../domain";
 import { createRateLimiter } from "../server/ratelimit";
 import {
   connectSite,
+  removeSite,
   getSiteView,
   getWebsiteShipped,
   handlePing,
@@ -194,6 +195,19 @@ describe("connect and view", () => {
     assert.ok(!bad.ok && bad.status === 400);
     const ok = await connectSite(deps, { ownerId: "owner", productId: "p1", domain: "https://Voice-Khata.vercel.app/" });
     assert.ok(ok.ok && ok.value.domain === "voice-khata.vercel.app");
+  });
+
+  it("remove clears the site for the owner and refuses others", async () => {
+    const deps = makeDeps();
+    await connectSite(deps, { ownerId: "owner", productId: "p1", domain: "vk.app" });
+    const denied = await removeSite(deps, { ownerId: "other", productId: "p1" });
+    assert.ok(!denied.ok && denied.status === 404);
+    assert.ok((await deps.sites.getByProduct("p1")) !== null);
+    const ok = await removeSite(deps, { ownerId: "owner", productId: "p1" });
+    assert.ok(ok.ok && ok.value.removed);
+    assert.equal(await deps.sites.getByProduct("p1"), null);
+    const view = await getSiteView(deps, { ownerId: "owner", productId: "p1", baseUrl: "https://x.test" });
+    assert.ok(view.ok && view.value.site === null);
   });
 
   it("view goes waiting -> connected -> element not found", async () => {

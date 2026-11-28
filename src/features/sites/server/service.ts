@@ -83,6 +83,16 @@ export async function connectSite(
   return { ok: true, value: saved };
 }
 
+/** DELETE /api/sites: disconnect the website of a product the caller owns. Tests, flags and ship history stay. */
+export async function removeSite(deps: SiteDeps, input: { ownerId: string; productId: unknown }): Promise<Outcome<{ removed: boolean }>> {
+  if (typeof input.productId !== "string" || !input.productId) return fail(400, "productId is required.");
+  const product = await deps.catalog.getProduct(input.ownerId, input.productId);
+  if (!product) return fail(404, "Product not found.");
+  const existing = await deps.sites.getByProduct(product.id);
+  if (existing) await deps.sites.remove(existing.id);
+  return { ok: true, value: { removed: Boolean(existing) } };
+}
+
 export async function getSiteView(
   deps: SiteDeps,
   input: { ownerId: string; productId: string; baseUrl: string },

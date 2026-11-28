@@ -24,7 +24,7 @@ export class AssistantApiError extends Error {
 }
 
 /** JSON call to our own API with the Firebase token (none when signed out). */
-export async function assistantJson<T>(method: "GET" | "POST", url: string, body?: unknown): Promise<T> {
+export async function assistantJson<T>(method: "GET" | "POST" | "DELETE", url: string, body?: unknown): Promise<T> {
   const token = await idToken();
   const headers: Record<string, string> = {};
   if (token) headers.authorization = `Bearer ${token}`;
