@@ -16,6 +16,7 @@ import { haptic } from "@/shared/lib/feel/haptics";
 import { cn } from "@/shared/lib/utils";
 import { ProfileFieldsEditor, fieldsProblem } from "./profile-fields";
 import type { ProfileFields, ProfileView } from "./types";
+import { ProfileSkeleton } from "@/shared/ui/page-skeletons";
 
 type Load =
   | { kind: "loading" }
@@ -100,19 +101,6 @@ function SignedOut() {
       <Preferences />
       <LegalLinks />
     </Shell>
-  );
-}
-
-function ProfileSkeleton() {
-  return (
-    <div className="space-y-6" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading your profile</span>
-      <div className="h-40 animate-pulse rounded-xl bg-muted" />
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="h-80 animate-pulse rounded-xl bg-muted" />
-        <div className="h-80 animate-pulse rounded-xl bg-muted" />
-      </div>
-    </div>
   );
 }
 

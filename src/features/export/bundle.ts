@@ -19,13 +19,14 @@ export function buildExportFiles(input: ExportInput): ExportOutputFile[] {
   const base = `pitchswipe-${slug(input.productName)}-${input.scope === "product" ? "all-decks" : slug(decks[0]?.payload.deck.label ?? "deck")}`;
   const stamp = stampSlug(now);
   const ctx = { productName: input.productName, scopeText, decks, now };
+  const reportCtx = { ...ctx, theme: input.theme };
   const chosen = new Set<ExportFile>(input.files);
   const out: ExportOutputFile[] = [];
 
   for (const kind of EXPORT_FILES) {
     if (!chosen.has(kind)) continue;
     if (kind === "report") {
-      out.push({ name: `${base}-report-${stamp}.pdf`, contentType: "application/pdf", data: reportPdf(ctx) });
+      out.push({ name: `${base}-report-${stamp}.pdf`, contentType: "application/pdf", data: reportPdf(reportCtx) });
     } else if (kind === "summary") {
       if (input.summaryFormat !== "csv") out.push({ name: `${base}-summary-${stamp}.xlsx`, contentType: XLSX_TYPE, data: summaryXlsx(ctx) });
       if (input.summaryFormat !== "xlsx") out.push({ name: `${base}-summary-${stamp}.csv`, contentType: "text/csv; charset=utf-8", data: Buffer.from(summaryCsv(ctx), "utf8") });

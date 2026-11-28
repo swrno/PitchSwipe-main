@@ -10,6 +10,8 @@ import { cn } from "@/shared/lib/utils";
 
 import { askFetch, loadAskIntro, type AskIntro } from "./api";
 import { RenderComponent } from "./ask-parts";
+import { Skeleton } from "@/shared/ui/skeleton";
+
 
 const MAX_QUESTION = 500;
 
@@ -273,6 +275,14 @@ export function AskPanel({ open, onClose, deckId }: { open: boolean; onClose: ()
             <p className="rounded-2xl bg-muted p-3.5 text-sm text-muted-foreground">
               Ask about your cards, states, price or comments. I look up your results with tools, and code fills every number.
             </p>
+            {!intro && (
+              <div role="status" aria-label="Loading suggested questions" className="flex flex-wrap gap-2">
+                <span className="sr-only">Loading suggested questions…</span>
+                <Skeleton className="h-10 w-44 rounded-lg" />
+                <Skeleton className="h-10 w-32 rounded-lg" />
+                <Skeleton className="h-10 w-52 rounded-lg" />
+              </div>
+            )}
             {intro && intro.suggestions.length > 0 && (
               <ul className="flex flex-wrap gap-2" aria-label="Suggested questions">
                 {intro.suggestions.map((s) => (
@@ -303,10 +313,10 @@ export function AskPanel({ open, onClose, deckId }: { open: boolean; onClose: ()
           ),
         )}
         {status === "submitted" && (
-          <p className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Loader2 aria-hidden className="size-3.5 animate-spin" />
-            Thinking
-          </p>
+          <div role="status" aria-label="Thinking" className="space-y-2">
+            <span className="sr-only">Thinking…</span>
+            <Skeleton className="h-12 w-[85%] rounded-2xl rounded-tl-md" />
+          </div>
         )}
         {error && (
           <p role="alert" className="rounded-xl bg-muted px-3.5 py-2.5 text-sm text-foreground">

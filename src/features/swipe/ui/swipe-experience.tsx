@@ -23,6 +23,7 @@ import { DeckCard, LangFont, ProductTile, ACCENT_VAR, scriptStyle } from "./deck
 import { SwipeHome } from "./swipe-home";
 import { creditWalletRequest } from "@/features/claims/ui/client";
 import { qualityCheckEnabled } from "@/features/quality/switch";
+import { Skeleton, SkeletonText } from "@/shared/ui/skeleton";
 
 type Phase = "home" | "loading" | "card" | "saving" | "empty";
 
@@ -221,6 +222,7 @@ function Experience({ mode, firstSlug }: SwipeExperienceProps) {
   if ((phase === "loading" || phase === "saving") && !card) {
     return (
       <div className="mx-auto max-w-md pt-2" role="status" aria-label="Finding an idea">
+        <span className="sr-only">Finding an idea…</span>
         <CardSkeleton />
       </div>
     );
@@ -374,29 +376,24 @@ function Experience({ mode, firstSlug }: SwipeExperienceProps) {
 function CardSkeleton() {
   return (
     <div aria-hidden className="rounded-3xl border border-border bg-card p-5 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-      <div className="motion-safe:animate-pulse">
-        <div className="flex items-center gap-4">
-          <div className="size-[60px] rounded-2xl bg-muted md:size-14" />
-          <div className="flex-1 space-y-2">
-            <div className="h-5 w-2/5 rounded-full bg-muted" />
-            <div className="h-3.5 w-3/5 rounded-full bg-muted" />
-          </div>
+      <div className="flex items-center gap-4">
+        <Skeleton className="size-[60px] rounded-2xl md:size-14" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-5 w-2/5 rounded-full" />
+          <Skeleton className="h-3.5 w-3/5 rounded-full" />
         </div>
-        <div className="mt-5 space-y-2.5">
-          <div className="h-7 w-11/12 rounded-lg bg-muted" />
-          <div className="h-7 w-3/5 rounded-lg bg-muted" />
-        </div>
-        <div className="mt-4 space-y-2">
-          <div className="h-3.5 w-full rounded-full bg-muted" />
-          <div className="h-3.5 w-4/5 rounded-full bg-muted" />
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <div className="aspect-[164/240] rounded-xl bg-muted" />
-          <div className="aspect-[164/240] rounded-xl bg-muted" />
-          <div className="aspect-[164/240] rounded-xl bg-muted" />
-        </div>
-        <div className="mt-4 h-11 rounded-xl bg-muted" />
       </div>
+      <div className="mt-5 space-y-2.5">
+        <Skeleton className="h-7 w-11/12 rounded-lg" />
+        <Skeleton className="h-7 w-3/5 rounded-lg" />
+      </div>
+      <SkeletonText lines={2} className="mt-4" lineClassName="rounded-full" />
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <Skeleton className="aspect-[164/240] rounded-xl" />
+        <Skeleton className="aspect-[164/240] rounded-xl" />
+        <Skeleton className="aspect-[164/240] rounded-xl" />
+      </div>
+      <Skeleton className="mt-4 h-11 rounded-xl" />
     </div>
   );
 }

@@ -36,20 +36,6 @@ export async function resultsJson<T>(url: string): Promise<T> {
   return data as T;
 }
 
-/** Downloads the deck's waitlist CSV (sends the sign-in token, so a plain link would not work). */
-export async function downloadWaitlistCsv(deckId: string): Promise<void> {
-  const res = await authedFetch(`/api/results/${encodeURIComponent(deckId)}?format=csv`);
-  if (!res.ok) throw new ResultsApiError("Could not download the waitlist. Try again.", res.status);
-  const url = URL.createObjectURL(await res.blob());
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `waitlist-${deckId}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 export interface WaitlistRow {
   email: string;
   card: string;

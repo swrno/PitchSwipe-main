@@ -10,6 +10,7 @@ import { CURRENT_PLAN, decksLeft } from "@/shared/lib/plans";
 import { useAuth } from "@/features/auth/ui/provider";
 import type { DecksOverview, ProductListItem } from "@/features/decks/views";
 import { cn } from "@/shared/lib/utils";
+import { OverviewSkeleton } from "@/shared/ui/page-skeletons";
 
 const CARD = "rounded-xl border border-border bg-card";
 const fmt = (n: number) => n.toLocaleString("en-IN");
@@ -67,22 +68,6 @@ function ViewAll({ href }: { href: string }) {
     <Link href={href} className="text-sm font-medium text-muted-foreground hover:text-foreground">
       View all
     </Link>
-  );
-}
-
-function OverviewSkeleton() {
-  return (
-    <div aria-busy className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-20 rounded-xl bg-muted motion-safe:animate-pulse" />
-        ))}
-      </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="h-56 rounded-xl bg-muted motion-safe:animate-pulse md:col-span-2" />
-        <div className="h-56 rounded-xl bg-muted motion-safe:animate-pulse" />
-      </div>
-    </div>
   );
 }
 

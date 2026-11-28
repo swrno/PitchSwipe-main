@@ -13,6 +13,7 @@ import { cn } from "@/shared/lib/utils";
 import { PageHeader } from "@/shared/shell/page-header";
 import { api } from "./api";
 import { Notice, ProductTile, StatusText, ToggleChip } from "./primitives";
+import { ProductsListSkeleton } from "@/shared/ui/page-skeletons";
 
 const smallButton = buttonVariants({ variant: "outline", size: "sm" });
 
@@ -80,12 +81,7 @@ export function DecksScreen() {
         </div>
       ) : null}
       {!overview && !error ? (
-        <div aria-busy className="space-y-3">
-          <span className="sr-only">Loading your tests</span>
-          {[0, 1].map((i) => (
-            <div key={i} className="h-32 rounded-xl bg-muted motion-safe:animate-pulse" />
-          ))}
-        </div>
+        <ProductsListSkeleton withChips={false} />
       ) : null}
 
       {visible.map((p) => (

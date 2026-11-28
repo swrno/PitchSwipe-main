@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
 import type { WebsiteShippedData } from "@/features/sites/types";
 import { cn } from "@/shared/lib/utils";
+import { WebsiteShippedSkeleton } from "@/shared/ui/page-skeletons";
 
 const clock = (iso: string) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 const clockSeconds = (iso: string) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
@@ -69,9 +70,7 @@ export function WebsiteShippedView({
         {error}
       </p>
     ) : (
-      <p className="text-sm text-muted-foreground" role="status">
-        Loading your website view...
-      </p>
+      <WebsiteShippedSkeleton />
     );
   }
 

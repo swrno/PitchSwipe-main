@@ -12,6 +12,7 @@ import { fetchWallet, type Fetcher } from "@/features/claims/ui/client";
 import { WITHDRAW_MIN_RS, withdrawProgress, type WalletView } from "@/features/claims/rules";
 import { getSwiperGuid } from "@/features/swipe/ui/client";
 import { formatRs } from "@/shared/lib/utils";
+import { WalletSkeleton } from "@/shared/ui/page-skeletons";
 
 /** S9: the wallet of the signed-in swiper (the page gates sign-in). Withdraw is disabled: payouts are not live yet. */
 export function WalletScreen() {
@@ -43,12 +44,7 @@ export function WalletScreen() {
   }
   if (!wallet) {
     return (
-      <div role="status" aria-label="Loading your wallet" className="space-y-4">
-        <div className="h-16 animate-pulse rounded-xl bg-muted" />
-        <div className="h-12 animate-pulse rounded-xl bg-muted" />
-        <div className="h-60 animate-pulse rounded-xl border border-border bg-card" />
-        <div className="h-20 animate-pulse rounded-xl bg-muted" />
-      </div>
+      <WalletSkeleton />
     );
   }
 

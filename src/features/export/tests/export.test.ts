@@ -9,7 +9,8 @@ import type { DeckMeta } from "@/features/results/types";
 import { bundleExport, buildExportFiles } from "../bundle";
 import { csvCell, parseCsv, toCsv } from "../csv";
 import { createResendMailer, mailerFromEnv, type MailMessage, type Mailer } from "../server/mailer";
-import { buildPdf, pdfSafe } from "../pdf";
+import { buildPdf, DEFAULT_THEME, pdfSafe } from "../pdf";
+import { parseTheme, themeParam } from "../theme";
 import { reportDocument } from "../report";
 import { parseExportRequest, runExport } from "../server/service";
 import { stampLabel, stampSlug, versionTag } from "../stamp";
@@ -301,7 +302,7 @@ describe("report PDF", () => {
     const pdf = buildPdf(reportDocument({ productName: "Voice Khata", scopeText: "this deck", decks: [deck], now: NOW })).toString("latin1");
     assert.match(pdf, /0\.231 0\.478 0\.047 rg/); // accent #3b7a0c fill
     assert.match(pdf, / c h f/); // curves: rounded rects and circles
-    for (const title of ["From swipe to waitlist", "Leaderboard", "Waitlist users", "Who swiped", "Where swipers came from", "Joined waitlist", "Said yes", "Share who joined", "JK"]) {
+    for (const title of ["From swipe to waitlist", "Leaderboard", "Waitlist users", "Audience & who swiped", "Where swipers came from", "Joined waitlist", "Said yes", "Share who joined:", "JK"]) {
       assert.ok(pdf.includes(`(${title})`), title);
     }
     const t = deck.payload.totals;
@@ -311,6 +312,39 @@ describe("report PDF", () => {
     assert.ok(pdf.includes("(Leading)"));
     assert.match(pdf, /0.557 0.910 0.659 rg/); // state map step 4 (#14532d) or step 3 fill present
     assert.doesNotMatch(pdf, IPV4);
+  });
+});
+
+describe("report theme", () => {
+  const valid = "accent:4338ca,accentForeground:ffffff,accentSoft:e5e4f7,foreground:101a3a,muted:e3e6f1,mutedForeground:4a5272,border:d5d9e8,card:ffffff";
+  it("parses a valid theme and round-trips", () => {
+    const t = parseTheme(valid)!;
+    assert.equal(t.accent, "#4338ca");
+    assert.equal(parseTheme(themeParam(t))?.accent, "#4338ca");
+    assert.equal(parseTheme("accent:#4338CA")?.accent, "#4338ca");
+    assert.equal(parseTheme("accent:4338ca")?.card, DEFAULT_THEME.card); // missing keys keep the default
+  });
+  it("ignores anything invalid or missing", () => {
+    for (const bad of [undefined, "", "accent:red", "accent:12345", "evil:ffffff", "accent:4338ca,accent:zzzzzz", "accent:4338ca:ff", `accent:${"a".repeat(300)}`, 5, null]) {
+      assert.equal(parseTheme(bad), undefined, String(bad));
+    }
+    const ok = parseExportRequest({ deckId: "d", files: "report", theme: "accent:nope" });
+    assert.ok(ok.ok && ok.value.theme === undefined);
+    const good = parseExportRequest({ deckId: "d", files: "report", theme: valid });
+    assert.ok(good.ok && good.value.theme?.accent === "#4338ca");
+  });
+  it("draws the PDF in the passed accent, and in the default accent otherwise", () => {
+    const deck = deckData();
+    const input = { productName: "Voice Khata", scopeText: "this deck", decks: [deck], now: NOW };
+    const themed = buildPdf(reportDocument({ ...input, theme: parseTheme(valid) })).toString("latin1");
+    assert.match(themed, /0\.263 0\.220 0\.792 (rg|RG)/);
+    assert.doesNotMatch(themed, /0\.231 0\.478 0\.047 (rg|RG)/);
+    const plain = buildPdf(reportDocument(input)).toString("latin1");
+    assert.match(plain, /0\.231 0\.478 0\.047 rg/);
+  });
+  it("keeps text readable when the accent foreground would not be", () => {
+    const pdf = buildPdf(reportDocument({ productName: "V", scopeText: "t", decks: [deckData()], now: NOW, theme: { ...DEFAULT_THEME, accent: "#ffee00", accentForeground: "#ffffff" } })).toString("latin1");
+    assert.match(pdf, /0\.067 0\.067 0\.067 rg|0\.000 0\.000 0\.000 rg/);
   });
 });
 

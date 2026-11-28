@@ -44,6 +44,7 @@ import {
 import { PageHeader } from "@/shared/shell/page-header";
 import { useBreadcrumb } from "@/shared/shell/breadcrumb";
 import { ErrorText, FieldLabel, Notice, Segmented, StepProgress, TextArea, TextInput, ToggleChip } from "./primitives";
+import { WizardPageSkeleton } from "@/shared/ui/page-skeletons";
 
 const VARIABLE_NOUN: Record<TestVariable, { plural: string; versions: string }> = {
   headline: { plural: "headlines", versions: "headline" },
@@ -147,10 +148,7 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
         </button>
       </div>
     ) : (
-      <div aria-busy className="space-y-6">
-        <div className="h-8 w-1/2 rounded-lg bg-muted motion-safe:animate-pulse" />
-        <div className="h-64 rounded-xl bg-muted motion-safe:animate-pulse" />
-      </div>
+      <WizardPageSkeleton />
     );
 
   if (products.length === 0 || !form) {

@@ -17,6 +17,7 @@ import { NAV_ITEMS, NEW_DECK_HREF, TAB_ITEMS, isActivePath, isItemActive } from 
 import { api } from "@/features/decks/ui/api";
 import type { DecksOverview, ProductListItem } from "@/features/decks/views";
 import { cn } from "@/shared/lib/utils";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 /** Phone: fixed bottom tab bar. Hidden from md up. */
 export function BottomTabBar() {
@@ -136,8 +137,8 @@ function useShellIdentity(): ShellIdentity | null {
 
 const MAX_SIDEBAR_PRODUCTS = 8;
 
-/** The founder's products for the sidebar, re-read after each navigation. Empty while loading or signed out. */
-function useSidebarProducts(): readonly ProductListItem[] {
+/** The founder's products for the sidebar, re-read after each navigation. Null while loading, empty when signed out. */
+function useSidebarProducts(): readonly ProductListItem[] | null {
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const uid = user?.uid;
@@ -154,7 +155,8 @@ function useSidebarProducts(): readonly ProductListItem[] {
     };
   }, [loading, uid, pathname]);
 
-  return uid && loaded?.uid === uid ? loaded.products : [];
+  if (!uid) return [];
+  return loaded?.uid === uid ? loaded.products : null;
 }
 
 const FOCUS_RING =
@@ -250,7 +252,13 @@ export function Sidebar({
                 </div>
                 {showProducts ? (
                   <ul className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-2">
-                    {products.slice(0, MAX_SIDEBAR_PRODUCTS).map((p) => {
+                    {products === null ? (
+                      <li role="status" aria-label="Loading products" className="space-y-1.5 px-2.5 py-2">
+                        <Skeleton className="h-4 w-4/5" />
+                        <Skeleton className="h-4 w-3/5" />
+                      </li>
+                    ) : null}
+                    {(products ?? []).slice(0, MAX_SIDEBAR_PRODUCTS).map((p) => {
                       const href = `/products/${p.id}`;
                       // A test's pages (/decks/<id>/...) belong to the product that owns the test.
                       const current =
@@ -271,7 +279,7 @@ export function Sidebar({
                         </li>
                       );
                     })}
-                    {products.length > MAX_SIDEBAR_PRODUCTS ? (
+                    {(products?.length ?? 0) > MAX_SIDEBAR_PRODUCTS ? (
                       <li>
                         <Link href="/products" className={cn("block rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-muted/60 hover:text-foreground", FOCUS_RING)}>
                           All products
@@ -358,7 +366,7 @@ export function BrandBarAccount() {
   const { user, loading } = useAuth();
   const loginHref = useLoginHref();
 
-  if (loading) return <span aria-hidden className="size-9 rounded-full bg-muted motion-safe:animate-pulse" />;
+  if (loading) return <Skeleton className="size-9 rounded-full" />;
 
   // Signed out: a sign-in pill.
   if (!user) {

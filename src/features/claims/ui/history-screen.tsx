@@ -10,6 +10,7 @@ import { fetchHistory } from "@/features/claims/ui/client";
 import { filterItems, groupByDay, summarize, type HistoryFilter, type HistoryItem } from "@/features/claims/history";
 import { getSwiperGuid } from "@/features/swipe/ui/client";
 import { cn, formatRs } from "@/shared/lib/utils";
+import { HistorySkeleton } from "@/shared/ui/page-skeletons";
 
 const FILTERS: { id: HistoryFilter; label: string }[] = [
   { id: "all", label: "All" },
@@ -68,12 +69,7 @@ export function HistoryScreen() {
   }
   if (!items) {
     return (
-      <div role="status" aria-label="Loading your history" className="space-y-3">
-        <div className="h-9 w-40 animate-pulse rounded-lg bg-muted" />
-        <div className="h-20 animate-pulse rounded-xl border border-border bg-card" />
-        <div className="h-11 w-72 animate-pulse rounded-lg bg-muted" />
-        <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />
-      </div>
+      <HistorySkeleton />
     );
   }
 

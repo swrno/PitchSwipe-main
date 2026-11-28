@@ -18,6 +18,7 @@ import { ChipPicker } from "./chip-picker";
 import { ErrorText, FieldLabel, Notice, ProductTile, Segmented, StatusText, TextInput, ToggleChip } from "./primitives";
 import type { FieldError } from "@/features/decks/types";
 import type { PreviewCard } from "@/features/decks/wizard";
+import { ProductFormSkeleton } from "@/shared/ui/page-skeletons";
 
 const EMPTY: ProductInput = {
   name: "",
@@ -102,7 +103,7 @@ export function ProductScreen({ productId, aside }: { productId?: string; aside?
         <button type="button" onClick={() => window.location.reload()} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><RotateCcw className="size-4" aria-hidden /> Try again</button>
       </div>
     ) : (
-      <div aria-busy className="space-y-4"><span className="sr-only">Loading</span><div className="h-64 rounded-xl bg-muted motion-safe:animate-pulse" /><div className="h-40 rounded-xl bg-muted motion-safe:animate-pulse" /></div>
+      <ProductFormSkeleton />
     );
   const name = form.name || "New product";
 

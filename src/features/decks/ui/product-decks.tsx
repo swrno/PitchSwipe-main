@@ -9,6 +9,7 @@ import { cn } from "@/shared/lib/utils";
 import { api } from "./api";
 import { DeckRow } from "./decks-screen";
 import { Notice } from "./primitives";
+import { ProductTestsSkeleton } from "@/shared/ui/page-skeletons";
 
 /** A product's Tests tab: the Add test action, then its tests with status, swipers and waitlist. */
 export function ProductDecks({ productId }: { productId: string }) {
@@ -26,13 +27,7 @@ export function ProductDecks({ productId }: { productId: string }) {
   }, [productId]);
 
   if (error) return <Notice tone="error">{error}</Notice>;
-  if (product === undefined)
-    return (
-      <div aria-busy className="space-y-6">
-        <span className="sr-only">Loading tests</span>
-        <div className="h-32 rounded-xl bg-muted motion-safe:animate-pulse" />
-      </div>
-    );
+  if (product === undefined) return <ProductTestsSkeleton />;
   if (product === null) return <Notice tone="error">Product not found.</Notice>;
 
   const count = product.decks.length;

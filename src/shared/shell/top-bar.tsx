@@ -14,6 +14,7 @@ import { buttonVariants } from "@/shared/ui/button";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 import { useDecksUsed } from "@/features/decks/ui/decks-left";
 import { accountLabel, Avatar, useLoginHref } from "./navigation";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -143,7 +144,7 @@ function TopBarAccount() {
     };
   }, [open]);
 
-  if (loading) return <span aria-hidden className="h-9 w-24 rounded-lg bg-muted motion-safe:animate-pulse" />;
+  if (loading) return <Skeleton className="h-9 w-24 rounded-lg" />;
 
   if (!user) {
     return (

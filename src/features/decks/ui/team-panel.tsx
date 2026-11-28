@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { api, ApiError } from "./api";
 import type { MemberView } from "../members";
+import { SkeletonCard, SkeletonRegion } from "@/shared/ui/skeleton";
 
 interface TeamResponse {
   role: "owner" | "cofounder";
@@ -102,7 +103,7 @@ export function TeamPanel({ productId, className }: { productId: string; classNa
   }
 
   if (loadError) return <p role="alert" className={cn("text-sm text-muted-foreground", className)}>{loadError}</p>;
-  if (!team) return <div aria-busy className={cn("h-32 rounded-xl bg-muted motion-safe:animate-pulse", className)}><span className="sr-only">Loading the team</span></div>;
+  if (!team) return <SkeletonRegion label="the team" className={className}><SkeletonCard /></SkeletonRegion>;
   const isOwner = team.role === "owner";
 
   return (

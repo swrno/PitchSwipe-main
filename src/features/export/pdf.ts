@@ -5,6 +5,8 @@
  * No dependency.
  */
 
+import { AA_TEXT, contrastRatio, mix, readableOn } from "@/shared/lib/feel/palettes";
+
 /** A colour: a gray level 0 to 1, or "#rrggbb". */
 export type PdfColor = number | string;
 
@@ -36,11 +38,12 @@ export type PdfBlock =
   /** `lead` insights are counted: at most `maxLeadsPerPage` per page. */
   | { type: "insight"; title: string; body: string; footnote?: string; lead?: boolean; warning?: boolean }
   /** Vector drawing in a box `height` tall; `x` and `w` are the content column. Never split over pages. */
-  | { type: "draw"; height: number; draw: (c: PdfCanvas, x: number, y: number, w: number) => void }
+  | { type: "draw"; height: number; /** Counted as a Lead insight: at most `maxLeadsPerPage` per page. */ lead?: boolean; draw: (c: PdfCanvas, x: number, y: number, w: number) => void }
   | { type: "spacer"; height?: number }
   | { type: "pagebreak" };
 
 export interface PdfDocument {
+  theme?: PdfTheme;
   title: string;
   /** Printed at the left of every page footer, e.g. "Numbers as of 15 Nov 2026, 18:20". */
   footer: string;
@@ -49,12 +52,64 @@ export interface PdfDocument {
   maxLeadsPerPage?: number;
 }
 
-export const INK = "#111111";
-export const MUTED_INK = "#5d5b63";
-export const BORDER = "#e2e0d9";
-export const TRACK = "#ecebe6";
-export const ACCENT = "#3b7a0c";
-export const ACCENT_SOFT = "#eaf5d8";
+/** Colours the report uses: the founder's light-theme tokens. */
+export interface PdfTheme {
+  accent: string;
+  accentForeground: string;
+  accentSoft: string;
+  foreground: string;
+  muted: string;
+  mutedForeground: string;
+  border: string;
+  card: string;
+}
+
+/** The shipped PitchSwipe light theme (globals.css). */
+export const DEFAULT_THEME: PdfTheme = {
+  accent: "#3b7a0c",
+  accentForeground: "#ffffff",
+  accentSoft: "#eaf5d8",
+  foreground: "#111111",
+  muted: "#ecebe6",
+  mutedForeground: "#5d5b63",
+  border: "#e2e0d9",
+  card: "#ffffff",
+};
+
+/** Live colours for the document being built (set by buildPdf from `doc.theme`; reset afterwards). */
+export const T = {
+  ink: "",
+  mutedInk: "",
+  border: "",
+  track: "",
+  accent: "",
+  accentSoft: "",
+  card: "",
+  onAccent: "",
+  muted35: "",
+  muted40: "",
+  muted45: "",
+  accent60: "",
+  accent55: "",
+};
+
+export function applyTheme(t: PdfTheme = DEFAULT_THEME): void {
+  // Keep text readable on the card whatever colours were passed in.
+  T.ink = contrastRatio(t.foreground, t.card) >= AA_TEXT ? t.foreground : readableOn(t.card);
+  T.mutedInk = contrastRatio(t.mutedForeground, t.card) >= AA_TEXT ? t.mutedForeground : T.ink;
+  T.border = t.border;
+  T.track = t.muted;
+  T.accent = t.accent;
+  T.accentSoft = t.accentSoft;
+  T.card = t.card;
+  T.onAccent = contrastRatio(t.accentForeground, t.accent) >= AA_TEXT ? t.accentForeground : readableOn(t.accent);
+  T.muted35 = mix(t.card, t.mutedForeground, 0.35);
+  T.muted40 = mix(t.card, t.mutedForeground, 0.4);
+  T.muted45 = mix(t.card, t.mutedForeground, 0.45);
+  T.accent60 = mix(t.card, t.accent, 0.6);
+  T.accent55 = mix(t.card, t.accent, 0.55);
+}
+applyTheme();
 
 const PAGE_W = 595.28;
 const PAGE_H = 841.89;
@@ -154,6 +209,15 @@ interface PageState {
 }
 
 export function buildPdf(doc: PdfDocument): Buffer {
+  applyTheme(doc.theme);
+  try {
+    return buildPdfInner(doc);
+  } finally {
+    applyTheme();
+  }
+}
+
+function buildPdfInner(doc: PdfDocument): Buffer {
   const maxLeads = doc.maxLeadsPerPage ?? 2;
   const pages: PageState[] = [];
   let page!: PageState;
@@ -239,23 +303,25 @@ export function buildPdf(doc: PdfDocument): Buffer {
     switch (block.type) {
       case "title":
         ensure(40);
-        paragraph(block.text, 22, true, INK);
+        paragraph(block.text, 22, true, T.ink);
         y += 4;
         break;
       case "heading":
         ensure(110);
         y += 10;
-        paragraph(block.text, 13, true, INK);
-        rule(y + 1, BORDER);
-        rule(y + 1, ACCENT, MARGIN, MARGIN + 30, 2);
+        paragraph(block.text, 13, true, T.ink);
+        rule(y + 1, T.border);
+        rule(y + 1, T.accent, MARGIN, MARGIN + 30, 2);
         y += 8;
         break;
       case "text":
-        paragraph(block.text, block.size ?? 10, block.bold ?? false, block.muted ? MUTED_INK : INK);
+        paragraph(block.text, block.size ?? 10, block.bold ?? false, block.muted ? T.mutedInk : T.ink);
         y += 3;
         break;
       case "draw":
+        if (block.lead && page.leads >= maxLeads) newPage();
         ensure(block.height);
+        if (block.lead) page.leads += 1;
         block.draw(canvas, MARGIN, y, CONTENT_W);
         y += block.height + 6;
         break;
@@ -273,7 +339,7 @@ export function buildPdf(doc: PdfDocument): Buffer {
         if (block.lead && page.leads >= maxLeads) newPage();
         ensure(h);
         if (block.lead) page.leads += 1;
-        canvas.roundRect(MARGIN, y + 2, CONTENT_W, h - 8, 8, TRACK);
+        canvas.roundRect(MARGIN, y + 2, CONTENT_W, h - 8, 8, T.track);
         let yy = y + 8;
         text(fit(block.title, CONTENT_W - 20, 10.5, true), MARGIN + 10, yy + 10.5, 10.5, true);
         yy += 15;
@@ -293,7 +359,7 @@ export function buildPdf(doc: PdfDocument): Buffer {
         const widths = block.columns.map((c) => (c.weight / total) * CONTENT_W);
         const size = 8.5;
         const rowH = 16;
-        const drawRow = (cells: string[], bold: boolean, shade: boolean, tint = ACCENT_SOFT) => {
+        const drawRow = (cells: string[], bold: boolean, shade: boolean, tint = T.accentSoft) => {
           ensure(rowH);
           if (shade) canvas.rect(MARGIN, y - 4, CONTENT_W, rowH, tint);
           let x = MARGIN;
@@ -306,12 +372,12 @@ export function buildPdf(doc: PdfDocument): Buffer {
           });
           y += rowH;
         };
-        drawRow(block.columns.map((c) => c.header), true, true, TRACK);
+        drawRow(block.columns.map((c) => c.header), true, true, T.track);
         block.rows.forEach((row, i) => {
           // A table that runs onto a new page repeats its header.
           if (y + rowH > BOTTOM) {
             newPage();
-            drawRow(block.columns.map((c) => c.header), true, true, TRACK);
+            drawRow(block.columns.map((c) => c.header), true, true, T.track);
           }
           const hi = !!block.highlight?.includes(i);
           drawRow(row, hi || (!!block.boldLastRow && i === block.rows.length - 1), hi);
@@ -327,9 +393,9 @@ export function buildPdf(doc: PdfDocument): Buffer {
   pages.forEach((p, i) => {
     page = p;
     rule(PAGE_H - 40, 0.85);
-    text(fit(doc.footer, CONTENT_W - 80, 8), MARGIN, PAGE_H - 28, 8, false, MUTED_INK);
+    text(fit(doc.footer, CONTENT_W - 80, 8), MARGIN, PAGE_H - 28, 8, false, T.mutedInk);
     const label = `Page ${i + 1} of ${pages.length}`;
-    text(label, PAGE_W - MARGIN - textWidth(label, 8), PAGE_H - 28, 8, false, MUTED_INK);
+    text(label, PAGE_W - MARGIN - textWidth(label, 8), PAGE_H - 28, 8, false, T.mutedInk);
   });
 
   // Objects: 1 catalog, 2 pages, 3 F1, 4 F2, 5 info, then (page, content) pairs.

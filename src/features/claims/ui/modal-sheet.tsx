@@ -18,6 +18,7 @@ export function ModalSheet({
   children,
   footer,
   className,
+  scroll = true,
 }: {
   labelledBy: string;
   onDismiss?: () => void;
@@ -25,6 +26,8 @@ export function ModalSheet({
   /** Pinned under the scrolling body (the dialog's action buttons). */
   footer?: React.ReactNode;
   className?: string;
+  /** False: the body never scrolls; children fill it (flex column) and scroll inside their own frames. */
+  scroll?: boolean;
 }) {
   const panel = React.useRef<HTMLDivElement>(null);
   const body = React.useRef<HTMLDivElement>(null);
@@ -85,11 +88,12 @@ export function ModalSheet({
           ref={body}
           data-modal-body
           className={cn(
-            "min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-3 md:p-5",
+            "min-h-0 flex-1 px-5 pt-3 md:p-5",
+            scroll ? "overflow-y-auto overscroll-contain" : "flex flex-col overflow-hidden",
             footer ? "pb-3 md:pb-4" : "pb-[max(1.5rem,var(--safe-bottom))] md:pb-6",
           )}
         >
-          <div ref={inner}>
+          <div ref={inner} className={scroll ? undefined : "flex min-h-0 flex-1 flex-col"}>
             <div aria-hidden className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-border md:hidden" />
             {children}
           </div>

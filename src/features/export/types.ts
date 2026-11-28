@@ -53,6 +53,8 @@ export interface ExportInput {
   summaryFormat?: "xlsx" | "csv";
   /** The moment the numbers were taken. Stamped on every file. */
   now: Date;
+  /** Founder's light-theme colours for the PDF report. Default theme when omitted. */
+  theme?: import("./pdf").PdfTheme;
 }
 
 export interface ExportOutputFile {

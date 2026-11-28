@@ -2,13 +2,13 @@
 
 import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
-import { Check, Copy, Download } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
 
-import { downloadWaitlistCsv, fetchWaitlistRows, type WaitlistRow } from "./api";
+import { fetchWaitlistRows, type WaitlistRow } from "./api";
 import { useDeckResults } from "./use-results";
 
 const fmtDate = (iso: string) => {
@@ -16,14 +16,13 @@ const fmtDate = (iso: string) => {
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 };
 
-/** The test's Waitlist tab: count, inline search, the full list, Copy all emails and Download emails. */
+/** The test's Waitlist tab: count, inline search, the full list, and Copy all emails. */
 export function WaitlistScreen({ deckId }: { deckId: string }) {
   const { data, error: loadError } = useDeckResults(deckId);
   const [rows, setRows] = React.useState<WaitlistRow[] | null>(null);
   const [error, setError] = React.useState<string>();
   const [query, setQuery] = React.useState("");
   const [copied, setCopied] = React.useState(false);
-  const [busy, setBusy] = React.useState(false);
   const [tick, setTick] = React.useState(0);
 
   React.useEffect(() => {
@@ -46,20 +45,9 @@ export function WaitlistScreen({ deckId }: { deckId: string }) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      setError("Could not copy. Use Download emails instead.");
+      setError("Could not copy. Use Download in the header instead.");
     }
   };
-  const download = async () => {
-    setBusy(true);
-    try {
-      await downloadWaitlistCsv(deckId);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <Card className="w-full p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -79,14 +67,6 @@ export function WaitlistScreen({ deckId }: { deckId: string }) {
             className={cn(buttonVariants({ variant: "outline" }), "h-11")}
           >
             {copied ? <Check aria-hidden /> : <Copy aria-hidden />} {copied ? "Copied" : "Copy all emails"}
-          </button>
-          <button
-            type="button"
-            onClick={download}
-            disabled={busy || count === 0}
-            className={cn(buttonVariants({ variant: "default" }), "h-11")}
-          >
-            <Download aria-hidden /> Download emails
           </button>
         </div>
       </div>

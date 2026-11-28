@@ -9,6 +9,7 @@ import { NOT_CONFIGURED_MESSAGE } from "@/shared/lib/config";
 import { PRACTICE_CARD_LABEL, QUALITY, type PracticeCard, type PracticeMode, type SubmittedSwipe } from "@/features/quality";
 import { PracticeShell } from "./practice-shell";
 import { saveOutcome, type PracticeOutcome } from "./storage";
+import { PracticeCardsSkeleton } from "@/shared/ui/page-skeletons";
 
 type Phase = "loading" | "intro" | "playing" | "submitting" | "error";
 
@@ -200,7 +201,7 @@ export function PracticeFlow({ mode }: { mode: PracticeMode }) {
               {NOT_CONFIGURED_MESSAGE}
             </p>
           )}
-          {configured && phase === "loading" && <p className="mt-6 text-muted-foreground">Loading your practice cards...</p>}
+          {configured && phase === "loading" && <PracticeCardsSkeleton />}
           {phase === "submitting" && <p className="mt-6 font-semibold">Scoring your swipes...</p>}
           {phase === "error" && (
             <div role="alert" className="mt-6 rounded-xl border border-warning/30 bg-warning-soft p-4 text-sm text-warning">

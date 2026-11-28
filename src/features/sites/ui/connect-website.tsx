@@ -24,6 +24,7 @@ import {
 } from "@/features/sites/frameworks";
 import type { SiteRow, SiteView } from "@/features/sites/types";
 import { cn } from "@/shared/lib/utils";
+import { ProductSiteSkeleton } from "@/shared/ui/page-skeletons";
 
 const POLL_MS = 10_000;
 
@@ -105,9 +106,7 @@ export function ConnectWebsite({
 
   if (!view) {
     return (
-      <div className="space-y-6">
-        {error ? <p role="alert" className="rounded-xl bg-warning-soft px-4 py-3 text-sm text-warning">{error}</p> : <p className="text-sm text-muted-foreground" role="status">Loading your website settings...</p>}
-      </div>
+      error ? <p role="alert" className="rounded-xl bg-warning-soft px-4 py-3 text-sm text-warning">{error}</p> : <ProductSiteSkeleton />
     );
   }
 

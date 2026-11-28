@@ -13,6 +13,7 @@ import { ArrowChip } from "@/shared/ui/mascot";
 import type { WalletView } from "@/features/claims/rules";
 import { cn, formatRs } from "@/shared/lib/utils";
 import { haptic } from "@/shared/lib/feel/haptics";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 /** The "Show me ideas for" choice, kept in this browser so the swiper does not pick again on every visit. */
 const INTERESTS_STORAGE_KEY = "ps:swipe-interests";
@@ -164,7 +165,7 @@ export function SwipeHome({
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
           {statTiles.map((t) => (
             <div key={t.label} className={cn("rounded-xl border border-border bg-card p-4", t.className)}>
-              <p className="tnum text-2xl font-semibold">{t.value}</p>
+              {t.value === "..." ? <Skeleton className="h-8 w-16" /> : <p className="tnum text-2xl font-semibold">{t.value}</p>}
               <p className="mt-1 text-xs text-muted-foreground">{t.label}</p>
             </div>
           ))}

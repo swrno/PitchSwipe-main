@@ -10,6 +10,7 @@ import type { LeaderRow, ResultsPayload } from "@/features/results/types";
 import type { DeckListItem, DecksOverview, ProductListItem } from "@/features/decks/views";
 import { TEST_VARIABLE_LABELS, TEST_VARIABLES } from "@/shared/lib/lists";
 import { cn } from "@/shared/lib/utils";
+import { DownloadResultsButton } from "@/features/export/ui";
 import { api } from "./api";
 import { Notice, StatusText } from "./primitives";
 
@@ -112,8 +113,14 @@ export function ProductOverview({ productId }: { productId: string }) {
   const tested = new Set(decks.map((d) => d.variable));
   const next = TEST_VARIABLES.find((v) => !tested.has(v));
 
+  const started = decks.find((d) => d.status !== "draft");
   return (
     <div className="space-y-6">
+      {started && (
+        <div className="flex justify-end">
+          <DownloadResultsButton deckId={started.id} initialTab="results" initialScope="product" />
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi icon="live" value={`${live} of ${decks.length}`} label="Tests live" />
         <Kpi icon="swipers" value={n(swipers)} label="Swipers" />

@@ -2,6 +2,8 @@
 
 import { isFirebaseClientConfigured } from "@/features/auth/config";
 import { getFirebaseClientAuth } from "@/shared/lib/firebase/client";
+import { PALETTE_STORAGE_KEY, parseStored, resolveTokens } from "@/shared/lib/feel/palettes";
+import { themeParam } from "@/features/export/theme";
 import type { ExportPreview } from "@/features/export/preview";
 import type { ExportFile, ExportScope } from "@/features/export/types";
 
@@ -19,6 +21,27 @@ export class ExportApiError extends Error {
     public status: number,
   ) {
     super(message);
+  }
+}
+
+/** The founder's light-mode palette as the compact `theme` value, or undefined for the default look. */
+export function currentThemeParam(): string | undefined {
+  try {
+    const light = parseStored(window.localStorage.getItem(PALETTE_STORAGE_KEY)).light;
+    if (!light) return undefined;
+    const t = resolveTokens("light", light);
+    return themeParam({
+      accent: t.accent,
+      accentForeground: t["accent-foreground"],
+      accentSoft: t["accent-soft"],
+      foreground: t.foreground,
+      muted: t.muted,
+      mutedForeground: t["muted-foreground"],
+      border: t.border,
+      card: t.card,
+    });
+  } catch {
+    return undefined;
   }
 }
 
@@ -69,6 +92,8 @@ function fileNameFrom(res: Response): string {
 export async function downloadExport(choice: ExportChoice): Promise<string> {
   const query = new URLSearchParams({ deckId: choice.deckId, scope: choice.scope, files: choice.files.join(",") });
   if (choice.format) query.set("format", choice.format);
+  const theme = currentThemeParam();
+  if (theme) query.set("theme", theme);
   const res = await authed(`/api/export?${query}`);
   if (!res.ok) return fail(res, "Could not make the files. Try again.");
   const name = fileNameFrom(res);
@@ -87,7 +112,7 @@ export async function emailExport(choice: ExportChoice): Promise<{ to: string }>
   const res = await authed("/api/export", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ...choice, delivery: "email" }),
+    body: JSON.stringify({ ...choice, delivery: "email", theme: currentThemeParam() }),
   });
   if (!res.ok) return fail(res, "Could not email the files. Try again.");
   return (await res.json()) as { to: string };
@@ -103,6 +128,8 @@ export async function fetchExportPreview(deckId: string, scope: ExportScope): Pr
 export async function fetchExportFile(deckId: string, scope: ExportScope, file: ExportFile, format?: "csv"): Promise<Blob> {
   const query = new URLSearchParams({ deckId, scope, files: file });
   if (format) query.set("format", format);
+  const theme = file === "report" ? currentThemeParam() : undefined;
+  if (theme) query.set("theme", theme);
   const res = await authed(`/api/export?${query}`);
   if (!res.ok) return fail(res, "Could not load the file preview.");
   return res.blob();

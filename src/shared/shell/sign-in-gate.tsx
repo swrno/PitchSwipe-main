@@ -7,6 +7,7 @@ import { LogIn } from "lucide-react";
 import { buttonVariants } from "@/shared/ui/button";
 import { useAuth } from "@/features/auth/ui/provider";
 import { cn } from "@/shared/lib/utils";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 /**
  * Signed-in-only screens (/wallet, /profile, /decks/**, /products/**).
@@ -87,15 +88,15 @@ function GateSkeleton({ note }: { note?: string }) {
   return (
     <div role="status" aria-live="polite" className="space-y-5">
       <span className="sr-only">{note ?? "Checking your sign-in…"}</span>
-      <div aria-hidden className="space-y-5 motion-safe:animate-pulse">
-        <div className="h-4 w-32 rounded-full bg-muted" />
-        <div className="h-10 w-3/4 max-w-md rounded-2xl bg-muted" />
+      <div aria-hidden className="space-y-5">
+        <Skeleton className="h-4 w-32 rounded-full" />
+        <Skeleton className="h-10 w-3/4 max-w-md rounded-2xl" />
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="h-40 rounded-xl bg-muted" />
-          <div className="hidden h-40 rounded-xl bg-muted md:block" />
-          <div className="hidden h-40 rounded-xl bg-muted md:block" />
+          <Skeleton className="h-40 rounded-xl" />
+          <Skeleton className="hidden h-40 rounded-xl md:block" />
+          <Skeleton className="hidden h-40 rounded-xl md:block" />
         </div>
-        <div className="h-24 rounded-xl bg-muted" />
+        <Skeleton className="h-24 rounded-xl" />
       </div>
       {note ? <p className="text-sm text-muted-foreground">{note}</p> : null}
     </div>

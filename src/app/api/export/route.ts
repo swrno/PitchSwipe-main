@@ -98,6 +98,7 @@ export async function GET(request: Request) {
     files: url.searchParams.get("files") ?? undefined,
     delivery: "download",
     format: url.searchParams.get("format") ?? undefined,
+    theme: url.searchParams.get("theme") ?? undefined,
   });
   if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400, headers: NO_STORE });
   return handle(request, parsed.value);

@@ -2,6 +2,8 @@
  * Request handling for /api/export, free of Next.js so it can be unit tested with injected
  * loaders and mailer. The route handler adds the sign-in check (resolveOwnerId).
  */
+import type { PdfTheme } from "../pdf";
+import { parseTheme } from "../theme";
 import { bundleExport, type ExportBundle } from "../bundle";
 import { emailMessage, MailerError, type Mailer } from "./mailer";
 import { stampLabel } from "../stamp";
@@ -16,12 +18,14 @@ export interface ExportRequest {
   delivery: ExportDelivery;
   /** Summary table as one file instead of both. */
   format?: "xlsx" | "csv";
+  /** Validated report colours; undefined means the default theme. */
+  theme?: PdfTheme;
 }
 
 export type ParseResult = { ok: true; value: ExportRequest } | { ok: false; error: string };
 
 /** Accepts query strings (`files=report,summary`) and JSON bodies (`files: ["report"]`). */
-export function parseExportRequest(raw: { deckId?: unknown; scope?: unknown; files?: unknown; delivery?: unknown; format?: unknown }): ParseResult {
+export function parseExportRequest(raw: { deckId?: unknown; scope?: unknown; files?: unknown; delivery?: unknown; format?: unknown; theme?: unknown }): ParseResult {
   const deckId = typeof raw.deckId === "string" ? raw.deckId.trim() : "";
   if (!deckId) return { ok: false, error: "Pick a test to export." };
   const scope = raw.scope === undefined || raw.scope === "" ? "deck" : raw.scope;
@@ -33,8 +37,9 @@ export function parseExportRequest(raw: { deckId?: unknown; scope?: unknown; fil
   if (bad) return { ok: false, error: `Unknown file: ${bad.slice(0, 30)}.` };
   const delivery = raw.delivery === undefined || raw.delivery === "" ? "download" : raw.delivery;
   if (delivery !== "download" && delivery !== "email") return { ok: false, error: "Delivery must be download or email." };
+  const theme = parseTheme(raw.theme);
   const format = raw.format === "xlsx" || raw.format === "csv" ? raw.format : undefined;
-  return { ok: true, value: { deckId, scope: scope as ExportScope, files: files as ExportFile[], delivery, ...(format ? { format } : {}) } };
+  return { ok: true, value: { deckId, scope: scope as ExportScope, files: files as ExportFile[], delivery, ...(format ? { format } : {}), ...(theme ? { theme } : {}) } };
 }
 
 export interface ExportDeps {
@@ -69,7 +74,7 @@ export async function runExport(ownerId: string, req: ExportRequest, deps: Expor
   if (!decks || decks.length === 0) return { kind: "error", status: 404, error: "Test not found." };
 
   const bundle = bundleExport(
-    { productName: decks[0].payload.deck.productName, scope: req.scope, decks, files: req.files, summaryFormat: req.format, now },
+    { productName: decks[0].payload.deck.productName, scope: req.scope, decks, files: req.files, summaryFormat: req.format, theme: req.theme, now },
     { forceZip: req.delivery === "email" },
   );
   if (req.delivery === "download") return { kind: "download", bundle };

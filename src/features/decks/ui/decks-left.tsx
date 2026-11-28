@@ -5,6 +5,7 @@ import * as React from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/features/auth/ui/provider";
 import { CURRENT_PLAN, decksLeft } from "@/shared/lib/plans";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
@@ -16,6 +17,7 @@ const fmt = (n: number) => n.toLocaleString("en-IN");
 const FRESH_MS = 15_000;
 interface CountEntry {
   count: number | null;
+  failed: boolean;
   at: number;
   inflight: boolean;
   subs: Set<() => void>;
@@ -38,7 +40,7 @@ export function useDecksUsed(): number | null {
     if (!uid) return;
     let entry = counts.get(uid);
     if (!entry) {
-      entry = { count: null, at: 0, inflight: false, subs: new Set() };
+      entry = { count: null, failed: false, at: 0, inflight: false, subs: new Set() };
       counts.set(uid, entry);
     }
     const e = entry;
@@ -51,11 +53,15 @@ export function useDecksUsed(): number | null {
         .then((data) => {
           if (data && Array.isArray(data.decks)) {
             e.count = data.decks.length;
+            e.failed = false;
             e.at = Date.now();
-            e.subs.forEach((notify) => notify());
-          }
+          } else if (e.count === null) e.failed = true;
+          e.subs.forEach((notify) => notify());
         })
-        .catch(() => undefined)
+        .catch(() => {
+          if (e.count === null) e.failed = true;
+          e.subs.forEach((notify) => notify());
+        })
         .finally(() => {
           e.inflight = false;
         });
@@ -68,10 +74,18 @@ export function useDecksUsed(): number | null {
   return uid ? (counts.get(uid)?.count ?? null) : null;
 }
 
+/** True when the first count request failed and nothing is cached, so skeletons must stop. */
+function useDecksUsedFailed(): boolean {
+  const { user } = useAuth();
+  return user ? (counts.get(user.uid)?.failed ?? false) : false;
+}
+
 /** Compact "980 of 1,000 decks left" link to the plans page, for the sidebar. Signed in only. */
 export function DecksLeftCompact() {
   const used = useDecksUsed();
-  if (used === null) return null;
+  const { user } = useAuth();
+  const failed = useDecksUsedFailed();
+  if (used === null) return user && !failed ? <div role="status" aria-label="Loading tests left" className="px-3 py-2"><Skeleton className="h-4 w-36" /></div> : null;
   const left = decksLeft(used);
   return (
     <Link
@@ -87,7 +101,16 @@ export function DecksLeftCompact() {
 /** "980 decks left" on the founder's current plan, with a meter. Signed in only. */
 export function DecksLeftCard() {
   const used = useDecksUsed();
-  if (used === null) return null;
+  const { user } = useAuth();
+  const failed = useDecksUsedFailed();
+  if (used === null) {
+    return user && !failed ? (
+      <div role="status" aria-label="Loading tests left" className="space-y-3 rounded-xl border border-border bg-card p-4">
+        <Skeleton className="h-9 w-64 max-w-full" />
+        <Skeleton className="h-2 w-full rounded-full" />
+      </div>
+    ) : null;
+  }
   const left = decksLeft(used);
   const allowance = CURRENT_PLAN.deckAllowance;
   return (

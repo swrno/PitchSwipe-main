@@ -12,6 +12,7 @@ import { NOT_CONFIGURED_MESSAGE } from "@/shared/lib/config";
 import { PracticeShell } from "./practice-shell";
 import { ScoreRing } from "./score-ring";
 import { loadOutcome, type PracticeOutcome } from "./storage";
+import { QualityResultSkeleton } from "@/shared/ui/page-skeletons";
 
 /** What the screen needs. `metrics` is missing when we only have the saved score (a later visit). */
 type View = {
@@ -88,7 +89,7 @@ export function ResultView() {
           Your quality result is not available yet. {NOT_CONFIGURED_MESSAGE}
         </p>
       ) : !view ? (
-        <p className="py-20 text-center text-muted-foreground">Loading your result...</p>
+        <QualityResultSkeleton />
       ) : (
         <Result view={view} />
       )}

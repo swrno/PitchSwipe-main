@@ -100,7 +100,7 @@ export function PdfFrame({ url }: { url: string }) {
     <iframe
       title="PDF preview"
       src={`${url}#toolbar=0&navpanes=0&view=FitH`}
-      className="h-[620px] w-full rounded-xl border border-border bg-white"
+      className="h-full min-h-[320px] w-full flex-1 rounded-xl border border-border bg-white"
     />
   );
 }
@@ -114,8 +114,8 @@ export function SheetGrid({ sheet, empty }: { sheet: SheetData; empty: string })
   const cols = Array.from({ length: sheet.columns }, (_, i) => i);
   const shown = body.length;
   return (
-    <div>
-      <div className="h-[520px] overflow-auto rounded-xl border border-border bg-background" tabIndex={0} role="region" aria-label="Spreadsheet preview">
+    <div className="flex h-full min-h-0 flex-1 flex-col">
+      <div className="min-h-[200px] flex-1 overflow-auto rounded-xl border border-border bg-background" tabIndex={0} role="region" aria-label="Spreadsheet preview">
         <table className="min-w-full border-separate border-spacing-0 font-mono text-xs tabular-nums">
           <thead>
             <tr>

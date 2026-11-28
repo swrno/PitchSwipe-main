@@ -235,8 +235,10 @@ export function DeckChrome({
             ) : (
               <SwitcherButton view={null} className="px-3.5 py-1.5" />
             )}
-            {/* Results and Who swiped both export the same bundle (it includes the who-swiped tables). */}
-            {!sub || sub === "Audience & who swiped" ? <DownloadResultsButton deckId={deckId} /> : null}
+            {/* One Download button on every test tab but Share; the dialog opens on the file that matches the page. */}
+            {sub === "Share" ? null : (
+              <DownloadResultsButton deckId={deckId} initialTab={sub === "Waitlist users" ? "waitlist" : sub === "Audience & who swiped" ? "audience" : "results"} />
+            )}
           </>
         }
         tabs={tabs}
