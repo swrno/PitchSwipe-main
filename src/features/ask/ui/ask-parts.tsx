@@ -1,3 +1,4 @@
+import type * as React from "react";
 import Link from "next/link";
 
 import { buttonVariants } from "@/shared/ui/button";
@@ -135,13 +136,32 @@ function ReviewAndShip({ c }: { c: Extract<RenderedComponent, { kind: "reviewAnd
 
 /* Account cards: every value is display text made by code from tool data. */
 
+/** Bordered card: title on the left, a small "Open" link on the right when there is a page. */
+function CardShell({ title, href, children, footer }: { title: string; href?: string; children: React.ReactNode; footer?: string | null }) {
+  return (
+    <section className="overflow-hidden rounded-xl border border-border bg-card" aria-label={title}>
+      <header className="flex items-center justify-between gap-2 border-b border-border px-3.5 py-2">
+        <h3 className="truncate text-sm font-semibold">{title}</h3>
+        {href && (
+          <Link href={href} className="flex shrink-0 items-center gap-0.5 text-xs font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            Open
+            <ArrowUpRight aria-hidden className="size-3" />
+          </Link>
+        )}
+      </header>
+      {children}
+      {footer && <p className="border-t border-border px-3.5 py-2 text-xs text-muted-foreground">{footer}</p>}
+    </section>
+  );
+}
+
 function KpiRow({ c }: { c: Extract<RenderedComponent, { kind: "kpiRow" }> }) {
   return (
-    <dl className="grid grid-cols-3 gap-2">
+    <dl className="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-xl border border-border bg-card">
       {c.items.map((i) => (
-        <div key={i.label} className="min-w-0 rounded-xl border border-border bg-card px-3 py-2.5">
-          <dd className="truncate text-xl font-extrabold tracking-tight">{i.value}</dd>
+        <div key={i.label} className="min-w-0 px-3 py-2.5">
           <dt className="truncate text-xs text-muted-foreground">{i.label}</dt>
+          <dd className="truncate text-base font-semibold tabular-nums">{i.value}</dd>
         </div>
       ))}
     </dl>
@@ -149,59 +169,50 @@ function KpiRow({ c }: { c: Extract<RenderedComponent, { kind: "kpiRow" }> }) {
 }
 
 function ProductList({ c }: { c: Extract<RenderedComponent, { kind: "productList" }> }) {
-  if (c.items.length === 0) return <p className="rounded-2xl bg-muted p-3.5 text-sm text-muted-foreground">No products yet.</p>;
+  if (c.items.length === 0) return <p className="rounded-xl border border-border bg-card px-3.5 py-3 text-sm text-muted-foreground">No products yet.</p>;
   return (
-    <ul className="grid gap-2" aria-label="Your products">
-      {c.items.map((p) => (
-        <li key={p.id}>
-          <Link href={p.href} className="block rounded-2xl border border-border bg-card p-3.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <div className="flex items-center justify-between gap-2">
-              <span className="min-w-0 truncate font-extrabold tracking-tight">{p.name}</span>
-              <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-muted-foreground">
-                {p.role === "cofounder" ? "Co-founder" : "Open"}
-                <ArrowUpRight aria-hidden className="size-3.5" />
+    <CardShell title="Products" href="/products" footer={c.more}>
+      <ul aria-label="Your products" className="divide-y divide-border">
+        {c.items.map((p) => (
+          <li key={p.id}>
+            <Link href={p.href} className="flex items-center justify-between gap-3 px-3.5 py-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+              <span className="min-w-0 truncate text-sm font-medium">
+                {p.name}
+                {p.role === "cofounder" && <span className="ml-1.5 text-xs font-normal text-muted-foreground">Co-founder</span>}
               </span>
-            </div>
-            <dl className="mt-2 grid grid-cols-4 gap-2 text-xs text-muted-foreground">
-              {[["Tests", p.tests], ["Live", p.live], ["Swipes", p.swipers], ["Waitlist", p.waitlist]].map(([k, v]) => (
-                <div key={k}>
-                  <dd className="text-base font-extrabold tabular-nums text-foreground">{v}</dd>
-                  <dt>{k}</dt>
-                </div>
-              ))}
-            </dl>
-          </Link>
-        </li>
-      ))}
-      {c.more && <li className="text-xs text-muted-foreground">{c.more}</li>}
-    </ul>
-  );
-}
-
-function TestTable({ c }: { c: Extract<RenderedComponent, { kind: "testTable" }> }) {
-  if (c.rows.length === 0) return <p className="rounded-2xl bg-muted p-3.5 text-sm text-muted-foreground">No tests match.</p>;
-  return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card">
-      <ul aria-label="Tests" className="divide-y divide-border">
-        {c.rows.map((r) => (
-          <li key={r.id}>
-            <Link href={r.href} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-0.5 px-3.5 py-2.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
-              <span className="min-w-0 truncate text-sm font-extrabold">
-                {r.product} <span className="font-semibold text-muted-foreground">{r.variable}</span>
+              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                {p.tests} tests · {p.live} live · {p.waitlist} waitlist
               </span>
-              <StatusText tone={r.tone as StatusTone} className="text-xs">
-                {r.status}
-              </StatusText>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {r.swipers} swipes · {r.waitlist} waitlist
-              </span>
-              <ArrowUpRight aria-hidden className="size-3.5 justify-self-end text-muted-foreground" />
             </Link>
           </li>
         ))}
       </ul>
-      {c.more && <p className="border-t border-border px-3.5 py-2 text-xs text-muted-foreground">{c.more}</p>}
-    </div>
+    </CardShell>
+  );
+}
+
+function TestTable({ c }: { c: Extract<RenderedComponent, { kind: "testTable" }> }) {
+  if (c.rows.length === 0) return <p className="rounded-xl border border-border bg-card px-3.5 py-3 text-sm text-muted-foreground">No tests match.</p>;
+  return (
+    <CardShell title="Tests" href="/decks" footer={c.more}>
+      <ul aria-label="Tests" className="divide-y divide-border">
+        {c.rows.map((r) => (
+          <li key={r.id}>
+            <Link href={r.href} className="grid grid-cols-[1fr_auto] items-center gap-x-3 px-3.5 py-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+              <span className="min-w-0 truncate text-sm font-medium">
+                {r.product} <span className="font-normal text-muted-foreground">{r.variable}</span>
+              </span>
+              <StatusText tone={r.tone as StatusTone} className="text-xs">
+                {r.status}
+              </StatusText>
+              <span className="col-span-2 text-xs tabular-nums text-muted-foreground">
+                {r.swipers} swipes · {r.waitlist} waitlist
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </CardShell>
   );
 }
 
@@ -230,9 +241,9 @@ function Comparison({ c }: { c: Extract<RenderedComponent, { kind: "comparison" 
 
 function PageLink({ c }: { c: Extract<RenderedComponent, { kind: "pageLink" }> }) {
   return (
-    <section className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3.5">
+    <section className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5">
       <div className="min-w-0">
-        <p className="truncate font-extrabold tracking-tight">{c.title}</p>
+        <p className="truncate text-sm font-semibold">{c.title}</p>
         <p className="truncate text-sm text-muted-foreground">{c.description}</p>
       </div>
       <Link href={c.href} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "shrink-0")}>

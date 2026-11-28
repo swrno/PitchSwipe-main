@@ -164,7 +164,7 @@ export function cleanChatMessages(raw: unknown): UIMessage[] {
       const resumedClient = (CLIENT_TOOL_NAMES as readonly string[]).includes(name) && typeof p.state === "string" && OUTPUT_STATES.has(p.state);
       if (resumedAction || resumedClient) kept.push(p as unknown as UIMessage["parts"][number]);
     }
-    if (kept.length) out.push({ id: `m${out.length}`, role: msg.role, parts: kept });
+    if (kept.length) out.push({ id: typeof (m as { id?: unknown }).id === "string" && ((m as { id: string }).id.length <= 64) ? (m as { id: string }).id : `m${out.length}`, role: msg.role, parts: kept });
   });
   while (out.length && out[0].role !== "user") out.shift();
   return out;
@@ -277,7 +277,15 @@ export function mockModel(run: ChatRun, question: string): LanguageModel {
 /* Entry --------------------------------------------------------------------------------------- */
 
 /** The streaming chat turn. Returns the AI SDK UI message stream response. */
-export async function runChat(options: { ctx: ChatRun["ctx"]; actor: Actor; page?: PageInfo; messages: UIMessage[]; abortSignal?: AbortSignal }): Promise<Response> {
+export async function runChat(options: {
+  ctx: ChatRun["ctx"];
+  actor: Actor;
+  page?: PageInfo;
+  messages: UIMessage[];
+  abortSignal?: AbortSignal;
+  /** Called when the stream ends, with the assistant message this turn produced (the route saves the chat here). */
+  onTurnFinish?: (responseMessage: UIMessage) => void | Promise<void>;
+}): Promise<Response> {
   const { ctx, actor } = options;
   const run = newRun(ctx, actor);
   const real = sdkModel();
@@ -302,6 +310,14 @@ export async function runChat(options: { ctx: ChatRun["ctx"]; actor: Actor; page
   });
   return result.toUIMessageStreamResponse({
     headers: { "cache-control": "no-store" },
+    originalMessages: options.messages,
+    onFinish: async ({ responseMessage }) => {
+      try {
+        await options.onTurnFinish?.(responseMessage);
+      } catch (error) {
+        console.error("chat: could not save the chat", error instanceof Error ? error.message : error);
+      }
+    },
     onError: () => "Could not answer that. Try again.",
   });
 }

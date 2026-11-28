@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { resolveOwnerId, readJson } from "@/features/decks/server/owner";
 import { limitKey, limitRequest } from "@/shared/lib/ratelimit";
 import type { Actor } from "@/features/ask/server/account";
+import { isChatId, isForeignChat, saveTurn } from "@/features/ask/server/history";
 import { buildAccountCtx, canAnswer, cleanChatMessages, resolvePage, runChat } from "@/features/ask";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,8 @@ interface ChatBody {
   pathname?: unknown;
   timeZone?: unknown;
   theme?: unknown;
+  /** The saved-chat id the browser keeps for this conversation. Saved under the signed-in uid only. */
+  chatId?: unknown;
 }
 
 const clip = (v: unknown, max: number): string => (typeof v === "string" ? v.slice(0, max) : "");
@@ -41,7 +44,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Type a question first." }, { status: 400, headers: NO_STORE });
   }
 
+  const chatId = isChatId(body?.chatId) ? body.chatId : null;
   try {
+    // A chat id that belongs to someone else is not found, and nothing is ever written to it.
+    if (chatId && (await isForeignChat(who.ownerId, chatId))) return NextResponse.json({ error: "Chat not found." }, { status: 404, headers: NO_STORE });
     const theme = body?.theme as { mode?: unknown; presetId?: unknown } | undefined;
     const actor: Actor = {
       ownerId: who.ownerId,
@@ -52,7 +58,14 @@ export async function POST(request: Request) {
       theme: theme?.mode === "light" || theme?.mode === "dark" ? { mode: theme.mode, presetId: clip(theme.presetId, 32) || "pitchswipe" } : undefined,
     };
     const [ctx, page] = await Promise.all([buildAccountCtx(actor), resolvePage(actor)]);
-    return await runChat({ ctx, actor, page, messages, abortSignal: request.signal });
+    return await runChat({
+      ctx,
+      actor,
+      page,
+      messages,
+      abortSignal: request.signal,
+      onTurnFinish: chatId ? async (response) => void (await saveTurn({ uid: who.ownerId, chatId, sent: body?.messages, response })) : undefined,
+    });
   } catch (error) {
     console.error("chat: failed", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Could not answer that. Try again." }, { status: 502, headers: NO_STORE });

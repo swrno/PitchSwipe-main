@@ -213,6 +213,22 @@ productMemberSchema.index({ productId: 1, email: 1 }, { unique: true });
 productMemberSchema.index({ tokenHash: 1 }, { unique: true, sparse: true });
 productMemberSchema.index({ uid: 1, status: 1 });
 
+// Saved Ask PitchSwipe chats, one document per (uid, chatId). `chatId` is unique across users, so a chatId that belongs to
+// someone else can never be written. Chats expire 90 days after the last update (TTL index on updatedAt).
+export const ASK_CHAT_TTL_SECONDS = 90 * 24 * 60 * 60;
+const askChatSchema = new Schema<Shape>({
+  uid: { ...ref("User"), required: true },
+  chatId: { type: String, required: true },
+  title: { type: String, default: "" },
+  // The UIMessage array (capped by the service); approval signatures are never stored.
+  messages: { type: Schema.Types.Mixed, default: [] },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+askChatSchema.index({ chatId: 1 }, { unique: true });
+askChatSchema.index({ uid: 1, updatedAt: -1 });
+askChatSchema.index({ updatedAt: 1 }, { expireAfterSeconds: ASK_CHAT_TTL_SECONDS });
+
 function getModel(name: string, schema: Schema<Shape>): Model<Shape> {
   return models[name] || model(name, schema);
 }
@@ -228,6 +244,7 @@ export const AssistantEvent = getModel("AssistantEvent", assistantEventSchema);
 export const Wallet = getModel("Wallet", walletSchema);
 export const Credits = getModel("Credits", creditsSchema);
 export const ProductMember = getModel("ProductMember", productMemberSchema);
+export const AskChat = getModel("AskChat", askChatSchema);
 
 export const modelNames = [
   "User",
@@ -241,4 +258,5 @@ export const modelNames = [
   "Wallet",
   "Credits",
   "ProductMember",
+  "AskChat",
 ] as const;

@@ -1,5 +1,7 @@
 "use client";
 
+import type { UIMessage } from "ai";
+
 import { isFirebaseClientConfigured } from "@/features/auth/config";
 import { getFirebaseClientAuth } from "@/shared/lib/firebase/client";
 
@@ -35,4 +37,31 @@ export async function loadAskPage(pathname: string): Promise<AskPageInfo | null>
   if (!res.ok) return null;
   const data = (await res.json().catch(() => ({}))) as { page?: AskPageInfo };
   return data.page ?? null;
+}
+
+export interface SavedChat {
+  chatId: string;
+  title: string;
+  updatedAt: string;
+}
+
+/** The user's 20 most recent saved chats (empty when the request fails). */
+export async function loadChats(): Promise<SavedChat[]> {
+  const res = await askFetch("/api/chat/history");
+  if (!res.ok) return [];
+  const data = (await res.json().catch(() => ({}))) as { chats?: SavedChat[] };
+  return data.chats ?? [];
+}
+
+/** The messages of one saved chat, or null when it is gone (or not the user's). */
+export async function loadChat(chatId: string): Promise<UIMessage[] | null> {
+  const res = await askFetch(`/api/chat/history/${encodeURIComponent(chatId)}`);
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => ({}))) as { chat?: { messages?: UIMessage[] } };
+  return data.chat?.messages ?? null;
+}
+
+export async function removeChat(chatId: string): Promise<boolean> {
+  const res = await askFetch(`/api/chat/history/${encodeURIComponent(chatId)}`, { method: "DELETE" });
+  return res.ok;
 }
