@@ -17,22 +17,20 @@ Nothing secret is written here. Keys, passwords and the server env are handed ov
 | Database | MongoDB 7 on the same VM, localhost only, auth on, nightly backups |
 | Accounts | Firebase Authentication, project `pitchswipe-cadfd` |
 | Experiments | Flagsmith Cloud, project **PitchSwipe** |
-| Code and deploys | GitHub `swrno/PitchSwipe-main` (public, the final submission repo); every push to `main` that passes CI deploys itself. The earlier private repo `swrno/PitchSwipe` keeps the history up to 26 Nov 2026; its deploy workflow is disabled so it can no longer ship to the server |
-| Apps | Android APK and iOS builds are published on the [releases page](https://github.com/swrno/PitchSwipe-main/releases). The iOS `.ipa` is unsigned and will not install on an iPhone until it is signed |
+| Code and deploys | GitHub `swrno/PitchSwipe` (public, the final submission repo; named `swrno/PitchSwipe` until 28 Nov 2026, and GitHub redirects the old name); every push to `main` that passes CI deploys itself |
+| Apps | Android APK and iOS builds are published on the [releases page](https://github.com/swrno/PitchSwipe/releases). The iOS `.ipa` is unsigned and will not install on an iPhone until it is signed |
 
 ## Access you need
 
 Ask the current owner for each of these. Nothing here can be done from the repo alone.
 
-1. **GitHub:** collaborator on `swrno/PitchSwipe-main` (the owner adds you under Settings -> Collaborators). It is a
+1. **GitHub:** collaborator on `swrno/PitchSwipe` (the owner adds you under Settings -> Collaborators). It is a
    personal-account repo, so collaborators get read and write but cannot be made admins. To manage Actions secrets,
    variables and repo settings yourself, have the owner transfer the repo to you or to an organization where you
    are an owner.
-   After a transfer, update the repo name in the `github.repository == 'swrno/PitchSwipe-main'` guard in every
-   workflow that has it: `.github/workflows/deploy.yml`, `uptime.yml` and `offsite-backup.yml`
-   (`git grep -n "swrno/PitchSwipe-main'" -- .github` lists them). Otherwise deploys, the uptime check and the
-   off-site backup all stop: a skipped job is not a failure, so no failure email is sent. The Actions variables and
-   secrets move with the repo.
+   A rename or transfer needs no workflow change: deploy, the uptime check and the off-site backup run wherever the
+   repo's Actions variables (`DEPLOY_HOST`, `APP_URL`) are set, and those move with the repo. If they are ever
+   removed, those jobs show as **skipped**, not failed, so no failure email is sent.
 2. **The server:** an SSH key on the VM. See [Logging in to the server](#logging-in-to-the-server).
 3. **Firebase:** member of project `pitchswipe-cadfd` (Firebase console -> Project settings -> Users and
    permissions -> Add member, role Owner or Editor).

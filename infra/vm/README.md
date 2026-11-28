@@ -34,11 +34,11 @@ internet :80  -> nginx -> 301 to https (except /.well-known/acme-challenge/)
 
 Manual run: Actions -> Deploy -> Run workflow (on `main`).
 
-GitHub settings it needs (on `swrno/PitchSwipe-main`): secrets `DEPLOY_SSH_KEY` (a private key whose public half is in `/home/deploy/.ssh/authorized_keys`, comment `github-actions-deploy@pitchswipe-main`) and `DEPLOY_KNOWN_HOSTS` (the VM's host key); variables `DEPLOY_HOST` and `APP_URL`. Browser config is built in, so `NEXT_PUBLIC_FIREBASE_*`, `NEXT_PUBLIC_FLAGSMITH_ENV_KEY` and `NEXT_PUBLIC_SUPPORT_EMAIL` are repo **variables** too (they are public values). Server secrets (Mongo, Firebase Admin, LLM, ...) go in `/etc/pitchswipe.env` on the VM only.
+GitHub settings it needs (on `swrno/PitchSwipe`): secrets `DEPLOY_SSH_KEY` (a private key whose public half is in `/home/deploy/.ssh/authorized_keys`, comment `github-actions-deploy@pitchswipe-main`) and `DEPLOY_KNOWN_HOSTS` (the VM's host key); variables `DEPLOY_HOST` and `APP_URL`. Browser config is built in, so `NEXT_PUBLIC_FIREBASE_*`, `NEXT_PUBLIC_FLAGSMITH_ENV_KEY` and `NEXT_PUBLIC_SUPPORT_EMAIL` are repo **variables** too (they are public values). Server secrets (Mongo, Firebase Admin, LLM, ...) go in `/etc/pitchswipe.env` on the VM only.
 
 ## Uptime check
 
-`.github/workflows/uptime.yml` calls `${APP_URL}/api/health` every 30 minutes (and on demand: Actions -> Uptime -> Run workflow). A run passes only when the answer is HTTP 200 with `"ok":true`, `"db":"up"`, `"firebaseAdmin":true`. It tries 3 times, 10 s apart, before failing, so one slow answer or a deploy restart does not count as an outage. It runs only in `swrno/PitchSwipe-main` (not in forks), needs only the `APP_URL` variable, and has read-only permissions.
+`.github/workflows/uptime.yml` calls `${APP_URL}/api/health` every 30 minutes (and on demand: Actions -> Uptime -> Run workflow). A run passes only when the answer is HTTP 200 with `"ok":true`, `"db":"up"`, `"firebaseAdmin":true`. It tries 3 times, 10 s apart, before failing, so one slow answer or a deploy restart does not count as an outage. It runs only in `swrno/PitchSwipe` (not in forks), needs only the `APP_URL` variable, and has read-only permissions.
 
 Who hears about a failure: GitHub emails a failed **scheduled** run to one person, the user who created the workflow file; after that, the user who last changed its `cron:` line, or who last re-enabled the workflow. It does not email everyone who watches the repo. That person needs Actions notifications switched on (GitHub -> Settings -> Notifications -> Actions; on by default). To move the alerts to someone else, have them make a commit that changes the `cron:` line, or disable and re-enable the workflow themselves.
 
@@ -54,7 +54,7 @@ The nightly backup (02:15 UTC, `/var/backups/pitchswipe`) lives on the VM's own 
 2. The stream goes straight into `gpg --symmetric --cipher-algo AES256` with the `BACKUP_PASSPHRASE` secret, so the unencrypted backup never lands on the runner's disk.
 3. It checks the encrypted file is not empty and decrypts it in memory to check it holds a complete gzip archive, then uploads it as the artifact `pitchswipe-backup-<UTC date and time>`, kept for 30 days.
 
-Without `BACKUP_PASSPHRASE` the run fails before connecting and uploads nothing; it never uploads an unencrypted file. It runs only in `swrno/PitchSwipe-main`.
+Without `BACKUP_PASSPHRASE` the run fails before connecting and uploads nothing; it never uploads an unencrypted file. It runs only where the `DEPLOY_HOST` variable is set, so never in a fork.
 
 **The repo is public: anyone signed in to GitHub can download these artifacts.** That is why they are encrypted, and why the passphrase must stay secret. **If the passphrase is lost, every copy is useless**: GitHub never shows a secret again, so keep the passphrase in a password manager and hand it over with the server env. When you change it, keep the old one for 30 days, because older artifacts still need it.
 
@@ -94,12 +94,12 @@ sudo -u deploy sudo -n /usr/local/bin/pitchswipe-backup-export anything      # r
 Then the GitHub side:
 
 1. Make a passphrase on your own machine, one line, for example `openssl rand -base64 32`, and store it in your password manager.
-2. Add it as a **repository** secret named `BACKUP_PASSPHRASE` (Settings -> Secrets and variables -> Actions -> New repository secret, or `gh secret set BACKUP_PASSPHRASE -R swrno/PitchSwipe-main` and paste it when asked). It sits next to `DEPLOY_SSH_KEY` and `DEPLOY_KNOWN_HOSTS`, which this workflow also uses, with the `DEPLOY_HOST` variable.
+2. Add it as a **repository** secret named `BACKUP_PASSPHRASE` (Settings -> Secrets and variables -> Actions -> New repository secret, or `gh secret set BACKUP_PASSPHRASE -R swrno/PitchSwipe` and paste it when asked). It sits next to `DEPLOY_SSH_KEY` and `DEPLOY_KNOWN_HOSTS`, which this workflow also uses, with the `DEPLOY_HOST` variable.
 3. Actions -> Off-site backup -> Run workflow, then check the run's Artifacts list shows `pitchswipe-backup-...`.
 
 ### Restore from an off-site copy
 
-1. Download it: Actions -> Off-site backup -> pick a run -> Artifacts -> `pitchswipe-backup-<date>` (GitHub serves it as a zip), or `gh run download <run-id> -R swrno/PitchSwipe-main -n pitchswipe-backup-<date>` (unzips for you).
+1. Download it: Actions -> Off-site backup -> pick a run -> Artifacts -> `pitchswipe-backup-<date>` (GitHub serves it as a zip), or `gh run download <run-id> -R swrno/PitchSwipe -n pitchswipe-backup-<date>` (unzips for you).
 2. Unzip it if needed; inside is `pitchswipe-backup-<date>.archive.gz.gpg`.
 3. Decrypt it (gpg asks for the passphrase):
 

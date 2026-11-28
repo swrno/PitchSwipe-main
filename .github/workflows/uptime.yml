@@ -17,8 +17,9 @@ concurrency:
 
 jobs:
   health:
-    # The repo is public, so forks get this workflow too; only this repo checks the live site.
-    if: github.repository == 'swrno/PitchSwipe-main'
+    # The repo is public, so forks get this workflow too: it runs only where APP_URL is set, which forks never have.
+    # Checking the settings, not the repo name, keeps working after a rename or transfer.
+    if: vars.APP_URL != ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
