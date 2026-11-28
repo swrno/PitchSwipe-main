@@ -9,12 +9,6 @@ import { cn } from "@/shared/lib/utils";
 
 import { AskPanel } from "./ask-panel";
 
-/** The deck the page is about, from /decks/[id]/... (not /decks/new). Otherwise the server picks the newest deck. */
-function deckIdFrom(pathname: string): string | null {
-  const m = /^\/decks\/([^/]+)/.exec(pathname);
-  return m && m[1] !== "new" ? decodeURIComponent(m[1]) : null;
-}
-
 /**
  * "Ask PitchSwipe": a pill in the bottom-right corner (above the tab bar on phones) that opens the chat panel
  * on the right. Hidden while the panel is open. The panel mounts on first open and keeps its conversation.
@@ -45,7 +39,7 @@ export function AskFab() {
           Ask PitchSwipe
         </button>
       )}
-      {mounted && <AskPanel open={open} onClose={close} deckId={deckIdFrom(pathname)} />}
+      {mounted && <AskPanel open={open} onClose={close} pathname={pathname} />}
     </>
   );
 }
