@@ -51,12 +51,20 @@ function httpUrl(value: string, label: string): string {
 }
 
 /** Safe inside an inline script: no raw "<" (so "</script>" cannot appear). */
-function js(value: unknown): string {
+export function js(value: unknown): string {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
-/** The script tag the founder pastes before </body>. */
-export function buildSnippet(opts: SnippetOptions): string {
+export interface ResolvedConfig {
+  env: string;
+  flags: string;
+  ping: string;
+  live: boolean;
+  poll: number;
+}
+
+/** Validates the options once; every framework variant is built from this same config. */
+export function resolveConfig(opts: SnippetOptions): ResolvedConfig {
   if (!KEY_RE.test(opts.envKey)) throw new Error("The client key is missing or malformed.");
   if (looksLikeServerKey(opts.envKey)) throw new Error("Refusing to put a server key in the snippet.");
   if (!ID_RE.test(opts.siteId)) throw new Error("The site id is malformed.");
@@ -64,13 +72,21 @@ export function buildSnippet(opts: SnippetOptions): string {
   const ping = `${base.origin}/api/sites/ping?s=${encodeURIComponent(opts.siteId)}`;
   const flags = httpUrl(opts.flagsUrl ?? DEFAULT_FLAGS_URL, "flagsUrl");
   const poll = Math.min(3600, Math.max(5, Math.round(opts.pollSeconds ?? 30)));
-  const live = !isPlaceholderKey(opts.envKey);
+  return { env: opts.envKey, flags, ping, live: !isPlaceholderKey(opts.envKey), poll };
+}
 
-  return `<script>
-/* PitchSwipe: shows the winning text on elements marked data-pitchswipe="<flag name>".
+/** The script tag the founder pastes before </body>. */
+export function buildSnippet(opts: SnippetOptions): string {
+  return `<script>\n${buildScriptBody(opts)}\n</script>`;
+}
+
+/** The JavaScript inside the script tag (also used by the Next.js next/script variant). */
+export function buildScriptBody(opts: SnippetOptions): string {
+  const { env, flags, ping, live, poll } = resolveConfig(opts);
+  return `/* PitchSwipe: shows the winning text on elements marked data-pitchswipe="<flag name>".
    Uses only the public client key. Your current text stays as the fallback. */
 (function () {
-  var C = { env: ${js(opts.envKey)}, flags: ${js(flags)}, ping: ${js(ping)}, live: ${js(live)}, poll: ${poll} * 1000 };
+  var C = { env: ${js(env)}, flags: ${js(flags)}, ping: ${js(ping)}, live: ${js(live)}, poll: ${poll} * 1000 };
   var last = "";
   function apply(values) {
     var els = document.querySelectorAll("[data-pitchswipe]"), report = [], i, el, flag, v;
@@ -110,8 +126,7 @@ export function buildSnippet(opts: SnippetOptions): string {
   function start() { load(); if (C.live) setInterval(function () { if (!document.hidden) load(); }, C.poll); }
   window.pitchswipe = { apply: apply, refresh: load };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
-})();
-</script>`;
+})();`;
 }
 
 /** Markup example for the second snippet step (designs F2b "Mark what each deck controls"). */

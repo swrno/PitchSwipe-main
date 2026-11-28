@@ -34,6 +34,17 @@ export interface SiteRow {
   seen: boolean;
 }
 
+/** Public config behind the snippet, shared by every framework variant. */
+export interface SiteSetup {
+  envKey: string;
+  siteId: string;
+  baseUrl: string;
+  flagsUrl?: string;
+  pollSeconds?: number;
+  /** One per text test: the flag name and the current text (the fallback). */
+  flags: { flagName: string; text: string; tag?: "h1" | "span" | "p" }[];
+}
+
 /** What GET /api/sites returns for the connect screen (F2b). */
 export interface SiteView {
   productName: string;
@@ -47,6 +58,8 @@ export interface SiteView {
   snippet: string | null;
   /** Markup example for the first deck flags. */
   markup: string | null;
+  /** Config every framework variant is built from (public values only); null until a site exists. */
+  setup: SiteSetup | null;
   /** False when NEXT_PUBLIC_FLAGSMITH_ENV_KEY is unset: the snippet shows a placeholder. */
   keyConfigured: boolean;
 }

@@ -7,6 +7,19 @@ import { assistantJson } from "@/features/assistant/ui/api";
 import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
 import { agoLabel } from "@/features/sites/status";
+import {
+  buildFrameworkSetup,
+  DEFAULT_FRAMEWORK,
+  developerMessage,
+  frameworkLabel,
+  frameworkStorageKey,
+  FRAMEWORKS,
+  installCopyText,
+  isFrameworkId,
+  type CodeBlock as CodeBlockData,
+  type FrameworkId,
+  type FrameworkSetup,
+} from "@/features/sites/frameworks";
 import type { SiteRow, SiteView } from "@/features/sites/types";
 import { cn } from "@/shared/lib/utils";
 
@@ -29,6 +42,36 @@ export function ConnectWebsite({
   const [error, setError] = React.useState<string | null>(null);
   const [now, setNow] = React.useState(() => Date.now());
   const [editing, setEditing] = React.useState(false);
+  const [framework, setFramework] = React.useState<FrameworkId>(DEFAULT_FRAMEWORK);
+
+  React.useEffect(() => {
+    // Remembered per product; read after mount so the server and first client render agree.
+    try {
+      const saved = localStorage.getItem(frameworkStorageKey(productId));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (isFrameworkId(saved)) setFramework(saved);
+    } catch {
+      /* storage unavailable: keep the default */
+    }
+  }, [productId]);
+
+  const pickFramework = (id: FrameworkId) => {
+    setFramework(id);
+    try {
+      localStorage.setItem(frameworkStorageKey(productId), id);
+    } catch {
+      /* ignore */
+    }
+  };
+  const viewSetup = view?.setup ?? null;
+  const setup = React.useMemo<FrameworkSetup | null>(() => {
+    if (!viewSetup) return null;
+    try {
+      return buildFrameworkSetup(framework, viewSetup);
+    } catch {
+      return null;
+    }
+  }, [viewSetup, framework]);
 
   const load = React.useCallback(async () => {
     try {
@@ -109,16 +152,25 @@ export function ConnectWebsite({
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <Card className="p-5 md:p-5">
+          {view.site ? <FrameworkPicker value={framework} onChange={pickFramework} /> : null}
           <Step done={stepDone[0]} n={1} title="Add this snippet to your site, once" disabled={!view.site}>
-            {view.site ? <SnippetStep view={view} /> : <p className="text-sm text-muted-foreground">Save your website address above first.</p>}
+            {view.site ? <SnippetStep view={view} setup={setup} framework={framework} /> : <p className="text-sm text-muted-foreground">Save your website address above first.</p>}
           </Step>
 
           <Step done={stepDone[1]} n={2} title="Mark what each test controls" disabled={!view.site}>
-            <p className="text-sm text-muted-foreground">
-              Add <code className="font-mono text-foreground">data-pitchswipe</code> with the test&apos;s flag name. Keep your current text inside; it
-              shows until a winner ships.
-            </p>
-            {view.markup ? <CodeBlock>{view.markup}</CodeBlock> : <p className="mt-2 text-sm text-muted-foreground">Create a test to see its flag name here.</p>}
+            {setup ? (
+              <>
+                {setup.mark.intro.map((t) => (
+                  <p key={t} className="text-sm text-muted-foreground">{t}</p>
+                ))}
+                {setup.mark.blocks.map((b) => (
+                  <CodeBlock key={b.title ?? b.code} title={b.title}>{b.code}</CodeBlock>
+                ))}
+                {!view.setup?.flags.length ? <p className="mt-2 text-sm text-muted-foreground">Create a test to see its flag name here; this uses an example name.</p> : null}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Create a test to see its flag name here.</p>
+            )}
           </Step>
 
           <Step done={stepDone[2]} n={3} title="Check the connection" last disabled={!view.site}>
@@ -184,21 +236,54 @@ function Step({ n, done, title, children, last, disabled }: { n: number; done: b
   );
 }
 
-function CodeBlock({ children, label }: { children: string; label?: string }) {
+function FrameworkPicker({ value, onChange }: { value: FrameworkId; onChange: (id: FrameworkId) => void }) {
+  return (
+    <div className="mb-6">
+      <p id="framework-h" className="text-sm font-medium">What is your site built with?</p>
+      <div role="group" aria-labelledby="framework-h" className="-mx-1 mt-2 flex gap-1 overflow-x-auto px-1 pb-1">
+        {FRAMEWORKS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            aria-pressed={value === f.id}
+            onClick={() => onChange(f.id)}
+            className={cn(
+              "h-10 shrink-0 rounded-full border px-4 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              value === f.id ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted",
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CodeBlock({ children, label, title }: { children: string; label?: string; title?: string }) {
+  return (
+    <div className="mt-3">
+      {title ? <p className="mb-1 font-mono text-xs text-muted-foreground">{title}</p> : null}
+      <CodeBlockPre label={label ?? title}>{children}</CodeBlockPre>
+    </div>
+  );
+}
+
+function CodeBlockPre({ children, label }: { children: string; label?: string }) {
   return (
     <pre
       tabIndex={0}
       aria-label={label}
-      className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-2xl bg-ink p-4 font-mono text-[12.5px] leading-relaxed text-ink-foreground"
+      className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-2xl bg-ink p-4 font-mono text-[12.5px] leading-relaxed text-ink-foreground"
     >
       <code>{children}</code>
     </pre>
   );
 }
 
-function SnippetStep({ view }: { view: SiteView }) {
+function SnippetStep({ view, setup, framework }: { view: SiteView; setup: FrameworkSetup | null; framework: FrameworkId }) {
   const [copied, setCopied] = React.useState(false);
-  const snippet = view.snippet ?? "";
+  const snippet = setup ? installCopyText(setup) : (view.snippet ?? "");
 
   async function copy() {
     try {
@@ -216,22 +301,29 @@ function SnippetStep({ view }: { view: SiteView }) {
   }
 
   // A mail draft in the founder's own mail app; nothing is sent from here and the snippet holds only the public key.
-  const mailto = `mailto:?subject=${encodeURIComponent(`Please add this snippet to ${view.site?.domain ?? "our site"}`)}&body=${encodeURIComponent(
-    `Hi,\n\nPlease paste this just before </body> on ${view.site?.domain ?? "our site"}. It only holds a public key.\n\n${snippet}\n\nThen mark the headline, price and reward with data-pitchswipe="<flag name>":\n\n${view.markup ?? ""}\n`,
-  )}`;
+  const domain = view.site?.domain ?? "our site";
+  const body = setup ? developerMessage(setup, domain) : `Hi,\n\nPlease paste this just before </body> on ${domain}. It only holds a public key.\n\n${snippet}\n\nThen mark the headline, price and reward with data-pitchswipe="<flag name>":\n\n${view.markup ?? ""}\n`;
+  const mailto = `mailto:?subject=${encodeURIComponent(`Please add PitchSwipe to ${domain} (${frameworkLabel(framework)})`)}&body=${encodeURIComponent(body)}`;
 
   return (
     <>
-      <p className="text-sm text-muted-foreground">
-        Paste it before <code className="font-mono text-foreground">&lt;/body&gt;</code> on <span className="font-medium text-foreground">{view.site?.domain}</span>. It
-        uses only your public client key, so no secret leaves PitchSwipe.
-      </p>
+      {setup ? (
+        setup.install.intro.map((t) => (
+          <p key={t} className="text-sm text-muted-foreground">{t}</p>
+        ))
+      ) : (
+        <p className="text-sm text-muted-foreground">Paste it before <code className="font-mono text-foreground">&lt;/body&gt;</code> on {view.site?.domain}.</p>
+      )}
       {!view.keyConfigured ? (
         <p className="mt-2 rounded-xl bg-warning-soft px-3 py-2 text-sm text-warning">
           Placeholder key: set NEXT_PUBLIC_FLAGSMITH_ENV_KEY to put your real public client key in this snippet.
         </p>
       ) : null}
-      <CodeBlock label="Snippet">{snippet}</CodeBlock>
+      {setup ? (
+        setup.install.blocks.map((b: CodeBlockData) => <CodeBlock key={b.title ?? b.code} title={b.title}>{b.code}</CodeBlock>)
+      ) : (
+        <CodeBlock label="Snippet">{snippet}</CodeBlock>
+      )}
       <div className="mt-3 flex flex-wrap gap-3">
         <Button onClick={copy}>
           <Copy /> {copied ? "Copied" : "Copy snippet"}

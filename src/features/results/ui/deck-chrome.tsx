@@ -234,7 +234,8 @@ export function DeckChrome({
             ) : (
               <SwitcherButton view={null} className="px-3.5 py-1.5" />
             )}
-            {sub ? null : <DownloadResultsButton deckId={deckId} />}
+            {/* Results and Who swiped both export the same bundle (it includes the who-swiped tables). */}
+            {!sub || sub === "Who swiped" ? <DownloadResultsButton deckId={deckId} /> : null}
           </>
         }
         tabs={tabs}

@@ -121,6 +121,7 @@ export async function getSiteView(
       rows,
       snippet: site ? buildSnippet({ envKey, siteId: site.id, baseUrl: input.baseUrl }) : null,
       markup: sample.length ? markupExample(sample) : null,
+      setup: site ? { envKey, siteId: site.id, baseUrl: input.baseUrl, flags: decks.map((d) => ({ flagName: d.flagName, text: d.text ?? LABELS[d.variable] ?? d.variable, tag: MARKUP_TAG[d.variable] })) } : null,
       keyConfigured: !isPlaceholderKey(deps.envKey),
     },
   };
