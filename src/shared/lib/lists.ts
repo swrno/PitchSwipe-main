@@ -36,8 +36,31 @@ export const INDUSTRIES = [
   "Beauty",
   "Pets",
   "Kids",
+  // Added 2026-11: more categories for the feed filter and products (append only: stored values stay valid).
+  "AI",
+  "Automotive",
+  "Climate",
+  "Construction",
+  "Creator tools",
+  "Developer tools",
+  "Energy",
+  "Events",
+  "Home services",
+  "HR & jobs",
+  "Insurance",
+  "Legal",
+  "Manufacturing",
+  "Marketing",
+  "Media & entertainment",
+  "Productivity",
+  "Social",
+  "Sports",
+  "Hospitality",
 ] as const;
 export type Industry = (typeof INDUSTRIES)[number];
+
+/** The original 16 categories, shown first on the swipe home before "Show all". */
+export const PRIMARY_INDUSTRY_COUNT = 16;
 
 /** Indian states and union territories (28 states + 8 UTs), alphabetical. */
 export const STATES = [

@@ -8,7 +8,7 @@ import { WalletPill } from "./wallet-pill";
 import { Button } from "@/shared/ui/button";
 import { PageHeader } from "@/shared/shell/page-header";
 import { MIN_READ_MS, PAID_RATE_RS } from "@/features/swipe/validity";
-import { INDUSTRIES, isIndustry, type Industry } from "@/shared/lib/lists";
+import { INDUSTRIES, PRIMARY_INDUSTRY_COUNT, isIndustry, type Industry } from "@/shared/lib/lists";
 import { ArrowChip } from "@/shared/ui/mascot";
 import type { WalletView } from "@/features/claims/rules";
 import { cn, formatRs } from "@/shared/lib/utils";
@@ -79,6 +79,13 @@ export function SwipeHome({
     },
   ];
 
+  // Hick's law: the 16 core categories first, plus any the swiper picked; the rest behind "Show all".
+  const [showAll, setShowAll] = React.useState(false);
+  const visibleIndustries = showAll
+    ? INDUSTRIES
+    : INDUSTRIES.filter((ind, i) => i < PRIMARY_INDUSTRY_COUNT || selected.includes(ind));
+  const hiddenCount = INDUSTRIES.length - visibleIndustries.length;
+
   function toggle(industry: Industry) {
     haptic("select");
     const next = selected.includes(industry) ? selected.filter((i) => i !== industry) : [...selected, industry];
@@ -107,7 +114,7 @@ export function SwipeHome({
           Show me ideas for
         </h2>
         <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Idea categories">
-          {INDUSTRIES.map((industry) => {
+          {visibleIndustries.map((industry) => {
             const on = selected.includes(industry);
             return (
               <button
@@ -125,6 +132,16 @@ export function SwipeHome({
               </button>
             );
           })}
+          {hiddenCount > 0 || showAll ? (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              aria-expanded={showAll}
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {showAll ? "Show fewer" : `Show all (+${hiddenCount})`}
+            </button>
+          ) : null}
         </div>
         {selected.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">All categories. Tap one to narrow it.</p>

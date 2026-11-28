@@ -1,6 +1,7 @@
 import {
   Baby, Banknote, Dumbbell, Gamepad2, GraduationCap, HeartPulse, Home, Plane, PawPrint, Shirt, ShoppingBag, Sparkles, Sprout, Truck,
-  Utensils, Code2, type LucideIcon,
+  Utensils, Code2, Bot, Car, Leaf, HardHat, Clapperboard, Terminal, Zap, CalendarDays, Wrench, Briefcase, ShieldCheck,
+  Scale, Factory, Megaphone, Film, ListChecks, MessagesSquare, Medal, Hotel, type LucideIcon,
 } from "lucide-react";
 import type { Industry } from "@/shared/lib/lists";
 
@@ -22,4 +23,23 @@ export const INDUSTRY_ICONS: Record<Industry, LucideIcon> = {
   Beauty: Sparkles,
   Pets: PawPrint,
   Kids: Baby,
+  AI: Bot,
+  Automotive: Car,
+  Climate: Leaf,
+  Construction: HardHat,
+  "Creator tools": Clapperboard,
+  "Developer tools": Terminal,
+  Energy: Zap,
+  Events: CalendarDays,
+  "Home services": Wrench,
+  "HR & jobs": Briefcase,
+  Insurance: ShieldCheck,
+  Legal: Scale,
+  Manufacturing: Factory,
+  Marketing: Megaphone,
+  "Media & entertainment": Film,
+  Productivity: ListChecks,
+  Social: MessagesSquare,
+  Sports: Medal,
+  Hospitality: Hotel,
 };
