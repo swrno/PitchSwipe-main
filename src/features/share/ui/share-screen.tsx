@@ -10,7 +10,7 @@ import { cn } from "@/shared/lib/utils";
 import { QrCode } from "./qr-code";
 import { useDeckAndProduct, type BoostData } from "./use-deck-and-product";
 
-/** Share tab: the deck's personal link, WhatsApp, LinkedIn and QR code. */
+/** Share tab: the test's personal link, WhatsApp, LinkedIn, and its QR code (always visible). */
 export function ShareScreen({ deckId, origin }: { deckId: string; origin: string }) {
   const { data, loadError } = useDeckAndProduct(deckId);
   if (loadError) return <Notice tone="error">{loadError}</Notice>;
@@ -28,7 +28,6 @@ function Loaded({ data, origin }: { data: BoostData; origin: string }) {
   const { deck, product } = data;
   const [message, setMessage] = React.useState<string>();
   const [copied, setCopied] = React.useState<"link" | "linkedin">();
-  const [showQr, setShowQr] = React.useState(false);
 
   const url = deckLink(origin, deck.slug);
   const copy = { productName: product.name, tagline: product.category || undefined };
@@ -48,7 +47,11 @@ function Loaded({ data, origin }: { data: BoostData; origin: string }) {
   return (
     <div className="space-y-6">
       {message ? <Notice tone="error">{message}</Notice> : null}
-          <section aria-labelledby="link-title" className="space-y-3 rounded-xl border border-border bg-card p-5">
+          <section
+            aria-labelledby="link-title"
+            className="grid gap-5 rounded-xl border border-border bg-card p-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start"
+          >
+          <div className="min-w-0 space-y-3">
             <div>
               <h2 id="link-title" className="text-lg font-semibold tracking-tight">
                 <IconLabel icon={Link2}>Your personal link</IconLabel>
@@ -88,19 +91,18 @@ function Loaded({ data, origin }: { data: BoostData; origin: string }) {
               >
                 {copied === "linkedin" ? <Check /> : null} {copied === "linkedin" ? "Post text copied" : "LinkedIn"}
               </a>
-              <Button variant="outline" className="md:h-11" aria-expanded={showQr} onClick={() => setShowQr((v) => !v)}>
-                <QrIcon /> QR code
-              </Button>
             </div>
             <p className="text-sm text-muted-foreground">
               LinkedIn copies the post text. Paste it into your post.
             </p>
-            {showQr ? (
-              <div className="flex items-center gap-4 rounded-xl bg-muted p-4">
-                <QrCode value={url} label={`QR code for ${displayLink(url)}`} className="size-40 shrink-0 rounded-lg" />
-                <p className="text-sm text-muted-foreground">Scan to open {displayLink(url)}. Print it or show it on a screen.</p>
-              </div>
-            ) : null}
+          </div>
+          {/* Always visible: scan it from a screen, or print it for a stall or an event. */}
+          <figure className="flex flex-col items-center gap-2 rounded-xl bg-muted p-4 md:w-52">
+            <QrCode value={url} label={`QR code for ${displayLink(url)}`} className="size-40 shrink-0 rounded-lg bg-white p-2" />
+            <figcaption className="text-center text-xs text-muted-foreground">
+              <IconLabel icon={QrIcon}>Scan to open your link</IconLabel>
+            </figcaption>
+          </figure>
           </section>
     </div>
   );
