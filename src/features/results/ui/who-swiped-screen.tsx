@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { AudienceCard } from "@/features/share/ui/audience-card";
 import { LIMITS } from "@/shared/lib/limits";
 import { LEADS_FOOTNOTE, pct } from "@/features/results/insights";
 import {
@@ -368,5 +369,10 @@ export function WhoSwipedScreen({ deckId }: { deckId: string }) {
       <div aria-busy className="h-64 rounded-xl bg-muted motion-safe:animate-pulse" />
     );
   }
-  return <WhoSwipedSection data={data} />;
+  return (
+    <div className="space-y-6">
+      <AudienceCard deckId={deckId} />
+      <WhoSwipedSection data={data} />
+    </div>
+  );
 }

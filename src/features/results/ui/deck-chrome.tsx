@@ -161,8 +161,8 @@ function DeckSwitcher({ view }: { view: SwitcherView }) {
 }
 
 /**
- * Header shared by every deck-level page (results, Waitlist, Who swiped, Audience & Boost, Share, and any page added under
- * /decks/[id]/): title, deck switcher + download, and the Results · Waitlist · Who swiped · Audience & Boost · Share tabs.
+ * Header shared by every deck-level page (results, Who swiped, Waitlist, Share, and any page added under
+ * /decks/[id]/): title, deck switcher + download, and the Results · Who swiped · Waitlist · Share tabs.
  * Registers the real names for the top bar's breadcrumb. Wrapped by app/(shell)/decks/[id]/layout.tsx.
  */
 export function DeckChrome({
@@ -191,9 +191,8 @@ export function DeckChrome({
   const base = `/decks/${deckId}`;
   const tabs: PageTab[] = [
     { label: "Results", href: base, exact: true },
-    { label: "Waitlist", href: `${base}/waitlist` },
     { label: "Who swiped", href: `${base}/who-swiped` },
-    { label: "Audience & Boost", href: `${base}/boost` },
+    { label: "Waitlist", href: `${base}/waitlist` },
     { label: "Share", href: `${base}/share` },
   ];
   const active = tabs.find((t) => isTabActive(pathname, t));

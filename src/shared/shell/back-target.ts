@@ -7,13 +7,13 @@ const TAB_GROUPS: readonly (readonly string[])[] = [
 ];
 
 /** Last URL segments that are tabs of a product or a test (docs/information-architecture.md). */
-const TAB_SEGMENTS = new Set(["insights", "site", "settings", "waitlist", "who-swiped", "boost", "share"]);
+const TAB_SEGMENTS = new Set(["tests", "site", "config", "waitlist", "who-swiped", "share"]);
 
 const inGroup = (path: string, group: readonly string[]) => group.some((p) => path === p || path.startsWith(`${p}/`));
 
 /**
  * Where "back" goes from `pathname`, given its breadcrumb. A tab page (e.g. a test's Share tab) belongs to the item
- * that owns the tabs, so back skips that item and goes to its parent: Share → the product; a product's Insights →
+ * that owns the tabs, so back skips that item and goes to its parent: Share → the product; a product's Tests →
  * Products. Any other page goes back to the previous crumb. Top-level pages and sibling tabs of one top-level page
  * (Settings, Earnings) get no back target.
  */

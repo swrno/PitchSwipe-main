@@ -15,7 +15,7 @@ export default function DeckPlansPage() {
   return (
     <div className="space-y-6">
       <p className="text-muted-foreground">
-        One test has 2 or 3 versions. Boost is bought per test, on its Audience &amp; Boost tab.
+        One test has 2 or 3 versions. Boost is not on sale yet.
       </p>
 
       <DecksLeftCard />

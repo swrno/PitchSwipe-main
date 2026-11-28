@@ -212,8 +212,8 @@ function OverviewBody({ products }: { products: ProductListItem[] }) {
                     {p.deckCount} {p.deckCount === 1 ? "test" : "tests"} · {fmt(p.waitlist)} waitlist
                   </span>
                 </span>
-                <Link href={`/products/${p.id}/insights`} className="shrink-0 rounded-sm text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                  Insights
+                <Link href={`/products/${p.id}`} className="shrink-0 rounded-sm text-sm font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                  Overview
                 </Link>
               </li>
             ))}

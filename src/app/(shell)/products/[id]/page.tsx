@@ -1,9 +1,9 @@
-import { ProductDecks } from "@/features/decks/ui/product-decks";
+import { ProductOverview } from "@/features/decks/ui/product-overview";
 
 export const dynamic = "force-dynamic";
 
-/** The product's Decks tab. The client loads the founder's decks from /api/decks?overview=1. */
-export default async function ProductDecksPage({ params }: { params: Promise<{ id: string }> }) {
+/** The product's Overview tab: a summary built from the decks overview and each test's results. No AI calls. */
+export default async function ProductOverviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <ProductDecks productId={id} />;
+  return <ProductOverview productId={id} />;
 }

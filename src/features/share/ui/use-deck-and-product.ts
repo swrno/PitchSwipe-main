@@ -10,7 +10,7 @@ export interface BoostData {
   product: ProductRecord;
 }
 
-/** The founder's deck and its product, loaded with their sign-in token. Shared by Audience & Boost and Share. */
+/** The founder's deck and its product, loaded with their sign-in token. Shared by the audience card and Share. */
 export function useDeckAndProduct(deckId: string): { data?: BoostData; loadError?: string } {
   const [data, setData] = React.useState<BoostData | undefined>();
   const [loadError, setLoadError] = React.useState<string>();

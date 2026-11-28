@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Flag, Plus, Settings, Sparkles, Wallet, Zap } from "lucide-react";
+import { Flag, Plus, Settings, Wallet } from "lucide-react";
 import { ReadyToShipAlert } from "@/features/assistant/ui";
 import { buttonVariants } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
@@ -151,12 +151,9 @@ export function ProductCard({ product }: { product: ProductListItem }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Link href={`/products/${product.id}/settings`} aria-label={`${product.name} settings`} className={cn(smallButton, "border-0 px-2 md:border md:px-4")}>
+            <Link href={`/products/${product.id}/config`} aria-label={`${product.name} settings`} className={cn(smallButton, "border-0 px-2 md:border md:px-4")}>
               <Settings />
               <span className="hidden md:inline">Settings</span>
-            </Link>
-            <Link href={`/products/${product.id}/insights`} className={cn(smallButton, "border-0 px-2 underline md:border md:px-4 md:no-underline")}>
-              <Sparkles className="text-accent" /> Insights
             </Link>
             <Link href={`/decks/new?product=${product.id}`} className={cn(smallButton, "hidden md:inline-flex")}>
               <Plus /> Add test
@@ -183,7 +180,7 @@ export function DeckRow({ deck, accent }: { deck: DeckListItem; accent: ProductL
   const href = deck.status === "draft" ? `/decks/new?draft=${deck.id}` : `/decks/${deck.id}`;
   return (
     <li className="relative flex items-center gap-3 rounded-lg transition-colors duration-150 hover:bg-muted/60 has-[a:active]:bg-muted md:px-3">
-      {/* The whole row opens the deck (stretched link); Boost sits above it with its own target. */}
+      {/* The whole row opens the deck (stretched link); */}
       <Link
         href={href}
         className="flex min-w-0 flex-1 items-center gap-4 rounded-lg py-4 outline-none md:py-3.5 after:absolute after:inset-0 after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-ring"
@@ -210,11 +207,6 @@ export function DeckRow({ deck, accent }: { deck: DeckListItem; accent: ProductL
           {deck.statusLabel}
         </StatusText>
       </Link>
-      {deck.status === "live" ? (
-        <Link href={`/decks/${deck.id}/boost`} className={cn(smallButton, "relative z-10 hidden md:inline-flex")}>
-          <Zap aria-hidden /> Boost
-        </Link>
-      ) : null}
     </li>
   );
 }

@@ -86,6 +86,9 @@ const nextConfig: NextConfig = {
     return [
       { source: "/decks", destination: "/products", permanent: false },
       { source: "/decks/plans", destination: "/settings/plan", permanent: false },
+      { source: "/decks/:id/boost", destination: "/decks/:id/who-swiped", permanent: false },
+      { source: "/products/:id/settings", destination: "/products/:id/config", permanent: false },
+      { source: "/products/:id/insights", destination: "/products/:id", permanent: false },
       { source: "/products/:id/connect", destination: "/products/:id/site", permanent: false },
     ];
   },

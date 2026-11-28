@@ -72,22 +72,45 @@ export function ConnectWebsite({
     <div className="space-y-6">
       {error ? <p role="alert" className="rounded-xl bg-warning-soft px-4 py-3 text-sm text-warning">{error}</p> : null}
 
+      <Card className="p-5 md:p-5" aria-labelledby="your-site-h">
+        <h2 id="your-site-h" className="text-lg font-semibold tracking-tight">
+          Your website
+        </h2>
+        {view.site && !editing ? (
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <a
+              href={siteUrl(view.site.domain)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="min-w-0 break-all text-2xl font-bold tracking-tight underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {view.site.domain}
+            </a>
+            <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium", connected ? "text-accent" : "text-muted-foreground")}>
+              <span aria-hidden className={cn("size-2 rounded-full", connected ? "bg-accent" : "bg-muted-foreground")} />
+              {connected ? "Snippet seen" : view.state === "element_not_found" ? "Snippet seen, no element found" : "Not seen yet"}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => setEditing(true)} className="ml-auto">
+              Change
+            </Button>
+          </div>
+        ) : (
+          <AddressForm
+            productId={productId}
+            initial={view.site?.domain ?? ""}
+            onDone={async () => {
+              setEditing(false);
+              await load();
+            }}
+            onCancel={view.site ? () => setEditing(false) : undefined}
+          />
+        )}
+      </Card>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <Card className="p-5 md:p-5">
-          <Step done={stepDone[0]} n={1} title={view.site ? "Add this snippet to your site, once" : "Where does your site live?"}>
-            {view.site && !editing ? (
-              <SnippetStep view={view} onEdit={() => setEditing(true)} />
-            ) : (
-              <AddressForm
-                productId={productId}
-                initial={view.site?.domain ?? ""}
-                onDone={async () => {
-                  setEditing(false);
-                  await load();
-                }}
-                onCancel={view.site ? () => setEditing(false) : undefined}
-              />
-            )}
+          <Step done={stepDone[0]} n={1} title="Add this snippet to your site, once" disabled={!view.site}>
+            {view.site ? <SnippetStep view={view} /> : <p className="text-sm text-muted-foreground">Save your website address above first.</p>}
           </Step>
 
           <Step done={stepDone[1]} n={2} title="Mark what each test controls" disabled={!view.site}>
@@ -141,6 +164,9 @@ export function ConnectWebsite({
   );
 }
 
+/** Opens the saved address in a new tab; the stored domain may or may not carry a scheme. */
+const siteUrl = (domain: string) => (/^https?:\/\//i.test(domain) ? domain : `https://${domain}`);
+
 function Step({ n, done, title, children, last, disabled }: { n: number; done: boolean; title: string; children: React.ReactNode; last?: boolean; disabled?: boolean }) {
   return (
     <section className={cn("flex gap-4", !last && "pb-7", disabled && "opacity-60")} aria-label={title}>
@@ -170,7 +196,7 @@ function CodeBlock({ children, label }: { children: string; label?: string }) {
   );
 }
 
-function SnippetStep({ view, onEdit }: { view: SiteView; onEdit: () => void }) {
+function SnippetStep({ view }: { view: SiteView }) {
   const [copied, setCopied] = React.useState(false);
   const snippet = view.snippet ?? "";
 
@@ -216,9 +242,6 @@ function SnippetStep({ view, onEdit }: { view: SiteView; onEdit: () => void }) {
         >
           <Mail className="size-4" /> Send to my developer
         </a>
-        <Button variant="ghost" onClick={onEdit}>
-          Change address
-        </Button>
       </div>
       <span className="sr-only" role="status" aria-live="polite">{copied ? "Snippet copied" : ""}</span>
     </>

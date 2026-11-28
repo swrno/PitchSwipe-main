@@ -37,11 +37,11 @@ Phone tab bar: Swipe · Earnings · Products · Settings.
 | --- | --- | --- |
 | Overview | /overview | – |
 | Products | /products | – (list of products, each with its tests summary) |
-| Product | /products/[id] | **Tests** /products/[id] · **Insights** /products/[id]/insights · **Website** /products/[id]/site · **Settings** /products/[id]/settings |
-| Test | /decks/[id] | **Results** /decks/[id] · **Audience & Boost** /decks/[id]/boost · **Share** /decks/[id]/share |
+| Product | /products/[id] | **Overview** /products/[id] · **Tests** /products/[id]/tests · **Website** /products/[id]/site · **Config** /products/[id]/config |
+| Test | /decks/[id] | **Results** /decks/[id] · **Who swiped** /decks/[id]/who-swiped (audience card on top) · **Waitlist** /decks/[id]/waitlist · **Share** /decks/[id]/share |
 | New test | /decks/new | – (wizard with step progress) |
 | Swipe | /swipe | – |
 | Earnings | /wallet | **Wallet** /wallet · **History** /history |
 | Settings | /profile | **Profile** /profile · **Appearance** /appearance · **Plan** /settings/plan |
 
-Redirects keep old links working: /decks → /products, /decks/plans → /settings/plan, /insights and /results → /products.
+Redirects keep old links working: /decks → /products, /decks/plans → /settings/plan, /insights and /results → /products, /products/[id]/settings → /config, /products/[id]/insights → the Overview, /decks/[id]/boost → Who swiped.
