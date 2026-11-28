@@ -228,7 +228,7 @@ export function mockModel(run: ChatRun, question: string): LanguageModel {
       if (pendingText === null && run.steps.length === 0) {
         const make = /create (?:a )?product (?:called|named) ([A-Za-z0-9 ]{1,40})/i.exec(question);
         if (make) {
-          return streamOf([{ type: "tool-call", toolCallId: `mock${++seq}`, toolName: "create_product", input: JSON.stringify({ name: make[1].trim(), industry: "Other" }) }, finish("tool-calls")]);
+          return streamOf([{ type: "tool-call", toolCallId: `mock${++seq}`, toolName: "create_product", input: JSON.stringify({ name: make[1].trim(), industry: "SaaS" }) }, finish("tool-calls")]);
         }
         if (/how many products|my products|list.*products/i.test(question)) {
           return streamOf([{ type: "tool-call", toolCallId: `mock${++seq}`, toolName: "list_products", input: "{}" }, finish("tool-calls")]);
