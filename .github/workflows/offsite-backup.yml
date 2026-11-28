@@ -23,8 +23,9 @@ defaults:
 
 jobs:
   copy:
-    # The repo is public, so forks get this workflow too, and they have no secrets.
-    if: github.repository == 'swrno/PitchSwipe-main'
+    # The repo is public, so forks get this workflow too: it runs only where the deploy settings exist (DEPLOY_HOST).
+    # A fork has none unless its owner adds their own, which would point at their own server, never this one. Checking the settings, not the repo name, keeps working after a rename or transfer.
+    if: vars.DEPLOY_HOST != ''
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

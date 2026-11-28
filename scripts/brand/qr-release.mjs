@@ -4,7 +4,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { encodeQr, qrPath } from "../../src/features/share/qr.ts";
 
-const URL = "https://github.com/swrno/PitchSwipe-main/releases/latest";
+const URL = "https://github.com/swrno/PitchSwipe/releases/latest";
 const BORDER = 3;
 const qr = encodeQr(URL);
 const total = qr.size + BORDER * 2;
