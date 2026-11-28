@@ -48,7 +48,48 @@ export type RenderedComponent =
   | { kind: "commentQuotes"; quotes: { id: string; text: string; meta: string; voice: boolean }[] }
   | { kind: "insightCard"; tag: string; tagLabel: string; text: string; sourceLine: string }
   | { kind: "deckDraft"; title: string; chips: string[]; published: false }
-  | { kind: "reviewAndShip"; deckId: string; label: string; text: string };
+  | { kind: "reviewAndShip"; deckId: string; label: string; text: string }
+  | KpiRowCard
+  | ProductListCard
+  | TestTableCard
+  | ComparisonCard
+  | PageLinkCard
+  | DoneCard;
+
+/** Cards the account tools return. Every number is already display text made by code from tool data. */
+export interface KpiRowCard {
+  kind: "kpiRow";
+  items: { label: string; value: string; hint?: string }[];
+}
+export interface ProductListCard {
+  kind: "productList";
+  items: { id: string; name: string; href: string; role: "owner" | "cofounder"; tests: string; live: string; swipers: string; waitlist: string }[];
+  more: string | null;
+}
+export interface TestTableCard {
+  kind: "testTable";
+  rows: { id: string; product: string; variable: string; status: string; tone: string; swipers: string; waitlist: string; href: string }[];
+  more: string | null;
+}
+export interface ComparisonCard {
+  kind: "comparison";
+  title: string;
+  rows: { label: string; valueText: string; countText: string; fraction: number; winner: boolean }[];
+  footnote: string | null;
+}
+export interface PageLinkCard {
+  kind: "pageLink";
+  title: string;
+  description: string;
+  href: string;
+}
+export interface DoneCard {
+  kind: "done";
+  title: string;
+  text: string;
+  href: string;
+  linkLabel: string;
+}
 
 export interface ChatStep {
   id: string;

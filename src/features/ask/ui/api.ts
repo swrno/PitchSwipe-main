@@ -2,12 +2,12 @@
 
 import { isFirebaseClientConfigured } from "@/features/auth/config";
 import { getFirebaseClientAuth } from "@/shared/lib/firebase/client";
-import type { AskHeader } from "../types";
 
-export type { AskHeader };
-export interface AskIntro {
-  header: AskHeader | null;
-  suggestions: string[];
+export interface AskPageInfo {
+  page: string;
+  productName: string | null;
+  testLabel: string | null;
+  tab: string | null;
 }
 
 /**
@@ -29,10 +29,10 @@ export async function askFetch(input: RequestInfo | URL, init: RequestInit = {})
   return fetch(input, { ...init, headers });
 }
 
-/** Header numbers and suggested questions. No deckId: the server uses the founder's newest deck. */
-export async function loadAskIntro(deckId?: string | null): Promise<AskIntro> {
-  const res = await askFetch(`/api/ask${deckId ? `?deckId=${encodeURIComponent(deckId)}` : ""}`);
-  const data = (await res.json().catch(() => ({}))) as Partial<AskIntro> & { error?: string };
-  if (!res.ok) throw new Error(data.error ?? "Could not load the chat.");
-  return { header: data.header ?? null, suggestions: data.suggestions ?? [] };
+/** The page the user is on, with the product and test in view (null when the request fails: the header just shows the title). */
+export async function loadAskPage(pathname: string): Promise<AskPageInfo | null> {
+  const res = await askFetch(`/api/ask?pathname=${encodeURIComponent(pathname)}`);
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => ({}))) as { page?: AskPageInfo };
+  return data.page ?? null;
 }
