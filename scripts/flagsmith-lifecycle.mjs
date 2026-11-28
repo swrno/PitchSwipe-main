@@ -11,7 +11,7 @@
 //    them on the first real publish anyway; they are reused, never duplicated);
 //  - a few events for identities `deck_lifecycle_<timestamp>:lifecycle-<n>` on that flag.
 //
-// It runs the exact code path the app uses (src/lib/flagsmith): publish (flag, keyed mv-options, metrics,
+// It runs the exact code path the app uses (src/features/flagsmith): publish (flag, keyed mv-options, metrics,
 // experiment, start) -> identity assignment (variant) -> $flag_exposure + conversions -> results refresh/read ->
 // ship B (complete with rollout_decision, PUT text + weights + enabled) -> a refused second complete (same decision
 // tolerated, a different one refused) -> undo (control for everyone) -> archive, printing PASS / FAIL / PENDING / INFO
@@ -29,7 +29,7 @@ import {
   eventsEndpoint,
   isAdminConfigured,
   loadConfig,
-} from "../src/lib/flagsmith/index.ts";
+} from "../src/features/flagsmith/index.ts";
 
 const args = process.argv.slice(2);
 const traffic = Number(args[args.indexOf("--traffic") + 1]) || 12;

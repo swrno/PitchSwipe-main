@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { SwipeExperience } from "@/components/swipe/swipe-experience";
-import { composeCard } from "@/lib/swipe/card";
-import { ServiceUnavailableError } from "@/lib/swipe/errors";
-import { getSwipeStore } from "@/lib/swipe/store";
+import { SwipeExperience } from "@/features/swipe/ui/swipe-experience";
+import { composeCard } from "@/features/swipe/card";
+import { ServiceUnavailableError } from "@/features/swipe/errors";
+import { getSwipeStore } from "@/features/swipe/server/store";
 
 type Params = Promise<{ slug: string }>;
 
@@ -74,8 +74,8 @@ export default async function DeckLinkPage({ params }: { params: Params }) {
   if (deck === "unavailable") {
     return (
       <main className="mx-auto w-full max-w-md px-4 py-20 text-center">
-        <h1 className="text-2xl font-extrabold">Temporarily unavailable</h1>
-        <p className="mt-2 text-muted-foreground">This service is temporarily unavailable. Please try again later.</p>
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Temporarily unavailable</h1>
+        <p className="mt-2 text-sm text-muted-foreground">This service is temporarily unavailable. Please try again later.</p>
       </main>
     );
   }

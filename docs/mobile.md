@@ -141,7 +141,7 @@ recognizer on most Android phones, Apple's on iOS).
 
 - The app loads the live site, so the plugin has to be **in the installed app** (added by `cap sync`)
   and the web code calls it through the Capacitor bridge (`window.Capacitor.Plugins.SpeechRecognition`,
-  read at call time in `src/lib/claims/native-dictation.ts`). A new app build is needed before users get it.
+  read at call time in `src/features/claims/native-dictation.ts`). A new app build is needed before users get it.
 - Rollout order: deploy the web code first. It is safe for app builds without the plugin, which show the
   message below. Then ship the new app build.
 - The web code picks the engine: in the app, if this build has the plugin and `available()` says yes,

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { resolveOwnerId } from "@/lib/decks/owner";
-import { limitKey } from "@/lib/ratelimit";
-import { shipDeps } from "@/lib/assistant/server";
-import { undoDeck } from "@/lib/assistant/ship";
-import { FlagsmithNotConfigured, FlagsmithVersioningError } from "@/lib/flagsmith/errors";
+import { resolveOwnerId } from "@/features/decks/server/owner";
+import { limitKey } from "@/shared/lib/ratelimit";
+import { shipDeps } from "@/features/assistant/server/server";
+import { undoDeck } from "@/features/assistant/ship";
+import { FlagsmithNotConfigured, FlagsmithVersioningError } from "@/features/flagsmith/errors";
 
 type Ctx = { params: Promise<{ id: string }> };
 

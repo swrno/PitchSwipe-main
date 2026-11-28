@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { BrandMark } from "@/components/shell/brand-mark";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { BrandMark } from "@/shared/shell/brand-mark";
+import { ThemeToggle } from "@/shared/ui/theme-toggle";
 
 const FOOTER_LINKS = [
   { href: "/terms", label: "Terms" },
@@ -49,7 +49,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
               ))}
             </ul>
           </nav>
-          <p className="text-sm text-muted-foreground">PitchSwipe. Demo earnings for now; no real money moves.</p>
+          <p className="text-sm text-muted-foreground">PitchSwipe. Payouts are not live yet; no real money moves.</p>
         </div>
       </footer>
     </div>

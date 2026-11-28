@@ -3,7 +3,7 @@
 /*
  * Visual language: a dark canvas with bold colour-block cards (lime, sun, lilac, coral, sky), heavy rounded
  * headings, pill buttons and 24px card corners. Dark is the default theme; [data-theme="light"] on <html>
- * switches to the light one (src/lib/feel/theme.ts, applied before first paint by the script in layout.tsx).
+ * switches to the light one (src/shared/lib/feel/theme.ts, applied before first paint by the script in layout.tsx).
  *
  * The block colours (--lime ... --sky, with --ink for text on them) are the same in both themes: they are
  * surfaces, not text colours. --accent is the text-safe "positive / money" colour of each theme.
@@ -35,18 +35,18 @@
   --accent-foreground: #111111;
   --accent-soft: rgb(200 243 94 / 0.14);
   /* Highlight: the active nav item, focus rings, links. */
-  --highlight: #b9a0ff;
+  --highlight: #c8f35e;
   --highlight-foreground: #111111;
   --warning: #ff8a66;
   --warning-soft: rgb(255 138 102 / 0.14);
   --info: #6ea2fd;
   --destructive: #ff6b6b;
-  --ring: #b9a0ff;
+  --ring: #c8f35e;
   /* The page behind cards on wide screens. */
   --canvas: #000000;
   color-scheme: dark;
 
-  --radius: 1rem;
+  --radius: 0.75rem;
   --sidebar-width: 13.5rem;
   /*
    * Safe-area insets. In the Android app, Capacitor's SystemBars draws edge to edge and writes the real insets
@@ -90,13 +90,13 @@
   --accent: #3b7a0c;
   --accent-foreground: #ffffff;
   --accent-soft: #eaf5d8;
-  --highlight: #6d4aff;
+  --highlight: #3b7a0c;
   --highlight-foreground: #ffffff;
   --warning: #c2410c;
   --warning-soft: #fdeee6;
   --info: #2f67d8;
   --destructive: #c62828;
-  --ring: #6d4aff;
+  --ring: #3b7a0c;
   --canvas: #f6f5f1;
   color-scheme: light;
 }
@@ -114,8 +114,8 @@
   --color-highlight-foreground: var(--highlight-foreground);
   --color-canvas: var(--canvas);
   --font-display: var(--display-font);
-  --radius-2xl: 1.25rem;
-  --radius-3xl: 1.5rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 0.75rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -138,7 +138,7 @@
   --color-ring: var(--ring);
 
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: 0.75rem;
 
   --font-sans: var(--app-font);
 }
@@ -170,14 +170,14 @@
   h2,
   h3 {
     font-family: var(--display-font);
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
     text-wrap: balance;
   }
 
   h1 {
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
   }
 
   p {
@@ -221,8 +221,22 @@
 
 /* A colour-block surface ("tile"): big radius, its own ink text. Pair with bg-lime / bg-sun / bg-lilac / bg-coral / bg-sky. */
 @utility tile {
-  border-radius: 1.5rem;
+  border-radius: 0.75rem;
   color: var(--ink);
+}
+
+/* Neutral surfaces: rebinds the "ink" text tokens so text-ink / bg-ink inside read correctly on the card colour. */
+@utility neutral-ink {
+  --ink: var(--foreground);
+  --ink-foreground: var(--background);
+  color: var(--foreground);
+}
+
+/* Warning surface for errors / warnings only. */
+@utility warn-ink {
+  --ink: var(--foreground);
+  --ink-foreground: var(--background);
+  color: var(--foreground);
 }
 
 /* Press feedback for anything tappable that is not a <Button>. */
@@ -341,7 +355,7 @@
   /* Green underline under a key word in a heading (designs: "Get paid for it."). */
   /* A key word marked with a lime highlighter stroke behind its lower half. */
   .accent-underline {
-    background-image: linear-gradient(var(--lime), var(--lime));
+    background-image: linear-gradient(var(--accent), var(--accent));
     background-repeat: no-repeat;
     background-size: 100% 0.32em;
     background-position: 0 92%;
@@ -360,7 +374,7 @@
 }
 
 /*
- * Landing motion (src/components/landing/landing-motion.tsx).
+ * Landing motion (src/features/landing/ui/landing-motion.tsx).
  * Scroll reveal: content is visible by default. Only once the motion script has run (html.reveal-ready) do
  * [data-reveal] elements start hidden and slide in as they enter the viewport, so crawlers, no-JS visitors and
  * reduced-motion users always see everything. Set --i on siblings for the stagger order.
@@ -460,4 +474,20 @@
     flex-wrap: wrap;
     width: auto;
   }
+}
+
+/* Loading skeletons: a soft highlight sweeps across the muted block. Static when motion is reduced. */
+@keyframes ps-shimmer {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+.skeleton {
+  background-color: var(--muted);
+  background-image: linear-gradient(100deg, transparent 30%, color-mix(in oklab, var(--foreground) 7%, transparent) 50%, transparent 70%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: ps-shimmer 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none !important; background-image: none; }
 }

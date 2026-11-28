@@ -29,10 +29,9 @@ Values come from `.env.example`. "Server only" values must never get a `NEXT_PUB
 
 | Variable | Kind | Required for production | Notes |
 | --- | --- | --- | --- |
-| `MONGODB_URI` | server only | yes | Atlas connection string. Without it (and without `PITCHSWIPE_DEMO=1`) production returns 503. |
+| `MONGODB_URI` | server only | yes | Atlas connection string. Without it every data route returns 503. |
 | `SWIPE_SIGNING_SECRET` | server only | yes | 16+ random characters. Signs the served-card token that binds dwell time and card to each swipe. `/api/responses/next` refuses to serve (503) without it in production. Generate one, for example `openssl rand -base64 32`. |
 | `CRON_SECRET` | server only | yes, for crons | Random string of 16+ letters and digits (header-safe characters only, no spaces or line breaks). Both cron routes return 503 without it and 401 for a wrong header. See section 3. |
-| `PITCHSWIPE_DEMO` | server only | no | Set to `1` only to run demo mode (fixtures, in-memory stores) in a production build. Leave it unset for a real deployment. |
 | `NEXT_PUBLIC_FIREBASE_API_KEY` | public | yes | Firebase web app config. |
 | `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | public | yes | Firebase web app config. |
 | `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | public | yes | Firebase web app config. |
@@ -74,7 +73,7 @@ There are two scheduled jobs. On the VM, `infra/vm/pitchswipe-cron` (installed a
 | `/api/cron/assistant` | `*/5 * * * *` (every 5 minutes) | Checks live decks and raises or withdraws the "Test decided" alert. It never ships or changes a test. |
 | `/api/cron/audio-cleanup` | `0 3 * * *` (daily, 03:00 UTC) | Clears voice-note audio older than 30 days. The transcript and English text stay. |
 
-Authentication: when the project has an environment variable named `CRON_SECRET`, Vercel sends `Authorization: Bearer <CRON_SECRET>` on each cron request. Both routes accept exactly that form: they build `Bearer ${CRON_SECRET}` and compare it in constant time (`src/app/api/cron/assistant/route.ts`, and `cronAuth` in `src/lib/claims/cron.ts` for audio cleanup). Both accept GET, which is what Vercel uses. Nothing secret is in `vercel.json`. You can test by hand:
+Authentication: when the project has an environment variable named `CRON_SECRET`, Vercel sends `Authorization: Bearer <CRON_SECRET>` on each cron request. Both routes accept exactly that form: they build `Bearer ${CRON_SECRET}` and compare it in constant time (`src/app/api/cron/assistant/route.ts`, and `cronAuth` in `src/features/claims/server/cron.ts` for audio cleanup). Both accept GET, which is what Vercel uses. Nothing secret is in `vercel.json`. You can test by hand:
 
 ```
 curl -i -H "Authorization: Bearer $CRON_SECRET" https://<your-deployment>/api/cron/assistant
@@ -114,7 +113,7 @@ $env:MONGODB_URI = '<your connection string>'; npm run db:sync-indexes -- --yes
 
 It refuses to run without `--yes` and without `MONGODB_URI`, prints the database name (never the URI), and calls `syncIndexes()` for every model. Note that `syncIndexes()` also drops indexes on those collections that the schemas no longer declare. If a unique index cannot be built because duplicate documents already exist, it prints the duplicate groups it found (key values and document ids), exits 1, and leaves it to you to merge or remove them. Re-run after deploys that change an index in `src/models/index.ts`.
 
-Optionally seed demo data into a throwaway database with `npm run seed -- --yes` (same `MONGODB_URI` rules). Do not seed production.
+To fill the swipe feed with starter decks, see `npm run seed:feed` (dry run by default).
 
 ## 6. Firebase
 
@@ -135,7 +134,7 @@ Optionally seed demo data into a throwaway database with `npm run seed -- --yes`
    node --env-file=.env.local --import ./scripts/register-ts.mjs scripts/flagsmith-lifecycle.mjs --yes
    ```
 
-   It writes `scripts/recorded/flagsmith-lifecycle-<timestamp>.json` (review it before committing anything). A FAIL on the event steps usually means the events host is wrong for your warehouse (see `FLAGSMITH_EVENTS_URL`); results can stay PENDING for hours. `src/lib/flagsmith/README.md` lists what is still unverified and what to change.
+   It writes `scripts/recorded/flagsmith-lifecycle-<timestamp>.json` (review it before committing anything). A FAIL on the event steps usually means the events host is wrong for your warehouse (see `FLAGSMITH_EVENTS_URL`); results can stay PENDING for hours. `src/features/flagsmith/README.md` lists what is still unverified and what to change.
 
 ## 8. Mobile shell (Capacitor)
 

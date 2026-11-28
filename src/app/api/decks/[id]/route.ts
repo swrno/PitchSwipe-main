@@ -1,6 +1,6 @@
-import { readJson, resolveOwnerId, respond } from "@/lib/decks/owner";
-import { getDeck, patchDeck, removeDeck } from "@/lib/decks/service";
-import { limitKey } from "@/lib/ratelimit";
+import { readJson, resolveOwnerId, respond } from "@/features/decks/server/owner";
+import { getDeck, patchDeck, removeDeck } from "@/features/decks/server/service";
+import { limitKey } from "@/shared/lib/ratelimit";
 
 type Ctx = { params: Promise<{ id: string }> };
 

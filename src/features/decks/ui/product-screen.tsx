@@ -1,0 +1,285 @@
+"use client";
+
+import { Save } from "lucide-react";
+import { RotateCcw } from "lucide-react";
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { useBreadcrumb } from "@/shared/shell/breadcrumb";
+import { PageHeader } from "@/shared/shell/page-header";
+import { Button } from "@/shared/ui/button";
+import { Card } from "@/shared/ui/card";
+import { INDUSTRIES, ROLES, STATES, type Industry } from "@/shared/lib/lists";
+import { accentFor, type ProductInput } from "@/features/decks/product";
+import { reachView } from "@/features/share/reach";
+import type { DeckListItem, DecksOverview, ProductRecord } from "@/features/decks/views";
+import { api, ApiError, errorFor } from "./api";
+import { CardPreview } from "./card-preview";
+import { ChipPicker } from "./chip-picker";
+import { ErrorText, FieldLabel, Notice, ProductTile, Segmented, StatusText, TextInput, ToggleChip } from "./primitives";
+import type { FieldError } from "@/features/decks/types";
+import type { PreviewCard } from "@/features/decks/wizard";
+import { ProductFormSkeleton } from "@/shared/ui/page-skeletons";
+
+const EMPTY: ProductInput = {
+  name: "",
+  icon: "",
+  category: "",
+  industry: "Retail",
+  showOwnerName: true,
+  targetUsers: [],
+  audience: { who: "everyone", states: [], interests: [] },
+};
+
+export interface ProductScreenData {
+  product?: ProductRecord;
+  decks: DeckListItem[];
+}
+
+/** F2 Product settings (phone 03, web 04) and /products/new. */
+/** The card copy belongs to each test; the product preview shows its own fields and empty placeholders for the rest. */
+const PREVIEW_PLACEHOLDER: PreviewCard = {
+  headline: "",
+  description: "",
+  reward: "",
+  price: "",
+  question: "Would you use this?",
+  positiveLabel: "Yes",
+  negativeLabel: "No",
+  productUI: [],
+};
+
+export function ProductScreen({ productId, aside }: { productId?: string; aside?: React.ReactNode }) {
+  const router = useRouter();
+  const [data, setData] = React.useState<ProductScreenData | undefined>(productId ? undefined : { decks: [] });
+  const [form, setForm] = React.useState<ProductInput>(EMPTY);
+  const [errors, setErrors] = React.useState<FieldError[]>([]);
+  const [message, setMessage] = React.useState<{ tone: "error" | "ok"; text: string }>();
+  const [saving, setSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!productId) return;
+    let cancelled = false;
+    Promise.all([api<ProductRecord>(`/api/products/${productId}`), api<DecksOverview>("/api/decks?overview=1")])
+      .then(([product, overview]) => {
+        if (cancelled) return;
+        setForm(toInput(product));
+        setData({ product, decks: overview.products.find((p) => p.id === productId)?.decks ?? [] });
+      })
+      .catch((e: Error) => !cancelled && setMessage({ tone: "error", text: e.message }));
+    return () => {
+      cancelled = true;
+    };
+  }, [productId]);
+
+  const set = <K extends keyof ProductInput>(key: K, value: ProductInput[K]) => setForm((f) => ({ ...f, [key]: value }));
+  const reach = reachView();
+  const accent = accentFor(form.name || "Product");
+  const isNew = !productId;
+  useBreadcrumb(isNew ? [{ label: "Products", href: "/products" }, { label: "New product" }] : null);
+
+  async function save() {
+    setSaving(true);
+    setErrors([]);
+    setMessage(undefined);
+    try {
+      const saved = await api<ProductRecord>(isNew ? "/api/products" : `/api/products/${productId}`, {
+        method: isNew ? "POST" : "PATCH",
+        body: form,
+      });
+      if (isNew) router.push(`/decks/new?product=${saved.id}`);
+      else setMessage({ tone: "ok", text: "Saved. Changes apply to new tests only, so running tests stay fair." });
+    } catch (e) {
+      if (e instanceof ApiError) setErrors(e.errors);
+      setMessage({ tone: "error", text: e instanceof Error ? e.message : "Could not save." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!data)
+    return message?.tone === "error" ? (
+      <div role="alert" className="space-y-3">
+        <Notice tone="error">{message.text}</Notice>
+        <button type="button" onClick={() => window.location.reload()} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><RotateCcw className="size-4" aria-hidden /> Try again</button>
+      </div>
+    ) : (
+      <ProductFormSkeleton />
+    );
+  const name = form.name || "New product";
+
+  return (
+    <div className="space-y-6">
+      {isNew ? (
+        <PageHeader
+          icon="products"
+          title="New product"
+          description="Describe it once. Every test you make for it reuses this."
+          actions={
+            <Button onClick={save} disabled={saving} className="hidden md:inline-flex">
+              <Save /> {saving ? "Saving…" : "Save product"}
+            </Button>
+          }
+        />
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">Shared by every test. Changes apply to new tests only, so running tests stay fair.</p>
+          <Button onClick={save} disabled={saving} className="hidden md:inline-flex">
+            <Save /> {saving ? "Saving…" : "Save product"}
+          </Button>
+        </div>
+      )}
+
+      <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_24rem] md:items-start">
+        <div className="space-y-6">
+          <Card className="space-y-5 p-5">
+            <h2 className="text-lg font-semibold tracking-tight">Identity</h2>
+            <div className="flex items-end gap-3">
+              <ProductTile icon={form.icon || (form.name.slice(0, 1).toUpperCase() || "?")} accent={accent} className="size-[3.25rem] md:size-14" />
+              <div className="flex-1">
+                <FieldLabel htmlFor="product-name">Name</FieldLabel>
+                <TextInput id="product-name" value={form.name} onChange={(e) => set("name", e.target.value)} maxLength={60} placeholder="Voice Khata" />
+              </div>
+            </div>
+            <ErrorText message={errorFor(errors, "name")} />
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <FieldLabel htmlFor="product-category">Category line</FieldLabel>
+                <TextInput id="product-category" value={form.category} onChange={(e) => set("category", e.target.value)} maxLength={60} placeholder="Voice ledger · Retail" />
+                <ErrorText message={errorFor(errors, "category")} />
+              </div>
+              <div>
+                <FieldLabel htmlFor="product-industry" hint="one industry">
+                  Industry
+                </FieldLabel>
+                <select
+                  id="product-industry"
+                  value={form.industry}
+                  onChange={(e) => set("industry", e.target.value as Industry)}
+                  className="h-12 w-full rounded-xl border border-border bg-background px-3 text-base"
+                >
+                  {INDUSTRIES.map((i) => (
+                    <option key={i}>{i}</option>
+                  ))}
+                </select>
+                <ErrorText message={errorFor(errors, "industry")} />
+              </div>
+            </div>
+
+            <div>
+              <FieldLabel>Founder shown as</FieldLabel>
+              <Segmented
+                label="Founder shown as"
+                value={form.showOwnerName ? "name" : "anonymous"}
+                onChange={(v) => set("showOwnerName", v === "name")}
+                options={[
+                  { value: "name", label: "My name" },
+                  { value: "anonymous", label: "Anonymous" },
+                ]}
+              />
+              {!form.showOwnerName ? (
+                <p className="mt-1.5 text-sm text-muted-foreground">Cards say “the founder of {name}”.</p>
+              ) : null}
+            </div>
+
+            <div>
+              <p className="mb-2 font-bold">
+                Target user <span className="font-normal text-muted-foreground">· shown on the card as “Made for”</span>
+              </p>
+              <ChipPicker label="Target user roles" options={ROLES} selected={form.targetUsers} onChange={(v) => set("targetUsers", v)} inline />
+              <ErrorText message={errorFor(errors, "targetUsers")} />
+            </div>
+          </Card>
+
+          <Card className="space-y-4 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                Audience in the feed <span className="rounded-md bg-accent-soft px-2 py-0.5 text-xs font-bold text-accent">Free</span>
+              </h2>
+              <p className="text-sm text-muted-foreground" aria-live="polite">
+                {reach.message}
+              </p>
+            </div>
+            <div className="grid items-start gap-2 md:grid-cols-[6rem_1fr]">
+              <span className="pt-2 text-sm font-semibold text-muted-foreground">Who</span>
+              <div role="group" aria-label="Who sees this product" className="flex flex-wrap gap-2">
+                {(
+                  [
+                    { value: "everyone", label: "Everyone" },
+                    { value: "targetOnly", label: "Target users only" },
+                  ] as const
+                ).map((o) => (
+                  <ToggleChip key={o.value} selected={form.audience.who === o.value} onClick={() => set("audience", { ...form.audience, who: o.value })}>
+                    {o.label}
+                  </ToggleChip>
+                ))}
+              </div>
+              <span className="pt-2 text-sm font-semibold text-muted-foreground">States</span>
+              <ChipPicker label="States" options={STATES} selected={form.audience.states} onChange={(states) => set("audience", { ...form.audience, states })} />
+              <span className="pt-2 text-sm font-semibold text-muted-foreground">Interests</span>
+              <ChipPicker label="Interests" options={INDUSTRIES} selected={form.audience.interests} onChange={(interests) => set("audience", { ...form.audience, interests })} />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Every test uses this audience. Your personal link is open to anyone.
+            </p>
+          </Card>
+
+          {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+
+          <Button size="lg" onClick={save} disabled={saving} className="w-full md:hidden">
+            <Save /> {saving ? "Saving…" : "Save product"}
+          </Button>
+        </div>
+
+        <div className="space-y-6 md:sticky md:top-20">
+          {/* Live preview: how this product looks on a swiper's card while the founder types. Each test adds its own copy. */}
+          <Card className="p-5">
+            <h2 className="text-lg font-semibold tracking-tight">Card preview</h2>
+            <p className="mb-4 mt-1 text-sm text-muted-foreground">How swipers see this product. Each test fills in its own headline, price and reward.</p>
+            <CardPreview
+              card={PREVIEW_PLACEHOLDER}
+              productName={form.name}
+              category={form.category}
+              icon={form.icon || (form.name.trim()[0]?.toUpperCase() ?? "")}
+              accent={accentFor(form.name)}
+              madeFor={form.targetUsers}
+              founderLine={form.showOwnerName ? "Shown with your name" : `The founder of ${form.name.trim() || "this product"}`}
+            />
+          </Card>
+            {!isNew ? (
+              <Card className="hidden h-fit p-5 md:block">
+                <div className="mb-2 flex items-baseline justify-between">
+                  <h2 className="text-lg font-semibold tracking-tight">Tests in this product</h2>
+                  <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
+                    {data.decks.length} {data.decks.length === 1 ? "test" : "tests"} · {data.decks.reduce((n, d) => n + d.waitlist, 0)} on the waitlist
+                  </span>
+                </div>
+                <ul className="divide-y divide-border">
+                  {data.decks.map((d) => (
+                    <li key={d.id} className="flex items-center justify-between py-3">
+                      <span className="font-semibold">{d.label}</span>
+                      <StatusText tone={d.tone}>{d.statusLabel}</StatusText>
+                    </li>
+                  ))}
+                  {data.decks.length === 0 ? <li className="py-3 text-muted-foreground">No tests yet.</li> : null}
+                </ul>
+              </Card>
+            ) : null}
+            {aside}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function toInput(p: ProductRecord): ProductInput {
+  return {
+    name: p.name,
+    icon: p.icon,
+    category: p.category,
+    industry: p.industry,
+    showOwnerName: p.showOwnerName,
+    targetUsers: p.targetUsers,
+    audience: p.audience,
+  };
+}

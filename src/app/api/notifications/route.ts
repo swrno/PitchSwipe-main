@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { readJson, resolveOwnerId } from "@/lib/decks/owner";
-import { shipDeps } from "@/lib/assistant/server";
-import { listAlerts, markRead, snoozeAlert } from "@/lib/assistant/ship";
+import { readJson, resolveOwnerId } from "@/features/decks/server/owner";
+import { shipDeps } from "@/features/assistant/server/server";
+import { listAlerts, markRead, snoozeAlert } from "@/features/assistant/ship";
 
 const NO_STORE = { "cache-control": "no-store" };
 

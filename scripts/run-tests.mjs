@@ -4,49 +4,68 @@
 //   npm test -- ratelimit seed    only the named suites
 //
 // Exits non-zero if any suite fails, reports no tests, or produces output that cannot be parsed.
-// Suites are listed explicitly so a forgotten test file shows up in review.
+//
+// Discovery (no hard-coded file lists): every `tests/` folder under src/ is one suite named after its parent
+// folder (src/features/swipe/tests -> "swipe", src/shared/lib/ai/tests -> "ai") and runs each `*.test.ts|mjs` in it.
+// Script suites live beside their script: scripts/tests ("sw-routes"), scripts/seed ("seed"), scripts/db ("db-sync-indexes").
+// src/shared/lib/ai/engine is a standalone JS package that runs its own `node --test` from its folder ("ai-engine").
+// Special loader: a `tests/register.mjs` runs that suite's `.mjs` tests through its own module hook (decks) instead of the TS loader.
 import { spawn } from "node:child_process";
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TS = ["--import", "./scripts/register-ts.mjs", "--test"];
+const TEST_FILE = /\.test\.(ts|mjs)$/;
+const SCRIPT_SUITES = { "scripts/tests": "sw-routes", "scripts/seed": "seed", "scripts/db": "db-sync-indexes" };
 
-function filesIn(dir, pattern) {
-  return readdirSync(path.join(root, dir))
-    .filter((name) => pattern.test(name))
-    .sort()
-    .map((name) => `${dir}/${name}`);
+function testFiles(dir) {
+  return readdirSync(path.join(root, dir)).filter((name) => TEST_FILE.test(name)).sort().map((name) => `${dir}/${name}`);
 }
 
-export const SUITES = [
-  { name: "flagsmith", args: [...TS, "scripts/tests/flagsmith.test.mjs", "src/lib/flagsmith/http.test.ts"] },
-  { name: "quality", args: [...TS, "src/lib/quality/tests/quality.test.mjs", "src/lib/quality/tests/switch.test.mjs", "src/lib/quality/tests/submission.test.mjs"] },
-  { name: "demand-curve", args: [...TS, "src/lib/demand-curve/demand-curve.test.ts"] },
-  { name: "swipe", args: [...TS, ...filesIn("src/lib/swipe/tests", /\.test\.mjs$/)] },
-  { name: "claims", args: [...TS, "src/lib/claims/tests/claims.test.mjs", "src/lib/claims/tests/voice-text.test.ts", "src/lib/claims/tests/native-dictation.test.ts"] },
-  { name: "results", args: [...TS, "src/lib/results/results.test.ts", "src/lib/results/demo-consistency.test.ts", "src/lib/results/state-tiles.test.ts", "src/lib/fixtures-imports.test.ts"] },
-  { name: "assistant", args: [...TS, "src/lib/assistant/tests/assistant.test.ts"] },
-  { name: "export", args: [...TS, "src/lib/export/export.test.ts"] },
-  { name: "share", args: [...TS, "src/lib/share/tests/share.test.mjs"] },
-  { name: "ai", args: [...TS, "src/lib/ai/ai.test.ts", "src/lib/ai/groq.test.ts", "src/lib/ai/tool-loop.test.ts", "src/lib/ai/digits.test.ts", "src/lib/decks/ai-live.test.ts"] },
-  { name: "ask", args: [...TS, "src/lib/ask/ask.test.ts"] },
-  { name: "insights", args: [...TS, "src/lib/insights/insights.test.ts"] },
-  { name: "sites", args: [...TS, "src/lib/sites/tests/sites.test.ts"] },
-  { name: "auth", args: [...TS, "src/lib/auth/tests/next.test.ts"] },
-  { name: "ratelimit", args: [...TS, "src/lib/ratelimit/ratelimit.test.ts", "src/lib/ratelimit/body.test.ts"] },
-  { name: "feel", args: [...TS, "src/lib/feel/haptics.test.ts"] },
-  { name: "firebase", args: [...TS, "src/lib/firebase/private-key.test.ts"] },
-  { name: "sw-routes", args: [...TS, "scripts/tests/sw-routes.test.mjs"] },
-  { name: "seed", args: [...TS, "scripts/seed/seed.test.mjs", "scripts/seed/feed-decks.test.mjs"] },
-  { name: "db-sync-indexes", args: [...TS, "scripts/db/sync-indexes.test.mjs"] },
-  {
-    name: "decks",
-    args: ["--import", "./src/lib/decks/tests/register.mjs", "--test", ...filesIn("src/lib/decks/tests", /\.test\.mjs$/)],
-  },
-  { name: "ai-engine", cwd: "src/lib/ai/engine", args: ["--test"] },
-];
+/** Every directory called `tests` under src/ (not inside the AI engine package), as repo-relative paths. */
+function findTestDirs(dir = "src") {
+  const found = [];
+  for (const entry of readdirSync(path.join(root, dir), { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name === "node_modules" || entry.name === "engine") continue;
+    const rel = `${dir}/${entry.name}`;
+    if (entry.name === "tests") found.push(rel);
+    else found.push(...findTestDirs(rel));
+  }
+  return found.sort();
+}
+
+/** The standalone AI engine package (a folder called `engine` holding its own package.json). */
+function findEngine(dir = "src") {
+  for (const entry of readdirSync(path.join(root, dir), { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name === "node_modules") continue;
+    const rel = `${dir}/${entry.name}`;
+    if (entry.name === "engine" && existsSync(path.join(root, rel, "package.json"))) return rel;
+    const deeper = findEngine(rel);
+    if (deeper) return deeper;
+  }
+  return null;
+}
+
+function buildSuites() {
+  const suites = [];
+  for (const dir of findTestDirs()) {
+    const name = path.basename(path.dirname(dir));
+    const files = testFiles(dir);
+    const loader = existsSync(path.join(root, dir, "register.mjs")) ? `./${dir}/register.mjs` : null;
+    if (!loader) { if (files.length) suites.push({ name, args: [...TS, ...files] }); continue; }
+    const mjs = files.filter((f) => f.endsWith(".mjs")), ts = files.filter((f) => f.endsWith(".ts"));
+    if (mjs.length) suites.push({ name, args: ["--import", loader, "--test", ...mjs] });
+    if (ts.length) suites.push({ name: `${name}-ts`, args: [...TS, ...ts] });
+  }
+  for (const [dir, name] of Object.entries(SCRIPT_SUITES)) suites.push({ name, args: [...TS, ...testFiles(dir)] });
+  const engine = findEngine();
+  if (engine) suites.push({ name: "ai-engine", cwd: engine, args: ["--test"] });
+  return suites;
+}
+
+export const SUITES = buildSuites();
 
 /** Reads the node:test summary lines ("ℹ pass 12" in the spec reporter, "# pass 12" in TAP). Returns null if missing. */
 export function parseSummary(output) {

@@ -296,7 +296,7 @@ Checks: `npm run typecheck`, `npm run lint`, `npm test`.
 
 ### Quality check and starter decks
 
-- **The 30-card quality check is off** (`NEXT_PUBLIC_QUALITY_CHECK`, unset = off; see `src/lib/quality/switch.ts`).
+- **The 30-card quality check is off** (`NEXT_PUBLIC_QUALITY_CHECK`, unset = off; see `src/features/quality/switch.ts`).
   New swipers go from verify straight to `/swipe`, and every signed-in swipe counts, so feed answers go through
   Flagsmith instead of the local split. To bring it back, set the GitHub repo **variable**
   `NEXT_PUBLIC_QUALITY_CHECK=on` (it is built into the app) and redeploy.
@@ -331,5 +331,5 @@ that database at the end. It does not check the host, so only ever point it at a
   alerting is a GitHub workflow that emails one person (see [Uptime check](#uptime-check)), not a paging service;
   1 GB RAM is tight; the site runs on the Azure DNS name, not a custom domain.
 - **Legal and product:** the terms and privacy notice are unreviewed drafts; no licence chosen; swiper earnings are
-  demo earnings; about 14 quality thresholds in `src/lib/quality/rules.ts` and nearby still need the owner's
+  demo earnings; about 14 quality thresholds in `src/features/quality/rules.ts` and nearby still need the owner's
   confirmation.

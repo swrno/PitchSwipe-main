@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { LandingNav } from "@/components/landing/landing-nav";
-import { FinalCta, Founders, Hero, HowItWorks, Pricing, Swipers } from "@/components/landing/landing-sections";
-import { LandingFooter } from "@/components/landing/landing-footer";
-import { LandingMotion } from "@/components/landing/landing-motion";
-import { MarqueeBand } from "@/components/landing/marquee-band";
-import { siteUrl } from "@/components/landing/site-url";
-import { isDemoMode } from "@/lib/decks/store";
-
-/*
- * Rendered per request: demo mode (PITCHSWIPE_DEMO) is read from the runtime env, and the VM switches it with a
- * restart, not a rebuild. In demo mode the founder buttons skip sign-up and go straight to /decks/new.
- */
-export const dynamic = "force-dynamic";
+import { LandingNav } from "@/features/landing/ui/landing-nav";
+import { FinalCta, Founders, Hero, HowItWorks, Pricing, Swipers } from "@/features/landing/ui/landing-sections";
+import { LandingFooter } from "@/features/landing/ui/landing-footer";
+import { LandingMotion } from "@/features/landing/ui/landing-motion";
+import { MarqueeBand } from "@/features/landing/ui/marquee-band";
+import { siteUrl } from "@/features/landing/ui/site-url";
 
 const TITLE = "PitchSwipe: Test your pitch. Then build.";
 /*
@@ -47,7 +40,6 @@ export const metadata: Metadata = {
 
 /** Public landing page. Only the nav's auth buttons and the theme toggle run on the client. */
 export default function LandingPage() {
-  const demo = isDemoMode();
   return (
     <>
       <a
@@ -58,13 +50,13 @@ export default function LandingPage() {
       </a>
       <LandingNav />
       <main id="main">
-        <Hero demo={demo} />
+        <Hero />
         <MarqueeBand />
         <Founders />
         <HowItWorks />
         <Swipers />
-        <Pricing demo={demo} />
-        <FinalCta demo={demo} />
+        <Pricing />
+        <FinalCta />
       </main>
       <LandingFooter />
       <LandingMotion />

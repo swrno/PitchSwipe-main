@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { PracticeFlow } from "@/components/quality/practice-flow";
-import { parseMode } from "@/lib/quality";
+import { PracticeFlow } from "@/features/quality/ui/practice-flow";
+import { parseMode } from "@/features/quality";
 
 export const metadata: Metadata = { title: "Quality check" };
 

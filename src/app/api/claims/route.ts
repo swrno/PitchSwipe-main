@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { AuthError, ServiceUnavailableError, claimsDeps, resolveClaimant } from "@/lib/claims/server";
-import { claimReward, parseResponseRef } from "@/lib/claims/service";
-import { clientKey, rateLimit } from "@/lib/ratelimit";
-import { isValidGuid } from "@/lib/swipe/service";
+import { notConfiguredResponse } from "@/shared/lib/not-configured";
+import { AuthError, ServiceUnavailableError, claimsDeps, resolveClaimant } from "@/features/claims/server/server";
+import { claimReward, parseResponseRef } from "@/features/claims/server/service";
+import { clientKey, rateLimit } from "@/shared/lib/ratelimit";
+import { isValidGuid } from "@/features/swipe/server/service";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof AuthError) return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof ServiceUnavailableError) {
-      return NextResponse.json({ error: "This service is temporarily unavailable." }, { status: 503 });
+      return notConfiguredResponse();
     }
     console.error("claims: could not store claim", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Could not claim the reward." }, { status: 500 });

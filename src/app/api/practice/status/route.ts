@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { connectDb } from "@/lib/db";
-import { AuthError, verifyRequestToken } from "@/lib/auth/server";
-import { QUALITY, isCounting } from "@/lib/quality";
-import { isSwipeDemoMode } from "@/lib/swipe/store";
+import { connectDb } from "@/shared/lib/db";
+import { AuthError, verifyRequestToken } from "@/features/auth/server/server";
+import { QUALITY, isCounting } from "@/features/quality";
+import { isServerConfigured } from "@/shared/lib/config";
+import { notConfiguredResponse } from "@/shared/lib/not-configured";
 import { User } from "@/models";
 
 export const runtime = "nodejs";
@@ -10,10 +11,7 @@ export const dynamic = "force-dynamic";
 
 /** GET /api/practice/status: the signed-in swiper's saved score, counting flag and reasons. */
 export async function GET(request: Request) {
-  // Public probe: lets the result screen know whether the design demo numbers (82 / 54) may be shown.
-  if (new URL(request.url).searchParams.get("probe") === "demo") {
-    return NextResponse.json({ demo: isSwipeDemoMode() });
-  }
+  if (!isServerConfigured()) return notConfiguredResponse();
   try {
     const token = await verifyRequestToken(request);
     await connectDb();
@@ -32,10 +30,8 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     if (error instanceof AuthError) {
+      if (error.code === "not_configured") return notConfiguredResponse();
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
-    }
-    if (error instanceof Error && error.message.startsWith("MONGODB_URI")) {
-      return NextResponse.json({ error: error.message, code: "not_configured" }, { status: 503 });
     }
     console.error("practice status route", error);
     return NextResponse.json({ error: "Could not reach the database." }, { status: 500 });

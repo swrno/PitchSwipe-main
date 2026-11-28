@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { VOICE_LANGUAGE_STORAGE_KEY } from "@/lib/claims/languages";
-import { AUDIO_RETENTION_DAYS, MAX_COMMENT_CHARS, MAX_VOICE_SECONDS } from "@/lib/claims/rules";
-import { THEME_STORAGE_KEY } from "@/lib/feel/theme";
-import { DEMO_PROFILE_COOKIE } from "@/lib/swipe/demo-profile";
-import { INTERACTION_FLOOR_MS, PAID_RATE_RS } from "@/lib/swipe/validity";
-import { formatRs } from "@/lib/utils";
+import { VOICE_LANGUAGE_STORAGE_KEY } from "@/features/claims/languages";
+import { AUDIO_RETENTION_DAYS, MAX_COMMENT_CHARS, MAX_VOICE_SECONDS } from "@/features/claims/rules";
+import { THEME_STORAGE_KEY } from "@/shared/lib/feel/theme";
+import { INTERACTION_FLOOR_MS, PAID_RATE_RS } from "@/features/swipe/validity";
+import { formatRs } from "@/shared/lib/utils";
 import { Contents, DraftBanner, LegalHeader, Prose, SupportContact, ToConfirm } from "../_components/legal-parts";
 import { supportEmail } from "../_lib/support";
 
@@ -14,12 +13,12 @@ export const metadata: Metadata = {
   description: "Draft privacy notice: what PitchSwipe collects, why, who sees it and how to delete it.",
 };
 
-// Browser keys that are not exported as constants (src/lib/feel/haptics.ts, src/lib/swipe/client.ts).
+// Browser keys that are not exported as constants (src/shared/lib/feel/haptics.ts, src/features/swipe/ui/client.ts).
 const HAPTICS_KEY = "ps:haptics";
 const SWIPER_GUID_KEY = "pitchswipe.swiper";
-// src/components/quality/storage.ts
+// src/features/quality/ui/storage.ts
 const QUALITY_RESULT_KEY = "pitchswipe.quality.result";
-// src/components/auth/verify-panel.tsx (SENT_AT_KEY, not exported)
+// src/features/auth/ui/verify-panel.tsx (SENT_AT_KEY, not exported)
 const VERIFY_SENT_AT_KEY = "ps:verify-sent-at";
 
 const SECTIONS = [
@@ -39,7 +38,7 @@ const SECTIONS = [
 export default function PrivacyPage() {
   const email = supportEmail();
   return (
-    <div className="rise-children space-y-8">
+    <div className="rise-children space-y-6">
       <DraftBanner />
       <LegalHeader
         kicker="Privacy notice"
@@ -146,7 +145,7 @@ export default function PrivacyPage() {
         </ul>
         <h3>If you are a founder</h3>
         <ul>
-          <li>Your products, decks and cards, audience settings, and whether your name is shown on cards.</li>
+          <li>Your products, tests and cards, audience settings, and whether your name is shown on cards.</li>
           <li>
             If you connect your website: its domain and the text of the elements you test. The snippet on your site sends
             us those elements; the caller&apos;s address is reduced to a one-way hash and used only for rate limiting.
@@ -189,7 +188,7 @@ export default function PrivacyPage() {
           <li>To show you ideas that match your interests, once each, in random order.</li>
           <li>To give founders honest results: which version of their pitch did better, and why people said so.</li>
           <li>To check answer quality, so careless or automated swipes do not count.</li>
-          <li>To show your demo wallet (section 7).</li>
+          <li>To show your wallet (section 7).</li>
         </ul>
         <p>
           We rely on the consent you give when you create an account and when you choose optional extras (interests,
@@ -222,7 +221,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Groq</strong> (running OpenAI&apos;s open-weight gpt-oss models): powers founder tools such as drafting
-            cards, the results assistant and insights, and translates voice notes into English. It may receive a founder&apos;s product and deck content,
+            cards, the results assistant and insights, and translates voice notes into English. It may receive a founder&apos;s product and test content,
             results, and swipers&apos; comment and voice-note text (never the audio). We do not attach swipers&apos; names or
             emails, but comments are sent as written, so avoid putting personal details in them.
           </li>
@@ -266,17 +265,13 @@ export default function PrivacyPage() {
             <code>{VERIFY_SENT_AT_KEY}</code> (session storage, cleared when you close the tab): when we last sent you a
             verification email, so the resend button can wait.
           </li>
-          <li>
-            <code>{DEMO_PROFILE_COOKIE}</code> (cookie): used only on the demo, to preview the &quot;not counting yet&quot;
-            state.
-          </li>
           <li>An offline copy of the app shell, kept by our service worker so the app opens without a connection.</li>
         </ul>
         <p>Clearing your browser&apos;s site data removes all of these. You will need to sign in again.</p>
 
         <h2 id="money">7. Earnings</h2>
         <p>
-          Paid cards show {formatRs(PAID_RATE_RS)} per valid, counted answer. <strong>These are demo earnings for now.</strong> No real
+          Paid cards show {formatRs(PAID_RATE_RS)} per valid, counted answer. <strong>Payouts are not live yet.</strong> No real
           money moves: there are no payouts, withdrawing is switched off, and we do not ask for bank or UPI details. If real
           payouts are added, we will update this notice first and tell you what extra data they need.
         </p>
@@ -290,12 +285,12 @@ export default function PrivacyPage() {
           </li>
           <li>Rate-limit counters: up to about ten minutes, in server memory only.</li>
           <li>
-            When you delete your account (section 9): your profile, your sign-in, your demo wallet and your reward claims
-            are erased. If you are a founder, your products, decks, connected sites, and every answer and claim collected on
+            When you delete your account (section 9): your profile, your sign-in, your wallet and your reward claims
+            are erased. If you are a founder, your products, tests, connected sites, and every answer and claim collected on
             them are erased too.
           </li>
           <li>
-            Answers you gave on other founders&apos; decks stay in their results, but are cut off from you: the link to your
+            Answers you gave on other founders&apos; tests stay in their results, but are cut off from you: the link to your
             account is replaced by a random id, and your comments and voice notes are removed. The answer, the card, your
             role and estimated state at the time, and timing stay, so the founder&apos;s totals do not change.
           </li>

@@ -3,7 +3,7 @@
  * Field names must not be renamed. Mongoose schemas live in src/models.
  * `_id` is a string here (serialised ObjectId).
  */
-import type { Industry, Role, State, TestVariable } from "@/lib/lists";
+import type { Industry, Role, State, TestVariable } from "@/shared/lib/lists";
 
 export type ObjectIdString = string;
 
@@ -190,7 +190,7 @@ export interface AssistantEvent {
 export interface Wallet {
   _id: ObjectIdString;
   userId: ObjectIdString;
-  /** Demo earnings in rupees during the hackathon. */
+  /** Earnings in rupees. Payouts are not live yet. */
   balance: number;
   entries: {
     deckId: ObjectIdString;
@@ -208,7 +208,7 @@ export interface Credits {
   purchases: unknown[];
 }
 
-/** Flagsmith results as the wrapper returns them (see src/lib/flagsmith). */
+/** Flagsmith results as the wrapper returns them (see src/features/flagsmith). */
 export interface FlagsmithCardResult {
   cardId: ObjectIdString;
   variantKey: string;

@@ -1,12 +1,12 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { SUPPORT_EMAIL_PENDING, supportEmail } from "../_lib/support";
 
 /** The banner at the top of every draft legal text. */
 export function DraftBanner() {
   return (
-    <div role="note" className="tile bg-sun px-5 py-4">
+    <div role="note" className="rounded-xl bg-card border border-border neutral-ink px-5 py-4">
       <p className="text-sm font-bold md:text-base">Draft for review. Not legal advice; have it reviewed before launch.</p>
-      <p className="mt-1 text-sm text-ink/75">
+      <p className="mt-1 text-sm text-muted-foreground">
         This text describes what the PitchSwipe code does today. It is not in effect yet.
       </p>
     </div>
@@ -16,7 +16,7 @@ export function DraftBanner() {
 /** A visible gap the business still has to fill in. Never a made-up value. */
 export function ToConfirm({ children }: { children: React.ReactNode }) {
   return (
-    <span className="box-decoration-clone rounded-md bg-lilac/25 px-1.5 py-0.5 text-[0.95em] font-semibold text-foreground ring-1 ring-lilac/50">
+    <span className="box-decoration-clone rounded-md bg-muted px-1.5 py-0.5 text-[0.95em] font-semibold text-foreground ring-1 ring-border">
       [{children}: to be confirmed before launch]
     </span>
   );
@@ -26,8 +26,8 @@ export function ToConfirm({ children }: { children: React.ReactNode }) {
 export function LegalHeader({ kicker, title, intro }: { kicker: string; title: string; intro: React.ReactNode }) {
   return (
     <header className="space-y-3">
-      <span className="inline-flex rounded-full bg-ink px-3 py-1 text-xs font-bold text-ink-foreground ring-1 ring-border">{kicker}</span>
-      <h1 className="text-[2.1rem] leading-tight md:text-5xl">{title}</h1>
+      <span className="inline-flex rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{kicker}</span>
+      <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-[2.1rem] md:text-5xl">{title}</h1>
       <p className="max-w-[60ch] text-base text-muted-foreground md:text-lg">{intro}</p>
     </header>
   );
@@ -57,7 +57,7 @@ export function Prose({ children, className }: { children: React.ReactNode; clas
 /** Table of contents for a long legal page. */
 export function Contents({ items }: { items: { id: string; label: string }[] }) {
   return (
-    <nav aria-label="On this page" className="rounded-3xl bg-card p-5">
+    <nav aria-label="On this page" className="rounded-xl bg-card p-5">
       <p className="text-sm font-bold">On this page</p>
       <ol className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">
         {items.map((item, i) => (

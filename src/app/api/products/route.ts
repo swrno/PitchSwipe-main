@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { readJson, resolveOwnerId, respond } from "@/lib/decks/owner";
-import { createProduct, listProducts } from "@/lib/decks/service";
-import { limitKey } from "@/lib/ratelimit";
+import { readJson, resolveOwnerId, respond } from "@/features/decks/server/owner";
+import { createProduct, listProducts } from "@/features/decks/server/service";
+import { limitKey } from "@/shared/lib/ratelimit";
 
 /** GET /api/products: the founder's products. POST: create a product. */
 export async function GET(request: Request) {

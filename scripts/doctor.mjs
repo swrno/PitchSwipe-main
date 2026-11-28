@@ -9,7 +9,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import nextEnv from "@next/env";
 import mongoose from "mongoose";
 
-import { normalizePrivateKey } from "../src/lib/firebase/private-key.ts";
+import { normalizePrivateKey } from "../src/shared/lib/firebase/private-key.ts";
 
 nextEnv.loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 const env = process.env;
@@ -99,8 +99,8 @@ await check("Flagsmith (client key)", ["NEXT_PUBLIC_FLAGSMITH_ENV_KEY"], async (
   return `environment readable, ${Array.isArray(flags) ? flags.length : 0} flags`;
 });
 
-const { llmVendor } = await import("../src/lib/ai/llm-env.ts");
-const { GROQ_BASE_URL, GROQ_DEFAULT_MODEL, GROQ_FAST_MODEL } = await import("../src/lib/ai/groq-provider.ts");
+const { llmVendor } = await import("../src/shared/lib/ai/llm-env.ts");
+const { GROQ_BASE_URL, GROQ_DEFAULT_MODEL, GROQ_FAST_MODEL } = await import("../src/shared/lib/ai/groq-provider.ts");
 const vendor = llmVendor(env);
 
 if (vendor === "groq") {
@@ -126,10 +126,6 @@ await check("Resend (email)", ["RESEND_API_KEY"]);
 
 // Settings that are not services but decide how the app behaves.
 const notes = [];
-const demoFlag = env.PITCHSWIPE_DEMO === "1";
-if (demoFlag && set("MONGODB_URI")) {
-  notes.push("PITCHSWIPE_DEMO=1 is set, so the app runs on demo data and ignores MONGODB_URI. Remove it for real mode.");
-}
 const secret = env.SWIPE_SIGNING_SECRET ?? "";
 if (secret.length < 16) notes.push("SWIPE_SIGNING_SECRET is missing or shorter than 16 characters (required in production).");
 else if (/local-dev|not-for-prod/i.test(secret)) notes.push("SWIPE_SIGNING_SECRET is the local development value. Use a new random one for any deployment.");
@@ -137,11 +133,10 @@ if (!set("CRON_SECRET")) notes.push("CRON_SECRET is not set: the 'Test decided' 
 if (!set("NEXT_PUBLIC_APP_URL")) notes.push("NEXT_PUBLIC_APP_URL is not set: email and share links have no base URL (required for real mode).");
 
 // Web sign-in config cannot be contacted from here, so "set" is the best it gets. The other two must answer
-// (or, offline, at least be set). Real mode also needs a swipe signing secret and the public app URL.
+// (or, offline, at least be set). The app also needs a swipe signing secret and the public app URL.
 const status = (service) => results.find((r) => r.service === service)?.status;
 const reached = (service) => status(service) === "ok" || (offline && status(service) === "set");
 const realReady =
-  !demoFlag &&
   reached("MongoDB") &&
   reached("Firebase Admin (token checks)") &&
   status("Firebase (web sign-in)") === "set" &&
@@ -156,7 +151,7 @@ if (notes.length) {
   for (const n of notes) console.log(`  - ${n}`);
 }
 console.log(
-  `\nReal mode (MongoDB + Firebase + SWIPE_SIGNING_SECRET + NEXT_PUBLIC_APP_URL, no PITCHSWIPE_DEMO): ${realReady ? "ready" : "not ready"}`,
+  `\nReady (MongoDB + Firebase + SWIPE_SIGNING_SECRET + NEXT_PUBLIC_APP_URL): ${realReady ? "ready" : "not ready"}`,
 );
 console.log(
   [

@@ -1,5 +1,5 @@
-import { AuthError, verifyRequestToken } from "@/lib/auth/server";
-import { handleVoiceText, translateProviderFromEnv, type VerifyResult } from "@/lib/claims/voice-text";
+import { AuthError, verifyRequestToken } from "@/features/auth/server/server";
+import { handleVoiceText, translateProviderFromEnv, type VerifyResult } from "@/features/claims/voice-text";
 
 export const runtime = "nodejs";
 
@@ -21,7 +21,7 @@ async function verify(request: Request): Promise<VerifyResult> {
  * English passes straight through. Other languages are translated by Claude (LLM_API_KEY, optional
  * LLM_TRANSLATE_MODEL) and the translation must keep every figure; without a key, or when a check fails, english is
  * "" and the swiper types it. Signed-in verified email only, rate limited per IP and per user, body capped.
- * See src/lib/claims/voice-text.ts.
+ * See src/features/claims/voice-text.ts.
  */
 export async function POST(request: Request) {
   return handleVoiceText(request, { verify, provider: () => translateProviderFromEnv(process.env) });

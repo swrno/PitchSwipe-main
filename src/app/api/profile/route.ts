@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { Types } from "mongoose";
-import { connectDb } from "@/lib/db";
-import { getFirebaseAdminAuth } from "@/lib/firebase/admin";
-import { AuthError, verifyRequestToken } from "@/lib/auth/server";
-import { isIndustry, isRole, isState } from "@/lib/lists";
-import { QUALITY, isCounting } from "@/lib/quality";
-import { qualityCheckEnabled, swiperCounts } from "@/lib/quality/switch";
-import { limitKey, limitRequest } from "@/lib/ratelimit";
-import { AssistantEvent, Card, Claim, Credits, Deck, Product, Response as ResponseModel, Site, User, Wallet } from "@/models";
+import { connectDb } from "@/shared/lib/db";
+import { notConfiguredResponse } from "@/shared/lib/not-configured";
+import { getFirebaseAdminAuth } from "@/shared/lib/firebase/admin";
+import { AuthError, verifyRequestToken } from "@/features/auth/server/server";
+import { isIndustry, isRole, isState } from "@/shared/lib/lists";
+import { QUALITY, isCounting } from "@/features/quality";
+import { qualityCheckEnabled, swiperCounts } from "@/features/quality/switch";
+import { limitKey, limitRequest } from "@/shared/lib/ratelimit";
+import { AssistantEvent, Card, Claim, Credits, Deck, Product, ProductMember, Response as ResponseModel, Site, User, Wallet } from "@/models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,11 +44,10 @@ function bad(error: string) {
 
 function fail(error: unknown) {
   if (error instanceof AuthError) {
+    if (error.code === "not_configured") return notConfiguredResponse();
     return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
   }
-  if (error instanceof Error && error.message.startsWith("MONGODB_URI")) {
-    return NextResponse.json({ error: error.message, code: "not_configured" }, { status: 503 });
-  }
+  if (error instanceof Error && error.message.startsWith("MONGODB_URI")) return notConfiguredResponse();
   console.error("profile route", error);
   return NextResponse.json({ error: "Could not reach the database." }, { status: 500 });
 }
@@ -136,7 +136,7 @@ export async function POST(request: Request) {
  * Everything is keyed from the verified Firebase uid (-> User._id) and the token's email. What happens per collection:
  *
  * DELETED (the user's own data):
- *  - Wallet  { userId: user._id }   the demo earnings ledger.
+ *  - Wallet  { userId: user._id }   the earnings ledger.
  *  - Credits { ownerId: user._id }  the founder deck allowance.
  *  - Claim   { email = the verified token email }  reward claims. A claim is only an email on a founder's
  *            waitlist, so it cannot be anonymised; it is removed (that founder's waitlist shrinks by one).
@@ -144,9 +144,9 @@ export async function POST(request: Request) {
  *            Site (by productId), and the Response and Claim rows collected on those decks (they are the deleted
  *            founder's research and unreachable once the deck is gone). Other swipers' Wallet entries for those
  *            decks are NOT touched: each entry stores its own amount and title, so balances do not change.
- *  - flagsmith_state (native collection, src/lib/flagsmith/mongo-store.ts): the `snapshot:<flagName>` and
+ *  - flagsmith_state (native collection, src/features/flagsmith/server/mongo-store.ts): the `snapshot:<flagName>` and
  *            `refresh:<experimentId>` bookkeeping rows of the deleted founder's decks.
- *  - assistantAlerts, assistantShips (native collections, src/lib/assistant/store.ts): rows whose ownerId is the
+ *  - assistantAlerts, assistantShips (native collections, src/features/assistant/server/store.ts): rows whose ownerId is the
  *            user's id or whose _id is one of the user's deck ids. Ship rows carry the founder's name (approvedBy)
  *            and Flagsmith snapshots. Matching by owner also catches rows whose deck is already gone.
  *  - User    { firebaseUid }  deleted last of the Mongo steps, because every other key is derived from it.
@@ -197,7 +197,7 @@ export async function DELETE(request: Request) {
       const deckIds = decks.map((d) => d._id);
       const productIds = ((await Product.find({ ownerId: userId }).select("_id").lean()) as unknown as Doc[]).map((p) => p._id);
       if (deckIds.length > 0) {
-        // Flagsmith bookkeeping kept in MongoDB for these decks (src/lib/flagsmith: snapshot:<flagName>, refresh:<experimentId>).
+        // Flagsmith bookkeeping kept in MongoDB for these decks (src/features/flagsmith: snapshot:<flagName>, refresh:<experimentId>).
         const stateKeys = decks.flatMap((d) => [
           ...(typeof d.flagName === "string" ? [`snapshot:${d.flagName}`] : []),
           ...(typeof d.experimentId === "string" ? [`refresh:${d.experimentId}`] : []),
@@ -214,7 +214,7 @@ export async function DELETE(request: Request) {
         ]);
         await Deck.deleteMany({ _id: { $in: deckIds }, ownerId: userId });
       }
-      // Assistant alert and ship records (native collections, src/lib/assistant/store.ts: _id = deckId string,
+      // Assistant alert and ship records (native collections, src/features/assistant/server/store.ts: _id = deckId string,
       // ownerId = String(User._id)). Matched by owner too, so rows whose deck is already gone are removed as well.
       const nativeDb = mongoose.connection.db;
       if (nativeDb) {
@@ -228,8 +228,12 @@ export async function DELETE(request: Request) {
       }
       if (productIds.length > 0) {
         await Site.deleteMany({ productId: { $in: productIds } });
+        await ProductMember.deleteMany({ productId: { $in: productIds } });
         await Product.deleteMany({ _id: { $in: productIds }, ownerId: userId });
       }
+
+      // Co-founder rows for products the user was invited to (by user id, or by their verified email while pending).
+      await ProductMember.deleteMany({ $or: [{ uid: userId }, ...(emails.length > 0 ? [{ email: { $in: emails }, status: "invited" }] : [])] });
 
       // The user's answers on other founders' decks: anonymise through the native collection, so fields written
       // outside the schema (ip, commentVoice.deleteAfter) go too.

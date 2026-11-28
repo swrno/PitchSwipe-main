@@ -55,7 +55,8 @@ const csp = [
     "https://api.flagsmith.com",
     ...(isDev ? ["ws:", "wss:"] : []),
   ].join(" "),
-  `frame-src 'self' ${firebaseFrames.join(" ")}`,
+  // blob: lets the download dialog preview the generated PDF (a blob URL our own script creates).
+  `frame-src 'self' blob: ${firebaseFrames.join(" ")}`,
   `worker-src 'self'${isDev ? " blob:" : ""}`,
   "manifest-src 'self'",
   "object-src 'none'",
@@ -82,6 +83,16 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   ...(devOrigins.length ? { allowedDevOrigins: devOrigins } : {}),
   ...(buildSha ? { env: { GIT_SHA: buildSha } } : {}),
+  async redirects() {
+    return [
+      { source: "/decks", destination: "/products", permanent: false },
+      { source: "/decks/plans", destination: "/settings/plan", permanent: false },
+      { source: "/decks/:id/boost", destination: "/decks/:id/who-swiped", permanent: false },
+      { source: "/products/:id/settings", destination: "/products/:id/config", permanent: false },
+      { source: "/products/:id/insights", destination: "/products/:id", permanent: false },
+      { source: "/products/:id/connect", destination: "/products/:id/site", permanent: false },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

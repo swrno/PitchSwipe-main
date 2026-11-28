@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { readJson, resolveOwnerId } from "@/lib/decks/owner";
-import { limitKey } from "@/lib/ratelimit";
-import { shipDeps } from "@/lib/assistant/server";
-import { getReview, shipDeck, type Outcome } from "@/lib/assistant/ship";
-import { FlagsmithNotConfigured } from "@/lib/flagsmith/errors";
+import { readJson, resolveOwnerId } from "@/features/decks/server/owner";
+import { limitKey } from "@/shared/lib/ratelimit";
+import { shipDeps } from "@/features/assistant/server/server";
+import { getReview, shipDeck, type Outcome } from "@/features/assistant/ship";
+import { FlagsmithNotConfigured } from "@/features/flagsmith/errors";
 
 type Ctx = { params: Promise<{ id: string }> };
 const NO_STORE = { "cache-control": "no-store" };

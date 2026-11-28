@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { PLATFORM_FLAG_DEFAULTS, getPlatformFlags, isNotConfigured } from "@/lib/flagsmith";
+import { PLATFORM_FLAG_DEFAULTS, getPlatformFlags, isNotConfigured } from "@/features/flagsmith";
 
 export const dynamic = "force-dynamic";
 

@@ -1,7 +1,7 @@
-import { clientKey } from "@/lib/ratelimit";
-import { readBodyCapped } from "@/lib/ratelimit/body";
-import { handlePing, handlePreflight } from "@/lib/sites/service";
-import { pingLimiters, siteDeps } from "@/lib/sites/server";
+import { clientKey } from "@/shared/lib/ratelimit";
+import { readBodyCapped } from "@/shared/lib/ratelimit/body";
+import { handlePing, handlePreflight } from "@/features/sites/server/service";
+import { pingLimiters, siteDeps } from "@/features/sites/server/server";
 
 /**
  * POST /api/sites/ping?s=<siteId>: the snippet reports the elements it found and their text.

@@ -1,0 +1,200 @@
+"use client";
+
+import { Icon } from "@/shared/ui/icon";
+import { INDUSTRY_ICONS } from "@/shared/ui/industry-icons";
+import * as React from "react";
+import { Check, Clock, Shuffle } from "lucide-react";
+import { WalletPill } from "./wallet-pill";
+import { Button } from "@/shared/ui/button";
+import { PageHeader } from "@/shared/shell/page-header";
+import { MIN_READ_MS, PAID_RATE_RS } from "@/features/swipe/validity";
+import { INDUSTRIES, PRIMARY_INDUSTRY_COUNT, isIndustry, type Industry } from "@/shared/lib/lists";
+import { ArrowChip } from "@/shared/ui/mascot";
+import type { WalletView } from "@/features/claims/rules";
+import { cn, formatRs } from "@/shared/lib/utils";
+import { haptic } from "@/shared/lib/feel/haptics";
+import { Skeleton } from "@/shared/ui/skeleton";
+
+/** The "Show me ideas for" choice, kept in this browser so the swiper does not pick again on every visit. */
+const INTERESTS_STORAGE_KEY = "ps:swipe-interests";
+
+function readSavedInterests(): Industry[] | null {
+  try {
+    const raw = window.localStorage.getItem(INTERESTS_STORAGE_KEY);
+    if (raw === null) return null;
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((v): v is Industry => typeof v === "string" && isIndustry(v)) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveInterests(interests: Industry[]): void {
+  try {
+    window.localStorage.setItem(INTERESTS_STORAGE_KEY, JSON.stringify(interests));
+  } catch {
+    // Private mode or blocked storage: the choice lasts for this page only.
+  }
+}
+
+/**
+ * Swipe home (designs phone 33, web 32). "Earned today" and "Valid swipes today" are computed from the signed-in swiper's own
+ * wallet credits (today, India time); signed out there is no wallet, so no wallet pill and no stat tiles. The "Show me
+ * ideas for" chips are sent to the feed as a filter on product industry.
+ */
+export function SwipeHome({
+  onStart,
+  starting,
+  error,
+  wallet = null,
+  signedIn = false,
+}: {
+  onStart: (interests: Industry[]) => void;
+  starting: boolean;
+  error?: string | null;
+  /** The signed-in swiper's own wallet; null while it loads or if it failed. */
+  wallet?: WalletView | null;
+  /** Wallet pill and stat tiles show only for a signed-in swiper. */
+  signedIn?: boolean;
+}) {
+  const balanceRs = wallet ? wallet.balanceRs : null;
+  // null until the swiper picks (now or on an earlier visit). Swipers start with nothing selected, which the feed
+  // reads as "all ideas".
+  const [chosen, setChosen] = React.useState<Industry[] | null>(null);
+  const selected = chosen ?? [];
+
+  // Read the saved choice after mount (the server renders without it).
+  React.useEffect(() => {
+    const saved = readSavedInterests();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one read of browser-only state after hydration
+    if (saved) setChosen(saved);
+  }, []);
+
+  const howItWorks = [
+    { icon: Shuffle, title: "Random order", body: "Every idea gets a fair chance." },
+    { icon: Clock, title: "About 10 seconds", body: "One card, one question." },
+    {
+      icon: Check,
+      title: `${formatRs(PAID_RATE_RS)} on every paid card`,
+      body: `Read for ${MIN_READ_MS / 1000}+ seconds.`,
+    },
+  ];
+
+  // Hick's law: the 16 core categories first, plus any the swiper picked; the rest behind "Show all".
+  const [showAll, setShowAll] = React.useState(false);
+  const visibleIndustries = showAll
+    ? INDUSTRIES
+    : INDUSTRIES.filter((ind, i) => i < PRIMARY_INDUSTRY_COUNT || selected.includes(ind));
+  const hiddenCount = INDUSTRIES.length - visibleIndustries.length;
+
+  function toggle(industry: Industry) {
+    haptic("select");
+    const next = selected.includes(industry) ? selected.filter((i) => i !== industry) : [...selected, industry];
+    setChosen(next);
+    saveInterests(next);
+  }
+
+  const statTiles = [
+    { label: "Earned today", value: wallet ? formatRs(wallet.todayRs) : "...", className: "" },
+    { label: "Valid swipes today", value: wallet ? String(wallet.todayValidSwipes) : "...", className: "" },
+    { label: "Wallet balance", value: balanceRs === null ? "..." : formatRs(balanceRs), className: "hidden md:block" },
+  ];
+
+  return (
+    <div className="rise-children space-y-6">
+      <PageHeader
+        className="mb-0"
+        icon="swipe"
+        title="Swipe"
+        description={`Read an idea, answer one question. Earn ${formatRs(PAID_RATE_RS)} on every paid card.`}
+        actions={signedIn ? <WalletPill balanceRs={balanceRs} className="md:hidden" /> : null}
+      />
+
+      <section aria-labelledby="start-swiping" className="rounded-xl border border-border bg-card p-5">
+        <h2 id="start-swiping" className="text-sm font-semibold">
+          Show me ideas for
+        </h2>
+        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Idea categories">
+          {visibleIndustries.map((industry) => {
+            const on = selected.includes(industry);
+            return (
+              <button
+                key={industry}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggle(industry)}
+                className={cn(
+                  "pressable inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                  on ? "border-foreground bg-foreground text-background" : "border-border bg-transparent text-muted-foreground hover:bg-muted",
+                )}
+              >
+                <Icon icon={INDUSTRY_ICONS[industry]} />
+                {industry}
+              </button>
+            );
+          })}
+          {hiddenCount > 0 || showAll ? (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              aria-expanded={showAll}
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {showAll ? "Show fewer" : `Show all (+${hiddenCount})`}
+            </button>
+          ) : null}
+        </div>
+        {selected.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">All categories. Tap one to narrow it.</p>
+        ) : null}
+
+        <Button
+          variant="accent"
+          size="lg"
+          className="mt-5 w-full justify-between pl-7 pr-3 text-base md:w-auto md:min-w-80"
+          disabled={starting}
+          onClick={() => onStart(selected)}
+        >
+          {starting ? "Finding an idea..." : "Start swiping"}
+          <ArrowChip />
+        </Button>
+        <p className="mt-2 text-xs text-muted-foreground">Yes and no pay the same. Answer honestly.</p>
+      </section>
+
+      {signedIn ? (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+          {statTiles.map((t) => (
+            <div key={t.label} className={cn("rounded-xl border border-border bg-card p-4", t.className)}>
+              {t.value === "..." ? <Skeleton className="h-8 w-16" /> : <p className="tnum text-2xl font-semibold">{t.value}</p>}
+              <p className="mt-1 text-xs text-muted-foreground">{t.label}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <section className="space-y-3" aria-labelledby="how-swiping-works">
+        <h2 id="how-swiping-works" className="text-lg font-semibold">
+          How it works
+        </h2>
+        <ul className="grid gap-3 md:grid-cols-3 md:gap-4">
+          {howItWorks.map(({ icon: Icon, title, body }) => (
+            <li key={title} className="flex items-start gap-4 rounded-xl border border-border bg-card p-4 md:flex-col md:gap-3">
+              <Icon aria-hidden className="size-5 shrink-0 text-muted-foreground" strokeWidth={2} />
+              <div>
+                <p className="text-sm font-semibold">{title}</p>
+                <p className="text-sm text-muted-foreground">{body}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {error ? (
+        <p role="alert" className="rounded-xl bg-warning-soft px-4 py-3 text-sm font-medium text-warning">
+          {error}
+        </p>
+      ) : null}
+
+    </div>
+  );
+}

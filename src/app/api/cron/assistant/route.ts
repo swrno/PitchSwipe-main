@@ -1,8 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
-import { watcherDeps } from "@/lib/assistant/server";
-import { runWatcher } from "@/lib/assistant/watcher";
+import { watcherDeps } from "@/features/assistant/server/server";
+import { runWatcher } from "@/features/assistant/server/watcher";
 
 export const dynamic = "force-dynamic";
 

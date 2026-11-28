@@ -1,9 +1,10 @@
-import { FounderGate } from "@/components/shell/founder-gate";
-import { isDemoMode } from "@/lib/decks/store";
+import { SignInGate } from "@/shared/shell/sign-in-gate";
 
-export const dynamic = "force-dynamic";
-
-/** Every /products/** page is a founder page: signed-in, verified founders only in real mode (C5). Demo passes through. */
+/** Every /products/** page is a founder page: signed-in founders with a verified email only (C5). Signed out: a sign-in card. */
 export default function ProductsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <FounderGate demo={isDemoMode()}>{children}</FounderGate>;
+  return (
+    <SignInGate verified what="your products">
+      {children}
+    </SignInGate>
+  );
 }

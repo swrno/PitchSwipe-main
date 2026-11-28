@@ -43,7 +43,7 @@ const config: CapacitorConfig = {
   plugins: {
     // Built into Capacitor 8. The app draws edge to edge; "css" writes the real insets to --safe-area-inset-*
     // on <html>, which globals.css uses for --safe-top / --safe-bottom. DARK = light icons for the default dark
-    // theme; the web app switches it when the user picks light mode (src/lib/feel/theme.ts, syncSystemBars).
+    // theme; the web app switches it when the user picks light mode (src/shared/lib/feel/theme.ts, syncSystemBars).
     SystemBars: {
       insetsHandling: "css",
       style: "DARK",

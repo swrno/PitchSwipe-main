@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { clientKey, rateLimit } from "@/lib/ratelimit";
-import { stateFromHeaders } from "@/lib/swipe/region";
-import { AuthError, ServiceUnavailableError, defaultDeps, resolveSwiper } from "@/lib/swipe/server";
-import { parseSubmitBody, submitResponse } from "@/lib/swipe/service";
+import { notConfiguredResponse } from "@/shared/lib/not-configured";
+import { clientKey, rateLimit } from "@/shared/lib/ratelimit";
+import { stateFromHeaders } from "@/features/swipe/server/region";
+import { AuthError, ServiceUnavailableError, defaultDeps, resolveSwiper } from "@/features/swipe/server/server";
+import { parseSubmitBody, submitResponse } from "@/features/swipe/server/service";
 
 export const runtime = "nodejs";
 
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof AuthError) return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof ServiceUnavailableError) {
-      return NextResponse.json({ error: "This service is temporarily unavailable." }, { status: 503 });
+      return notConfiguredResponse();
     }
     console.error("responses: could not record swipe", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Could not save your answer." }, { status: 500 });

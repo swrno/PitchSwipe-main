@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
-import { composeCard } from "@/lib/swipe/card";
-import { getSwipeStore } from "@/lib/swipe/store";
+import { composeCard } from "@/features/swipe/card";
+import { getSwipeStore } from "@/features/swipe/server/store";
 
 export const alt = "A pitch to answer on PitchSwipe";
 export const size = { width: 1200, height: 630 };

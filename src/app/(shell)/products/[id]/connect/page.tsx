@@ -1,12 +1,7 @@
-import { ConnectWebsite } from "@/components/sites";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-/**
- * F2b Connect website (web 05). docs/designs/README.md names /products/[id]/site; this folder is
- * connect/, so link here (or add a one-line redirect at .../site/page.tsx).
- */
-export default async function ConnectWebsitePage({ params }: { params: Promise<{ id: string }> }) {
+/** The website tab lives at /products/[id]/site; old links to /connect land there. */
+export default async function ConnectRedirectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <ConnectWebsite productId={id} />;
+  redirect(`/products/${encodeURIComponent(id)}/site`);
 }

@@ -1,6 +1,5 @@
-import { connectDb } from "@/lib/db";
-import { isDemoMode } from "@/lib/decks/store";
-import { getFirebaseAdminApp } from "@/lib/firebase/admin";
+import { connectDb } from "@/shared/lib/db";
+import { getFirebaseAdminApp } from "@/shared/lib/firebase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -45,21 +44,19 @@ function firebaseAdminReady(): boolean {
 /**
  * Liveness and configuration check for the deploy script and uptime monitors. No auth, never cached.
  *
- * ok is false (HTTP 503) when the app cannot serve real data: real mode with the database down, real mode with
- * no MONGODB_URI (every data route answers 503 then), or real mode with missing or unparseable Firebase Admin
- * credentials (every token-checked route fails then). Demo mode is ok. Only states are returned, never error
- * messages, hosts or keys.
+ * ok is false (HTTP 503) when the app cannot serve real data: the database is down, there is no MONGODB_URI (every
+ * data route answers 503 then), or the Firebase Admin credentials are missing or unparseable (every token-checked
+ * route fails then). Only states are returned, never error messages, hosts or keys.
  */
 export async function GET() {
-  const demo = isDemoMode();
-  const db: DbState = demo || !process.env.MONGODB_URI ? "off" : await pingDb();
+  const db: DbState = !process.env.MONGODB_URI ? "off" : await pingDb();
   const firebaseAdmin = firebaseAdminReady();
-  // Real mode needs both: without parseable Admin credentials every token-checked route fails.
-  const ok = demo || (db === "up" && firebaseAdmin);
+  // Both are needed: without parseable Admin credentials every token-checked route fails.
+  const ok = db === "up" && firebaseAdmin;
   const version = process.env.GIT_SHA?.trim() || process.env.VERCEL_GIT_COMMIT_SHA?.trim() || null;
 
   return Response.json(
-    { ok, db, firebaseAdmin, demo, version },
+    { ok, db, firebaseAdmin, version },
     { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
   );
 }

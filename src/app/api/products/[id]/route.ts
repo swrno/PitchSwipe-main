@@ -1,5 +1,5 @@
-import { readJson, resolveOwnerId, respond } from "@/lib/decks/owner";
-import { getProduct, updateProduct } from "@/lib/decks/service";
+import { readJson, resolveOwnerId, respond } from "@/features/decks/server/owner";
+import { getProduct, updateProduct } from "@/features/decks/server/service";
 
 type Ctx = { params: Promise<{ id: string }> };
 

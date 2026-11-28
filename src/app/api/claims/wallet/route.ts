@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { AuthError, ServiceUnavailableError, claimsDeps, resolveClaimant } from "@/lib/claims/server";
-import { creditSwipe, parseResponseRef, walletFor } from "@/lib/claims/service";
-import { clientKey, rateLimit } from "@/lib/ratelimit";
-import { isValidGuid } from "@/lib/swipe/service";
-import { WALLET } from "@/fixtures";
+import { notConfiguredResponse } from "@/shared/lib/not-configured";
+import { AuthError, ServiceUnavailableError, claimsDeps, resolveClaimant } from "@/features/claims/server/server";
+import { creditSwipe, parseResponseRef, walletFor } from "@/features/claims/server/service";
+import { clientKey, rateLimit } from "@/shared/lib/ratelimit";
+import { isValidGuid } from "@/features/swipe/server/service";
 
 export const runtime = "nodejs";
 
@@ -14,28 +14,24 @@ function tooManyRequests(retryAfterSeconds: number) {
   );
 }
 
-/** GET /api/claims/wallet?swiperGuid=...: the demo wallet ("Demo earnings"; no real money moves). */
+/** GET /api/claims/wallet?swiperGuid=...: the swiper's wallet (payouts are not live yet). */
 export async function GET(request: Request) {
   const limited = rateLimit(clientKey(request, "claims:wallet-get"), { limit: 30, windowMs: 60_000 });
   if (!limited.ok) return tooManyRequests(limited.retryAfterSeconds);
   const guid = new URL(request.url).searchParams.get("swiperGuid");
   if (!isValidGuid(guid)) return NextResponse.json({ error: "Missing swiper id." }, { status: 400 });
+  // The wallet belongs to a signed-in swiper: a signed-out request gets no data.
+  if (!request.headers.get("authorization")) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   try {
     const { swiper } = await resolveClaimant(request, guid);
     const deps = await claimsDeps();
-    // The fixture score (design web 36, "now 82") only with the in-memory demo store; real mode shows the
-    // swiper's own stored score, or nothing when they have not taken the check.
-    const demoScore = deps.store.demo && swiper.demo;
-    const wallet = await walletFor(deps, swiper.key, {
-      counting: swiper.counting,
-      qualityScore: demoScore ? WALLET.currentQualityScore : swiper.qualityScore,
-      demo: deps.store.demo,
-    });
+    // The swiper's own stored score, or nothing when they have not taken the check.
+    const wallet = await walletFor(deps, swiper.key, { counting: swiper.counting, qualityScore: swiper.qualityScore });
     return NextResponse.json({ wallet });
   } catch (error) {
     if (error instanceof AuthError) return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof ServiceUnavailableError) {
-      return NextResponse.json({ error: "This service is temporarily unavailable." }, { status: 503 });
+      return notConfiguredResponse();
     }
     console.error("wallet: could not load", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Could not load your wallet." }, { status: 500 });
@@ -63,7 +59,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof AuthError) return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof ServiceUnavailableError) {
-      return NextResponse.json({ error: "This service is temporarily unavailable." }, { status: 503 });
+      return notConfiguredResponse();
     }
     console.error("wallet: could not credit", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Could not update your wallet." }, { status: 500 });
