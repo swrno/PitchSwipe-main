@@ -190,10 +190,10 @@ export function DeckChrome({
 
   const base = `/decks/${deckId}`;
   const tabs: PageTab[] = [
-    { label: "Results", href: base, exact: true },
-    { label: "Who swiped", href: `${base}/who-swiped` },
-    { label: "Waitlist users", href: `${base}/waitlist` },
-    { label: "Share", href: `${base}/share` },
+    { icon: "results", label: "Results", href: base, exact: true },
+    { icon: "whoSwiped", label: "Who swiped", href: `${base}/who-swiped` },
+    { icon: "waitlistUsers", label: "Waitlist users", href: `${base}/waitlist` },
+    { icon: "share", label: "Share", href: `${base}/share` },
   ];
   const active = tabs.find((t) => isTabActive(pathname, t));
   const sub = active && active.label !== "Results" ? active.label : null;
@@ -211,6 +211,7 @@ export function DeckChrome({
   return (
     <div>
       <PageHeader
+        icon="test"
         title={view?.currentLabel ?? <span className="inline-block h-8 w-40 rounded-lg bg-muted align-middle motion-safe:animate-pulse" />}
         description={
           !view

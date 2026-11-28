@@ -1,9 +1,10 @@
 "use client";
 
+import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BadgeCheck, FileText, KeyRound, LogOut, Mail, ShieldCheck, Wallet as WalletIcon } from "lucide-react";
+import { Save, Trash2, User, BadgeCheck, FileText, KeyRound, LogOut, Mail, ShieldCheck, Wallet as WalletIcon } from "lucide-react";
 import { Button, buttonVariants } from "@/shared/ui/button";
 import { NOT_CONFIGURED_MESSAGE } from "@/shared/lib/config";
 import { ArrowChip } from "@/shared/ui/mascot";
@@ -422,14 +423,14 @@ function DetailsCard({ profile, onSaved }: { profile: ProfileView; onSaved: (p: 
     <form onSubmit={submit} noValidate aria-labelledby="details-title" className="space-y-5 rounded-xl bg-card p-5 md:p-5">
       <div>
         <h2 id="details-title" className="text-xl">
-          Your details
+          <IconLabel icon={User}>Your details</IconLabel>
         </h2>
         <p className="text-sm text-muted-foreground">Used to pick ideas for you and to group answers for founders. Founders never see your name or email.</p>
       </div>
       <ProfileFieldsEditor idPrefix="details" value={fields} onChange={(f) => { setFields(f); setMessage(null); }} disabled={saving} />
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" variant="lime" disabled={saving || !dirty}>
-          {saving ? "Saving..." : "Save changes"}
+          <Save /> {saving ? "Saving..." : "Save changes"}
         </Button>
         {dirty && !saving ? (
           <Button type="button" variant="ghost" onClick={() => { setFields(toFields(profile)); setMessage(null); }}>
@@ -450,7 +451,7 @@ function QualityTile({ profile }: { profile: ProfileView }) {
       <section aria-labelledby="quality-title" className="rounded-xl bg-card border border-border neutral-ink p-5 md:p-5">
         <div className="flex items-start justify-between gap-3">
           <h2 id="quality-title" className="text-lg">
-            Quality score
+            <IconLabel icon={ShieldCheck}>Quality score</IconLabel>
           </h2>
           <ShieldCheck aria-hidden className="size-5" />
         </div>
@@ -546,7 +547,7 @@ function AccountCard({ email }: { email: string }) {
   return (
     <section aria-labelledby="account-title" className="space-y-4 rounded-xl bg-card p-5 md:p-5">
       <h2 id="account-title" className="text-xl">
-        Account
+        <IconLabel icon={KeyRound}>Account</IconLabel>
       </h2>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Button variant="outline" onClick={changePassword} disabled={busy !== null}>
@@ -622,7 +623,7 @@ function DangerZone({
     <section aria-labelledby="danger-title" className="space-y-4 rounded-xl border-2 border-destructive/60 p-5 md:p-5">
       <div>
         <h2 id="danger-title" className="text-xl text-destructive">
-          Delete account
+          <IconLabel icon={Trash2}>Delete account</IconLabel>
         </h2>
         <p className="mt-1 max-w-[62ch] text-sm text-muted-foreground">
           This removes your profile, your sign-in, your wallet and your reward claims. If you are a founder, it also deletes your products and tests, with every answer and claim collected on them. Answers you gave on other founders&apos; tests stay in their results without your name, email or comments. It cannot be undone.

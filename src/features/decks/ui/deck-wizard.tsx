@@ -5,7 +5,7 @@ import { invalidateDecksUsed } from "./decks-left";
 import * as React from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { CheckCircle2, Download, Flag, Link2, Lock, Plus, Sparkles } from "lucide-react";
+import { CheckCircle2, Download, RotateCcw, Flag, Link2, Lock, Plus, Sparkles } from "lucide-react";
 import { buttonVariants } from "@/shared/ui/button";
 import { Button } from "@/shared/ui/button";
 import { haptic } from "@/shared/lib/feel/haptics";
@@ -143,7 +143,7 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
       <div role="alert" className="space-y-3">
         <Notice tone="error">{message.text}</Notice>
         <button type="button" onClick={() => window.location.reload()} className={cn(buttonVariants({ variant: "outline" }), "h-11")}>
-          Try again
+          <RotateCcw /> Try again
         </button>
       </div>
     ) : (
@@ -156,7 +156,7 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
   if (products.length === 0 || !form) {
     return (
       <div className="space-y-6">
-        <PageHeader title="New test" description="A test lives inside a product." className="mb-0" />
+        <PageHeader icon="newTest" title="New test" description="A test lives inside a product." className="mb-0" />
         <Notice>A test lives inside a product. Create your first product, then come back.</Notice>
         <Link href="/products/new" className="inline-flex h-12 items-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground">
           New product
@@ -292,7 +292,7 @@ export function DeckWizard({ productId, draftId, startWithIdea = false }: Props)
     return (
       <div className="max-w-xl space-y-6">
         <Crumbs items={[{ label: "Products", href: "/products" }, { label: product.name, href: `/products/${product.id}` }, { label: "New test" }]} />
-        <PageHeader title="Your test is live" description="Swipers can see it now." className="mb-0" />
+        <PageHeader icon="statusLive" title="Your test is live" description="Swipers can see it now." className="mb-0" />
         <StepProgress step={totalSteps} total={totalSteps} label="Live" />
         <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-center" role="status">
           <CheckCircle2 aria-hidden className="mx-auto size-10 text-accent" />

@@ -1,5 +1,6 @@
 "use client";
 
+import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
 import { Check, Copy, Download } from "lucide-react";
 
@@ -63,7 +64,7 @@ export function WaitlistScreen({ deckId }: { deckId: string }) {
     <Card className="w-full p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">Waitlist users</h2>
+          <h2 className="text-lg font-semibold tracking-tight"><IconLabel icon="waitlist">Waitlist users</IconLabel></h2>
           <p className="mt-1 text-sm text-muted-foreground">
             <span className="tnum text-2xl font-semibold text-foreground">{count}</span>{" "}
             {count === 1 ? "person" : "people"} claimed

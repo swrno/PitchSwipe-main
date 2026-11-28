@@ -1,5 +1,6 @@
 "use client";
 
+import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
 import { Check, Copy, Loader2, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/shared/ui/button";
@@ -107,7 +108,7 @@ export function TeamPanel({ productId, className }: { productId: string; classNa
   return (
     <section aria-labelledby="team-heading" className={cn("space-y-4 rounded-xl border border-border bg-card p-5", className)}>
       <div>
-        <h2 id="team-heading" className="text-lg font-semibold tracking-tight">Co-founders</h2>
+        <h2 id="team-heading" className="text-lg font-semibold tracking-tight"><IconLabel icon="cofounders">Co-founders</IconLabel></h2>
         <p className="text-sm text-muted-foreground">
           {isOwner
             ? "Can build and publish tests. Only you manage the team."

@@ -1,8 +1,9 @@
 "use client";
 
+import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
 import Link from "next/link";
-import { Settings } from "lucide-react";
+import { Save, Settings } from "lucide-react";
 import { Button, buttonVariants } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
 import { ApiError, api } from "@/features/decks/ui/api";
@@ -73,7 +74,7 @@ function Loaded({ data }: { data: BoostData }) {
         <Card className="space-y-3 p-5">
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-semibold tracking-tight">
-              Who sees it{" "}
+              <IconLabel icon="target">Who sees it</IconLabel>{" "}
               <span className="text-sm font-medium text-muted-foreground">
                 · <span className="md:hidden">from</span>
                 <span className="hidden md:inline">set on</span> the product
@@ -143,7 +144,7 @@ function Loaded({ data }: { data: BoostData }) {
               </div>
               <div className="flex gap-2">
                 <Button onClick={saveAudience} disabled={!dirty || saving}>
-                  {saving ? "Saving..." : "Save audience"}
+                  <Save /> {saving ? "Saving..." : "Save audience"}
                 </Button>
                 <Button variant="outline" onClick={() => setDraft(saved)} disabled={!dirty || saving}>
                   Reset

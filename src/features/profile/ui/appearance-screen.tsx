@@ -1,5 +1,7 @@
 "use client";
 
+import { IconLabel } from "@/shared/ui/icon";
+import { SlidersHorizontal } from "lucide-react";
 import * as React from "react";
 import { AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/shared/ui/button";
@@ -113,7 +115,7 @@ export function AppearanceScreen() {
         </div>
 
         <aside aria-label="Preview" className="space-y-3 lg:sticky lg:top-6 lg:self-start">
-          <h2 className="text-sm font-semibold text-muted-foreground">Preview ({mode})</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground"><IconLabel icon="preview">Preview ({mode})</IconLabel></h2>
           <Preview tokens={tokens} />
         </aside>
       </div>
@@ -145,7 +147,7 @@ function PresetGrid({ mode, activeId, onPick }: { mode: PaletteMode; activeId: s
   return (
     <section aria-labelledby="presets-h" className="space-y-3">
       <h2 id="presets-h" className="text-lg font-semibold">
-        Themes
+        <IconLabel icon="appearance">Themes</IconLabel>
       </h2>
       <div role="radiogroup" aria-labelledby="presets-h" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {PALETTE_PRESETS.map((p, i) => {
@@ -192,7 +194,7 @@ function CustomColorsEditor({ colors, active, onChange }: { colors: CustomColors
   return (
     <section aria-labelledby="custom-h" className="space-y-3">
       <h2 id="custom-h" className="text-lg font-semibold">
-        Custom colours
+        <IconLabel icon={SlidersHorizontal}>Custom colours</IconLabel>
       </h2>
       <p className="text-sm text-muted-foreground">
         Pick three colours. Cards, borders and text colours follow from them{active ? "" : " (editing switches from the theme above to custom)"}.

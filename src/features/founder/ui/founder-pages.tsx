@@ -1,8 +1,9 @@
 "use client";
 
+import { Icon, IconLabel, IconTile, type IconName } from "@/shared/ui/icon";
 import * as React from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { AlertTriangle, Plus, RotateCcw } from "lucide-react";
 import { buttonVariants } from "@/shared/ui/button";
 import { PageHeader } from "@/shared/shell/page-header";
 import { CURRENT_PLAN, decksLeft } from "@/shared/lib/plans";
@@ -48,14 +49,15 @@ function NewDeckLink() {
 const allDecks = (products: ProductListItem[]) =>
   products.flatMap((p) => p.decks.map((d) => ({ deck: d, product: p })));
 
-function Kpi({ label, value, children }: { label: string; value: number; children?: React.ReactNode }) {
+function Kpi({ label, value, icon, children }: { label: string; value: number; icon: IconName; children?: React.ReactNode }) {
   return (
-    <div className={cn(CARD, "p-4")}>
+    <div className={cn(CARD, "relative h-full p-4 pr-10")}>
+      <Icon icon={icon} className="absolute right-3 top-3 text-muted-foreground" />
       <p className="flex items-baseline gap-1.5">
         <span className="tnum text-2xl font-semibold">{fmt(value)}</span>
         {children}
       </p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="line-clamp-2 text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -88,14 +90,15 @@ export function OverviewScreen() {
   const state = useOverview();
   return (
     <div>
-      <PageHeader title="Overview" description="See which of your tests need you today." actions={<NewDeckLink />} />
+      <PageHeader icon="overview" title="Overview" description="See which of your tests need you today." actions={<NewDeckLink />} />
       {!state ? (
         <OverviewSkeleton />
       ) : "error" in state ? (
         <div role="alert" className={cn(CARD, "flex flex-col items-start gap-3 p-6")}>
+          <IconTile icon={AlertTriangle} />
           <p className="text-sm text-destructive">{state.error}</p>
           <button type="button" onClick={() => window.location.reload()} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-            Try again
+            <RotateCcw /> Try again
           </button>
         </div>
       ) : (
@@ -112,6 +115,7 @@ function OverviewBody({ products }: { products: ProductListItem[] }) {
   if (rows.length === 0) {
     return (
       <div className={cn(CARD, "flex flex-col items-center gap-3 p-10 text-center")}>
+        <IconTile icon="newTest" />
         <h2 className="text-xl font-semibold">Test your first idea</h2>
         <p className="text-muted-foreground">Describe it in your own words and AI drafts the pitch.</p>
         <Link href="/decks/new" className={cn(buttonVariants({ variant: "default" }), "h-10")}>
@@ -130,7 +134,7 @@ function OverviewBody({ products }: { products: ProductListItem[] }) {
     <>
       {review.length > 0 ? (
         <section className={cn(CARD, "border-l-2 border-l-accent")}>
-          <h2 className="px-4 pt-4 text-lg font-semibold">Needs your review</h2>
+          <h2 className="px-4 pt-4 text-lg font-semibold"><IconLabel icon="statusDraft">Needs your review</IconLabel></h2>
           <ul className="divide-y divide-border">
             {review.map(({ deck, product }) => (
               <li key={deck.id} className="flex items-center justify-between gap-3 px-4 py-3">
@@ -153,15 +157,16 @@ function OverviewBody({ products }: { products: ProductListItem[] }) {
       ) : null}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Kpi label="Live tests" value={live.length} />
-        <Kpi label="Swipers" value={swipers} />
-        <Kpi label="Joined waitlist" value={waitlist} />
-        <div className={cn(CARD, "p-4")}>
+        <Kpi icon="live" label="Live tests" value={live.length} />
+        <Kpi icon="swipers" label="Swipers" value={swipers} />
+        <Kpi icon="joined" label="Joined waitlist" value={waitlist} />
+        <div className={cn(CARD, "relative h-full p-4 pr-10")}>
+          <Icon icon="testsLeft" className="absolute right-3 top-3 text-muted-foreground" />
           <p className="flex items-baseline gap-1.5">
             <span className="tnum text-2xl font-semibold">{fmt(left)}</span>
             <span className="text-xs text-muted-foreground">of {fmt(allowance)}</span>
           </p>
-          <p className="text-xs text-muted-foreground">Tests left</p>
+          <p className="line-clamp-2 text-xs text-muted-foreground">Tests left</p>
           <div className="mt-2 h-1 rounded-full bg-muted" aria-hidden>
             <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round((left / allowance) * 100)}%` }} />
           </div>
@@ -171,7 +176,7 @@ function OverviewBody({ products }: { products: ProductListItem[] }) {
       <div className="grid gap-6 md:grid-cols-3">
         <section className="space-y-2 md:col-span-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Live tests</h2>
+            <h2 className="text-lg font-semibold"><IconLabel icon="live">Live tests</IconLabel></h2>
             <ViewAll href="/products" />
           </div>
           {live.length === 0 ? (
@@ -200,7 +205,7 @@ function OverviewBody({ products }: { products: ProductListItem[] }) {
         </section>
         <section className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Products</h2>
+            <h2 className="text-lg font-semibold"><IconLabel icon="products">Products</IconLabel></h2>
             <ViewAll href="/products" />
           </div>
           <ul className={cn(CARD, "divide-y divide-border overflow-hidden")}>

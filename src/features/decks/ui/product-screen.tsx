@@ -1,5 +1,7 @@
 "use client";
 
+import { Save } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useBreadcrumb } from "@/shared/shell/breadcrumb";
@@ -97,7 +99,7 @@ export function ProductScreen({ productId, aside }: { productId?: string; aside?
     return message?.tone === "error" ? (
       <div role="alert" className="space-y-3">
         <Notice tone="error">{message.text}</Notice>
-        <button type="button" onClick={() => window.location.reload()} className="inline-flex h-11 items-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Try again</button>
+        <button type="button" onClick={() => window.location.reload()} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><RotateCcw className="size-4" aria-hidden /> Try again</button>
       </div>
     ) : (
       <div aria-busy className="space-y-4"><span className="sr-only">Loading</span><div className="h-64 rounded-xl bg-muted motion-safe:animate-pulse" /><div className="h-40 rounded-xl bg-muted motion-safe:animate-pulse" /></div>
@@ -108,11 +110,12 @@ export function ProductScreen({ productId, aside }: { productId?: string; aside?
     <div className="space-y-6">
       {isNew ? (
         <PageHeader
+          icon="products"
           title="New product"
           description="Describe it once. Every test you make for it reuses this."
           actions={
             <Button onClick={save} disabled={saving} className="hidden md:inline-flex">
-              {saving ? "Saving…" : "Save product"}
+              <Save /> {saving ? "Saving…" : "Save product"}
             </Button>
           }
         />
@@ -120,7 +123,7 @@ export function ProductScreen({ productId, aside }: { productId?: string; aside?
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">Shared by every test. Changes apply to new tests only, so running tests stay fair.</p>
           <Button onClick={save} disabled={saving} className="hidden md:inline-flex">
-            {saving ? "Saving…" : "Save product"}
+            <Save /> {saving ? "Saving…" : "Save product"}
           </Button>
         </div>
       )}
@@ -223,7 +226,7 @@ export function ProductScreen({ productId, aside }: { productId?: string; aside?
           {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
           <Button size="lg" onClick={save} disabled={saving} className="w-full md:hidden">
-            {saving ? "Saving…" : "Save product"}
+            <Save /> {saving ? "Saving…" : "Save product"}
           </Button>
         </div>
 

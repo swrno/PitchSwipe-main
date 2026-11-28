@@ -1,7 +1,23 @@
 /**
  * Minimal valid PDF 1.4 writer: A4 pages, Helvetica / Helvetica-Bold, headings, wrapped text,
- * simple tables, a page footer. Hand-built objects with a real xref table. No dependency.
+ * simple tables, a page footer, and vector drawing (rects, rounded rects, lines, circles, ring
+ * gauges, coloured text) through `draw` blocks. Hand-built objects with a real xref table.
+ * No dependency.
  */
+
+/** A colour: a gray level 0 to 1, or "#rrggbb". */
+export type PdfColor = number | string;
+
+/** Drawing surface handed to `draw` blocks. All y values grow downward from the top of the page. */
+export interface PdfCanvas {
+  rect(x: number, y: number, w: number, h: number, fill: PdfColor): void;
+  roundRect(x: number, y: number, w: number, h: number, r: number, fill: PdfColor | null, stroke?: { color: PdfColor; width?: number }): void;
+  line(x1: number, y1: number, x2: number, y2: number, color: PdfColor, width?: number): void;
+  circle(cx: number, cy: number, r: number, fill: PdfColor): void;
+  /** A ring gauge: a full track plus an arc from 12 o'clock covering `frac` (0 to 1). */
+  ring(cx: number, cy: number, r: number, thickness: number, frac: number, color: PdfColor, track: PdfColor): void;
+  text(s: string, x: number, baseline: number, size: number, opts?: { bold?: boolean; color?: PdfColor; align?: "left" | "right" | "center"; maxWidth?: number }): void;
+}
 
 export interface PdfColumn {
   header: string;
@@ -17,6 +33,8 @@ export type PdfBlock =
   | { type: "table"; columns: PdfColumn[]; rows: string[][]; boldLastRow?: boolean }
   /** `lead` insights are counted: at most `maxLeadsPerPage` per page. */
   | { type: "insight"; title: string; body: string; footnote?: string; lead?: boolean }
+  /** Vector drawing in a box `height` tall; `x` and `w` are the content column. Never split over pages. */
+  | { type: "draw"; height: number; draw: (c: PdfCanvas, x: number, y: number, w: number) => void }
   | { type: "spacer"; height?: number }
   | { type: "pagebreak" };
 
@@ -28,6 +46,13 @@ export interface PdfDocument {
   blocks: PdfBlock[];
   maxLeadsPerPage?: number;
 }
+
+export const INK = "#111111";
+export const MUTED_INK = "#5d5b63";
+export const BORDER = "#e2e0d9";
+export const TRACK = "#ecebe6";
+export const ACCENT = "#3b7a0c";
+export const ACCENT_SOFT = "#eaf5d8";
 
 const PAGE_W = 595.28;
 const PAGE_H = 841.89;
@@ -80,6 +105,16 @@ export function textWidth(text: string, size: number, bold = false): number {
   return (w / 1000) * size * (bold ? 1.06 : 1);
 }
 
+export function wrapLines(text: string, maxWidth: number, size: number, bold = false): string[] {
+  return wrap(text, maxWidth, size, bold);
+}
+
+function colorOps(c: PdfColor, stroke: boolean): string {
+  if (typeof c === "number") return `${c} ${stroke ? "G" : "g"}`;
+  const v = [1, 3, 5].map((i) => (parseInt(c.slice(i, i + 2), 16) / 255).toFixed(3));
+  return `${v.join(" ")} ${stroke ? "RG" : "rg"}`;
+}
+
 function wrap(text: string, maxWidth: number, size: number, bold = false): string[] {
   const lines: string[] = [];
   for (const para of pdfSafe(text).split(/ {2,}\n|\n/)) {
@@ -130,13 +165,59 @@ export function buildPdf(doc: PdfDocument): Buffer {
   const ensure = (h: number) => {
     if (y + h > BOTTOM) newPage();
   };
-  const text = (s: string, x: number, baseline: number, size: number, bold = false, gray = 0) => {
-    page.ops.push(`BT /${bold ? "F2" : "F1"} ${size} Tf ${gray} g ${x.toFixed(2)} ${(PAGE_H - baseline).toFixed(2)} Td (${esc(s)}) Tj ET`);
+  const f = (n: number) => n.toFixed(2);
+  const text = (s: string, x: number, baseline: number, size: number, bold = false, color: PdfColor = 0) => {
+    page.ops.push(`BT /${bold ? "F2" : "F1"} ${size} Tf ${colorOps(color, false)} ${f(x)} ${f(PAGE_H - baseline)} Td (${esc(s)}) Tj ET`);
   };
-  const rule = (yy: number, gray = 0.85) => {
-    page.ops.push(`${gray} G 0.5 w ${MARGIN} ${(PAGE_H - yy).toFixed(2)} m ${(PAGE_W - MARGIN).toFixed(2)} ${(PAGE_H - yy).toFixed(2)} l S`);
+  const rule = (yy: number, color: PdfColor = 0.85, x1 = MARGIN, x2 = PAGE_W - MARGIN, width = 0.5) => {
+    page.ops.push(`${colorOps(color, true)} ${width} w ${f(x1)} ${f(PAGE_H - yy)} m ${f(x2)} ${f(PAGE_H - yy)} l S`);
   };
-  const paragraph = (s: string, size: number, bold: boolean, gray: number, indent = 0) => {
+  const K = 0.5523;
+  const rrPath = (x: number, y: number, w: number, h: number, r0: number) => {
+    const r = Math.max(0, Math.min(r0, w / 2, h / 2));
+    const X = (v: number) => f(v);
+    const Y = (v: number) => f(PAGE_H - v);
+    const k = r * K;
+    return (
+      `${X(x + r)} ${Y(y)} m ${X(x + w - r)} ${Y(y)} l ${X(x + w - r + k)} ${Y(y)} ${X(x + w)} ${Y(y + r - k)} ${X(x + w)} ${Y(y + r)} c ` +
+      `${X(x + w)} ${Y(y + h - r)} l ${X(x + w)} ${Y(y + h - r + k)} ${X(x + w - r + k)} ${Y(y + h)} ${X(x + w - r)} ${Y(y + h)} c ` +
+      `${X(x + r)} ${Y(y + h)} l ${X(x + r - k)} ${Y(y + h)} ${X(x)} ${Y(y + h - r + k)} ${X(x)} ${Y(y + h - r)} c ` +
+      `${X(x)} ${Y(y + r)} l ${X(x)} ${Y(y + r - k)} ${X(x + r - k)} ${Y(y)} ${X(x + r)} ${Y(y)} c h`
+    );
+  };
+  const arcPath = (cx: number, cy: number, r: number, frac: number) => {
+    const steps = Math.max(2, Math.ceil(frac * 90));
+    const pts: string[] = [];
+    for (let i = 0; i <= steps; i++) {
+      const a = -Math.PI / 2 + (frac * 2 * Math.PI * i) / steps;
+      pts.push(`${f(cx + r * Math.cos(a))} ${f(PAGE_H - (cy + r * Math.sin(a)))} ${i === 0 ? "m" : "l"}`);
+    }
+    return pts.join(" ");
+  };
+  const canvas: PdfCanvas = {
+    rect: (x, y, w, h, fill) => page.ops.push(`${colorOps(fill, false)} ${f(x)} ${f(PAGE_H - y - h)} ${f(w)} ${f(h)} re f`),
+    roundRect: (x, y, w, h, r, fill, stroke) => {
+      const ops = [rrPath(x, y, w, h, r)];
+      if (fill !== null && stroke) page.ops.push(`${colorOps(fill, false)} ${colorOps(stroke.color, true)} ${stroke.width ?? 0.75} w ${ops[0]} B`);
+      else if (fill !== null) page.ops.push(`${colorOps(fill, false)} ${ops[0]} f`);
+      else if (stroke) page.ops.push(`${colorOps(stroke.color, true)} ${stroke.width ?? 0.75} w ${ops[0]} S`);
+    },
+    line: (x1, y1, x2, y2, color, width = 0.75) =>
+      page.ops.push(`${colorOps(color, true)} ${width} w 1 J ${f(x1)} ${f(PAGE_H - y1)} m ${f(x2)} ${f(PAGE_H - y2)} l S`),
+    circle: (cx, cy, r, fill) => page.ops.push(`${colorOps(fill, false)} ${arcPath(cx, cy, r, 1)} h f`),
+    ring: (cx, cy, r, t, frac, color, track) => {
+      const fr = Math.max(0, Math.min(1, frac));
+      page.ops.push(`${colorOps(track, true)} ${t} w ${arcPath(cx, cy, r, 1)} h S`);
+      if (fr > 0.004) page.ops.push(`${colorOps(color, true)} ${t} w 1 J 1 j ${arcPath(cx, cy, r, Math.min(fr, 0.9995))} S`);
+    },
+    text: (s, x, baseline, size, o = {}) => {
+      const t = o.maxWidth ? fit(s, o.maxWidth, size, o.bold) : pdfSafe(s);
+      const w = textWidth(t, size, o.bold);
+      const px = o.align === "right" ? x - w : o.align === "center" ? x - w / 2 : x;
+      text(t, px, baseline, size, o.bold ?? false, o.color ?? 0);
+    },
+  };
+  const paragraph = (s: string, size: number, bold: boolean, gray: PdfColor, indent = 0) => {
     const lh = size * 1.35;
     for (const line of wrap(s, CONTENT_W - indent, size, bold)) {
       ensure(lh);
@@ -149,19 +230,25 @@ export function buildPdf(doc: PdfDocument): Buffer {
     switch (block.type) {
       case "title":
         ensure(40);
-        paragraph(block.text, 22, true, 0);
+        paragraph(block.text, 22, true, INK);
         y += 4;
         break;
       case "heading":
         ensure(50);
         y += 10;
-        paragraph(block.text, 13, true, 0);
-        rule(y + 1);
+        paragraph(block.text, 13, true, INK);
+        rule(y + 1, BORDER);
+        rule(y + 1, ACCENT, MARGIN, MARGIN + 30, 2);
         y += 8;
         break;
       case "text":
-        paragraph(block.text, block.size ?? 10, block.bold ?? false, block.muted ? 0.4 : 0);
+        paragraph(block.text, block.size ?? 10, block.bold ?? false, block.muted ? MUTED_INK : INK);
         y += 3;
+        break;
+      case "draw":
+        ensure(block.height);
+        block.draw(canvas, MARGIN, y, CONTENT_W);
+        y += block.height + 6;
         break;
       case "spacer":
         y += block.height ?? 8;
@@ -176,7 +263,8 @@ export function buildPdf(doc: PdfDocument): Buffer {
         if (block.lead && page.leads >= maxLeads) newPage();
         ensure(h);
         if (block.lead) page.leads += 1;
-        page.ops.push(`0.96 g ${MARGIN} ${(PAGE_H - y - h + 6).toFixed(2)} ${CONTENT_W} ${(h - 6).toFixed(2)} re f`);
+        canvas.roundRect(MARGIN, y + 2, CONTENT_W, h - 8, 5, ACCENT_SOFT);
+        canvas.roundRect(MARGIN, y + 2, 4, h - 8, 2, ACCENT);
         let yy = y + 8;
         text(fit(block.title, CONTENT_W - 20, 10.5, true), MARGIN + 10, yy + 10.5, 10.5, true);
         yy += 15;
@@ -185,7 +273,7 @@ export function buildPdf(doc: PdfDocument): Buffer {
           yy += 12.5;
         }
         for (const l of foot) {
-          text(l, MARGIN + 10, yy + 8.5, 8.5, false, 0.4);
+          text(l, MARGIN + 10, yy + 8.5, 8.5, false, MUTED_INK);
           yy += 11.5;
         }
         y += h + 2;
@@ -198,7 +286,7 @@ export function buildPdf(doc: PdfDocument): Buffer {
         const rowH = 16;
         const drawRow = (cells: string[], bold: boolean, shade: boolean) => {
           ensure(rowH);
-          if (shade) page.ops.push(`0.95 g ${MARGIN} ${(PAGE_H - y - rowH + 4).toFixed(2)} ${CONTENT_W} ${rowH} re f`);
+          if (shade) canvas.rect(MARGIN, y - 4, CONTENT_W, rowH, ACCENT_SOFT);
           let x = MARGIN;
           block.columns.forEach((col, i) => {
             const cell = fit(cells[i] ?? "", widths[i] - 8, size, bold);
@@ -229,9 +317,9 @@ export function buildPdf(doc: PdfDocument): Buffer {
   pages.forEach((p, i) => {
     page = p;
     rule(PAGE_H - 40, 0.85);
-    text(fit(doc.footer, CONTENT_W - 80, 8), MARGIN, PAGE_H - 28, 8, false, 0.4);
+    text(fit(doc.footer, CONTENT_W - 80, 8), MARGIN, PAGE_H - 28, 8, false, MUTED_INK);
     const label = `Page ${i + 1} of ${pages.length}`;
-    text(label, PAGE_W - MARGIN - textWidth(label, 8), PAGE_H - 28, 8, false, 0.4);
+    text(label, PAGE_W - MARGIN - textWidth(label, 8), PAGE_H - 28, 8, false, MUTED_INK);
   });
 
   // Objects: 1 catalog, 2 pages, 3 F1, 4 F2, 5 info, then (page, content) pairs.

@@ -29,10 +29,10 @@ export function ProductHeader({ productId }: { productId: string }) {
 
   const base = `/products/${productId}`;
   const tabs: PageTab[] = [
-    { label: "Overview", href: base, exact: true },
-    { label: "Tests", href: `${base}/tests` },
-    { label: "Website", href: `${base}/site`, alsoActive: [`${base}/connect`] },
-    { label: "Settings", href: `${base}/config` },
+    { icon: "dashboard", label: "Overview", href: base, exact: true },
+    { icon: "tests", label: "Tests", href: `${base}/tests` },
+    { icon: "website", label: "Website", href: `${base}/site`, alsoActive: [`${base}/connect`] },
+    { icon: "settings", label: "Settings", href: `${base}/config` },
   ];
   const loaded = name?.id === productId ? name : null;
   const active = tabs.find((t) => isTabActive(pathname, t));
@@ -47,6 +47,7 @@ export function ProductHeader({ productId }: { productId: string }) {
 
   return (
     <PageHeader
+      icon="products"
       title={loaded?.name ?? <span className="inline-block h-8 w-48 rounded-lg bg-muted align-middle motion-safe:animate-pulse" />}
       description="Test ideas for this product and see which test is winning."
       actions={

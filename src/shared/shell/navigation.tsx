@@ -252,7 +252,9 @@ export function Sidebar({
                   <ul className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-2">
                     {products.slice(0, MAX_SIDEBAR_PRODUCTS).map((p) => {
                       const href = `/products/${p.id}`;
-                      const current = isActivePath(pathname, href);
+                      // A test's pages (/decks/<id>/...) belong to the product that owns the test.
+                      const current =
+                        isActivePath(pathname, href) || p.decks.some((d) => isActivePath(pathname, `/decks/${d.id}`));
                       return (
                         <li key={p.id}>
                           <Link

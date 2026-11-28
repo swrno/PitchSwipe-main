@@ -1,3 +1,4 @@
+import { Icon, IconLabel } from "@/shared/ui/icon";
 import { Check } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
@@ -72,7 +73,7 @@ function Plan({
   return (
     <Card className={cn("flex flex-col p-5", current && "border-accent")}>
       <div className="mb-3 flex items-start justify-between gap-2">
-        <h2 className="text-lg font-semibold tracking-tight">{name}</h2>
+        <h2 className="text-lg font-semibold tracking-tight"><IconLabel icon="plan">{name}</IconLabel></h2>
         {current ? <span className="shrink-0 rounded-md bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">Current plan</span> : null}
         {badge ? <span className="shrink-0 rounded-md border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">{badge}</span> : null}
       </div>
@@ -88,7 +89,7 @@ function Plan({
       </ul>
       {soon ? (
         <Button variant="outline" className="mt-auto w-full md:w-fit" disabled type="button">
-          Coming soon
+          <Icon icon="statusSoon" /> Coming soon
         </Button>
       ) : null}
     </Card>

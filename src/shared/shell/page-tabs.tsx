@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isActivePath } from "@/shared/lib/nav";
+import { Icon, type IconName } from "@/shared/ui/icon";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 export interface PageTab {
   label: string;
+  icon?: LucideIcon | IconName;
   href: string;
   /** Active only on exactly this path (the root tab of a page). Otherwise active on the path and below. */
   exact?: boolean;
@@ -33,12 +36,13 @@ export function PageTabs({ tabs, label = "Sections", className }: { tabs: readon
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "-mb-px flex min-h-11 items-center whitespace-nowrap border-b-2 px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                  "-mb-px flex min-h-11 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                   active
                     ? "border-accent font-semibold text-foreground"
                     : "border-transparent font-medium text-muted-foreground hover:text-foreground",
                 )}
               >
+                {tab.icon ? <Icon icon={tab.icon} active={active} className={active ? "text-foreground" : undefined} /> : null}
                 {tab.label}
               </Link>
             </li>

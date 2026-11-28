@@ -1,5 +1,6 @@
 "use client";
 
+import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
 import { Check, Copy, Loader2, Mail, RefreshCw, TriangleAlert } from "lucide-react";
 
@@ -117,7 +118,7 @@ export function ConnectWebsite({
 
       <Card className="p-5 md:p-5" aria-labelledby="your-site-h">
         <h2 id="your-site-h" className="text-lg font-semibold tracking-tight">
-          Your website
+          <IconLabel icon="website">Your website</IconLabel>
         </h2>
         {view.site && !editing ? (
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">

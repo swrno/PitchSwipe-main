@@ -295,6 +295,22 @@ describe("report PDF", () => {
     assert.match(pdf, /Lead:/);
     assert.doesNotMatch(pdf, EMAIL);
   });
+
+  it("is coloured, drawn with vectors and has a section for each chart", () => {
+    const deck = deckData();
+    const pdf = buildPdf(reportDocument({ productName: "Voice Khata", scopeText: "this deck", decks: [deck], now: NOW })).toString("latin1");
+    assert.match(pdf, /0\.231 0\.478 0\.047 rg/); // accent #3b7a0c fill
+    assert.match(pdf, / c h f/); // curves: rounded rects and circles
+    for (const title of ["Funnel", "Leaderboard", "Waitlist", "Who swiped", "SAID YES", "JOINED WAITLIST", "SOURCE"]) {
+      assert.ok(pdf.includes(`(${title})`), title);
+    }
+    const t = deck.payload.totals;
+    assert.ok(pdf.includes(`(${t.swipers})`));
+    assert.ok(pdf.includes(`(${t.saidYes})`));
+    assert.ok(pdf.includes(`(${t.joined})`));
+    assert.ok(pdf.includes("(Leading)") || pdf.includes("(Winner)"));
+    assert.doesNotMatch(pdf, IPV4);
+  });
 });
 
 describe("bundle", () => {

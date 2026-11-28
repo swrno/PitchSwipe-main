@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon, IconLabel, IconTile, type IconName } from "@/shared/ui/icon";
 import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
@@ -23,11 +24,12 @@ function leaderOf(r: ResultsPayload): LeaderRow | null {
   return rows.find((x) => x.key === r.verdict.leaderKey) ?? rows[0] ?? null;
 }
 
-function Kpi({ value, label }: { value: string; label: string }) {
+function Kpi({ value, label, icon }: { value: string; label: string; icon: IconName }) {
   return (
-    <div className={cn(CARD, "p-4")}>
+    <div className={cn(CARD, "relative h-full p-4 pr-10")}>
+      <Icon icon={icon} className="absolute right-3 top-3 text-muted-foreground" />
       <p className="tnum text-2xl font-semibold">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="line-clamp-2 text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -89,6 +91,7 @@ export function ProductOverview({ productId }: { productId: string }) {
   if (product.decks.length === 0)
     return (
       <div className={cn(CARD, "flex flex-col items-center gap-3 p-10 text-center")}>
+        <IconTile icon="test" />
         <h2 className="text-xl font-semibold">Create your first test</h2>
         <p className="text-muted-foreground">Test an idea for {product.name} in a few minutes and see which version wins.</p>
         <Link href={newHref} className={cn(buttonVariants({ variant: "default" }))}>
@@ -112,16 +115,16 @@ export function ProductOverview({ productId }: { productId: string }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Kpi value={`${live} of ${decks.length}`} label="Tests live" />
-        <Kpi value={n(swipers)} label="Swipers" />
-        <Kpi value={yesPct} label="Said yes" />
-        <Kpi value={n(product.waitlist)} label="Joined waitlist" />
+        <Kpi icon="live" value={`${live} of ${decks.length}`} label="Tests live" />
+        <Kpi icon="swipers" value={n(swipers)} label="Swipers" />
+        <Kpi icon="saidYes" value={yesPct} label="Said yes" />
+        <Kpi icon="joined" value={n(product.waitlist)} label="Joined waitlist" />
       </div>
 
       {review.length > 0 && (
         <section className={cn(CARD, "border-l-2 border-l-accent")} aria-labelledby="review-h">
           <h2 id="review-h" className="px-4 pt-4 text-lg font-semibold">
-            Needs your review
+            <IconLabel icon="statusDraft">Needs your review</IconLabel>
           </h2>
           <ul className="divide-y divide-border">
             {review.map((d) => (
@@ -145,7 +148,7 @@ export function ProductOverview({ productId }: { productId: string }) {
       <section className="space-y-2" aria-labelledby="glance-h">
         <div className="flex items-center justify-between">
           <h2 id="glance-h" className="text-lg font-semibold">
-            Tests at a glance
+            <IconLabel icon="tests">Tests at a glance</IconLabel>
           </h2>
           <Link href={`/products/${product.id}/tests`} className="text-sm font-medium text-muted-foreground hover:text-foreground">
             View all

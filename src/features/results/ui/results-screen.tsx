@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon, IconLabel, type IconName } from "@/shared/ui/icon";
 import * as React from "react";
 import { Sparkles } from "lucide-react";
 
@@ -67,9 +68,10 @@ function Ring({ value, label }: { value: number; label: string }) {
   );
 }
 
-function RingStat({ value, pct, label, of }: { value: number; pct: number; label: string; of: number }) {
+function RingStat({ value, pct, label, of, icon }: { value: number; pct: number; label: string; of: number; icon?: IconName }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+    <div className="relative flex min-h-24 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 pr-10">
+      {icon ? <Icon icon={icon} className="absolute right-3 top-3 text-muted-foreground" /> : null}
       <div className="relative size-14 shrink-0">
         <Ring value={pct} label={label} />
         <span className="tnum absolute inset-0 flex items-center justify-center text-xs font-semibold" aria-hidden>
@@ -78,7 +80,7 @@ function RingStat({ value, pct, label, of }: { value: number; pct: number; label
       </div>
       <div>
         <div className="tnum text-2xl font-semibold">{value}</div>
-        <div className="text-sm text-muted-foreground">
+        <div className="line-clamp-2 text-sm text-muted-foreground">
           {label}, of {of} swipers
         </div>
       </div>
@@ -96,9 +98,9 @@ function SplitStat({ feed, link }: { feed: number; link: number }) {
     { label: "Your link", n: link, pct: linkPct, dot: "bg-muted-foreground/40" },
   ];
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3">
+    <div className="flex min-h-24 flex-col justify-center rounded-xl border border-border bg-card px-4 py-3">
       {/* Right padding keeps the title clear of the drag handle in the corner. */}
-      <p className="pr-10 text-sm font-medium">Where swipers came from</p>
+      <p className="pr-10 text-sm font-medium"><IconLabel icon="source">Where swipers came from</IconLabel></p>
       <div
         className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-muted"
         role="img"
@@ -131,7 +133,7 @@ function Funnel({ data }: { data: ResultsPayload }) {
   ];
   return (
     <Card className="p-4 md:p-5">
-      <h2 className="text-lg font-semibold">From swipe to waitlist</h2>
+      <h2 className="text-lg font-semibold"><IconLabel icon="funnel">From swipe to waitlist</IconLabel></h2>
       <ol className="mt-3 space-y-3">
         {steps.map((st, i) => {
           const p = share(st.n, t.swipers);
@@ -159,16 +161,19 @@ function Funnel({ data }: { data: ResultsPayload }) {
 function Stat({
   value,
   label,
+  icon,
   tone = "bg-card border border-border neutral-ink",
 }: {
+  icon?: IconName;
   value: React.ReactNode;
   label: string;
   tone?: string;
 }) {
   return (
-    <div className={cn("rounded-xl px-4 py-3 md:px-6 md:py-5", tone)}>
+    <div className={cn("relative flex min-h-24 flex-col justify-center rounded-xl px-4 py-3 pr-10 md:px-6 md:py-5", tone)}>
+      {icon ? <Icon icon={icon} className="absolute right-3 top-3 text-muted-foreground" /> : null}
       <div className="tnum text-2xl font-semibold">{value}</div>
-      <div className="text-sm font-semibold text-muted-foreground">{label}</div>
+      <div className="line-clamp-2 text-sm font-semibold text-muted-foreground">{label}</div>
     </div>
   );
 }
@@ -187,10 +192,11 @@ function Pill({
   return (
     <span
       className={cn(
-        "inline-block rounded-md border px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium",
         tone,
       )}
     >
+      <Icon icon={kind === "decided" ? "statusDecided" : "statusCollecting"} />
       {children}
     </span>
   );
@@ -378,7 +384,7 @@ function Leaderboard({ data }: { data: ResultsPayload }) {
     <Card className="@container border-0 bg-transparent p-0 md:border md:bg-card md:p-5">
       <div className="hidden flex-wrap items-center justify-between gap-3 md:flex">
         <h2 className="text-lg font-semibold tracking-tight">
-          Leaderboard{" "}
+          <IconLabel icon="leaderboard">Leaderboard</IconLabel>{" "}
           <span className="text-sm font-medium tracking-normal text-muted-foreground">
             ranked by reward claim rate
           </span>
@@ -531,9 +537,9 @@ export function ResultsScreen({ deckId }: { deckId: string }) {
     blocks.push({ id: "dc-numbers", label: "Every price, in numbers", size: "full", className: "hidden md:block", node: <PriceNumbersCard data={priceCurve} /> });
     blocks.push({ id: "dc-how-to-read", label: "How to read this", size: "full", className: "hidden md:block", node: <HowToReadCard data={priceCurve} /> });
   } else {
-    blocks.push({ id: "stat-swipers", label: "Swipers", size: "quarter", node: <Stat value={totals.swipers} label="Swipers" /> });
-    blocks.push({ id: "stat-yes", label: "Said yes", size: "quarter", node: <RingStat value={totals.saidYes} pct={share(totals.saidYes, totals.swipers)} label="Said yes" of={totals.swipers} /> });
-    blocks.push({ id: "stat-joined", label: "Joined waitlist", size: "quarter", node: <RingStat value={totals.joined} pct={share(totals.joined, totals.swipers)} label="Joined waitlist" of={totals.swipers} /> });
+    blocks.push({ id: "stat-swipers", label: "Swipers", size: "quarter", node: <Stat icon="swipers" value={totals.swipers} label="Swipers" /> });
+    blocks.push({ id: "stat-yes", label: "Said yes", size: "quarter", node: <RingStat icon="saidYes" value={totals.saidYes} pct={share(totals.saidYes, totals.swipers)} label="Said yes" of={totals.swipers} /> });
+    blocks.push({ id: "stat-joined", label: "Joined waitlist", size: "quarter", node: <RingStat icon="joined" value={totals.joined} pct={share(totals.joined, totals.swipers)} label="Joined waitlist" of={totals.swipers} /> });
     blocks.push({ id: "stat-source", label: "Where swipers came from", size: "quarter", node: <SplitStat feed={totals.feed} link={totals.link} /> });
     blocks.push({
       id: "leaderboard",

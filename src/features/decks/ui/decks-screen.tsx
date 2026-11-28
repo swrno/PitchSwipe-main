@@ -1,8 +1,9 @@
 "use client";
 
+import { IconTile } from "@/shared/ui/icon";
 import * as React from "react";
 import Link from "next/link";
-import { Flag, Plus, Settings, Wallet } from "lucide-react";
+import { Flag, Plus, RotateCcw, Settings, Wallet } from "lucide-react";
 import { ReadyToShipAlert } from "@/features/assistant/ui";
 import { buttonVariants } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
@@ -40,6 +41,7 @@ export function DecksScreen() {
   return (
     <div className="rise-children space-y-5">
       <PageHeader
+        icon="products"
         title="Products"
         description={
           overview
@@ -74,7 +76,7 @@ export function DecksScreen() {
       {error ? (
         <div role="alert" className="space-y-3">
           <Notice tone="error">{error}</Notice>
-          <button type="button" onClick={() => window.location.reload()} className="inline-flex h-11 items-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Try again</button>
+          <button type="button" onClick={() => window.location.reload()} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><RotateCcw className="size-4" aria-hidden /> Try again</button>
         </div>
       ) : null}
       {!overview && !error ? (
@@ -92,6 +94,7 @@ export function DecksScreen() {
 
       {overview && visible.length === 0 ? (
         <div className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-6">
+          <IconTile icon="products" />
           <p className="text-muted-foreground">
             {filter === "all" ? "No tests yet. Test your first idea in a few minutes." : "No tests match this filter."}
           </p>

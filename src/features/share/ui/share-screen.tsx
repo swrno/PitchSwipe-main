@@ -1,5 +1,6 @@
 "use client";
 
+import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
 import { Check, Copy, Link2, MessageSquare, QrCode as QrIcon } from "lucide-react";
 import { Button, buttonVariants } from "@/shared/ui/button";
@@ -50,7 +51,7 @@ function Loaded({ data, origin }: { data: BoostData; origin: string }) {
           <section aria-labelledby="link-title" className="space-y-3 rounded-xl border border-border bg-card p-5">
             <div>
               <h2 id="link-title" className="text-lg font-semibold tracking-tight">
-                Your personal link
+                <IconLabel icon={Link2}>Your personal link</IconLabel>
               </h2>
               <p className="text-sm text-muted-foreground">
                 Opens the feed with your test first. Swipes from it are tagged &quot;Your link&quot;.

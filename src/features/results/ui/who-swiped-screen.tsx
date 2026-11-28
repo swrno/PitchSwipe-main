@@ -1,5 +1,6 @@
 "use client";
 
+import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
 
 import { AudienceCard } from "@/features/share/ui/audience-card";
@@ -27,7 +28,7 @@ import {
 function LocationPanel({ data }: { data: ResultsPayload }) {
   const tab = data.whoSwiped.location;
   return (
-    <Panel title="Location" subtitle="State, approximate from IP">
+    <Panel icon="location" title="Location" subtitle="State, approximate from IP">
       <p>
         How many people from each state <strong>joined the waitlist</strong>.
       </p>
@@ -63,7 +64,7 @@ function SwipeToWaitlist({ data }: { data: ResultsPayload }) {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-        <h3 className="text-lg">From swipe to waitlist</h3>
+        <h3 className="text-lg"><IconLabel icon="funnel">From swipe to waitlist</IconLabel></h3>
         <span className="text-sm text-muted-foreground">
           All {v.swipers} swipers
         </span>
@@ -143,6 +144,7 @@ function TargetPanel({ data }: { data: ResultsPayload }) {
   );
   return (
     <Panel
+      icon="target"
       title="Target users"
       subtitle={
         t.roles.length > 0
@@ -188,12 +190,12 @@ function SourcePanel({ data }: { data: ResultsPayload }) {
       <p className="text-sm text-muted-foreground">Other (under 10)</p>
     );
   return (
-    <Panel title="Source" subtitle="Swipe feed vs your link">
+    <Panel icon="source" title="Source" subtitle="Swipe feed vs your link">
       <SegmentBars view={s} />
       <TotalBox view={s} line={s.totalText || undefined} />
       {s.cards.length > 1 && (
         <div>
-          <h3 className="text-lg">Each {data.deck.noun}, by source</h3>
+          <h3 className="text-lg"><IconLabel icon="source">Each {data.deck.noun}, by source</IconLabel></h3>
           <table className="mt-2 w-full text-left">
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground">
@@ -233,7 +235,7 @@ function SourcePanel({ data }: { data: ResultsPayload }) {
 function InterestsPanel({ data }: { data: ResultsPayload }) {
   const i = data.whoSwiped.interests;
   return (
-    <Panel title="Interests" subtitle="One person can follow several">
+    <Panel icon="interests" title="Interests" subtitle="One person can follow several">
       <SegmentBars view={i} unit="per interest" />
       <TotalBox view={i} hint={i.totalText} />
       {i.tiles.length > 0 && (
@@ -288,7 +290,7 @@ export function WhoSwipedSection({ data }: { data: ResultsPayload }) {
           id="who-swiped-title"
           className="text-lg font-semibold tracking-tight md:text-2xl"
         >
-          Who swiped
+          <IconLabel icon="whoSwiped">Who swiped</IconLabel>
         </h2>
         <p className="mt-1 text-sm text-muted-foreground md:hidden">
           {whoSwiped.validSwipers} valid swipers · {deck.label}

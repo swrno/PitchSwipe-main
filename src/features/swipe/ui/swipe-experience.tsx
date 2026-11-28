@@ -1,9 +1,10 @@
 "use client";
 
+import { IconTile } from "@/shared/ui/icon";
 import * as React from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useSpring, useTransform, type MotionValue } from "framer-motion";
-import { ChevronLeft, Heart, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronLeft, Heart, RotateCcw, X } from "lucide-react";
 import { haptic } from "@/shared/lib/feel/haptics";
 import { SPRING_SNAPPY } from "@/shared/lib/feel/motion";
 import { announceBalance } from "@/shared/lib/feel/wallet-events";
@@ -230,6 +231,7 @@ function Experience({ mode, firstSlug }: SwipeExperienceProps) {
       <>
       {strip}
       <div className="mx-auto max-w-md space-y-4 py-10 text-center">
+        <IconTile icon={loadError ? AlertTriangle : CheckCircle2} className="mx-auto" />
         <h1 className="text-3xl">{loadError ? "Something went wrong." : "That is every idea for now."}</h1>
         <p className="text-muted-foreground">
           {loadError ?? "You have seen every live idea. New ones arrive as founders publish them."}
@@ -237,7 +239,7 @@ function Experience({ mode, firstSlug }: SwipeExperienceProps) {
         <div className="flex flex-col items-center gap-3 pt-2">
           {loadError ? (
             <Button onClick={() => void load()}>
-              Try again
+              <RotateCcw /> Try again
             </Button>
           ) : null}
           <Link href="/products" className="text-sm font-semibold underline underline-offset-4">

@@ -1,5 +1,7 @@
 "use client";
 
+import { Layers } from "lucide-react";
+import { IconTile } from "@/shared/ui/icon";
 import * as React from "react";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/shared/ui/button";
@@ -84,10 +86,11 @@ export function HistoryScreen() {
     <div className="space-y-6">
       {items.length === 0 ? (
         <section className="rounded-xl border border-border bg-card p-8 text-center">
+          <IconTile icon="swipe" className="mx-auto mb-3" />
           <p className="text-lg font-semibold">No swipes yet</p>
           <p className="mt-1 text-sm text-muted-foreground">Cards you answer show up here.</p>
           <Link href="/swipe" className={cn(buttonVariants(), "mt-4")}>
-            Start swiping
+            <Layers /> Start swiping
           </Link>
         </section>
       ) : (

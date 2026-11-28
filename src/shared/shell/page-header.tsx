@@ -1,6 +1,8 @@
 import * as React from "react";
 import { cn } from "@/shared/lib/utils";
 import { BackButton } from "./back-button";
+import { Icon, type IconName } from "@/shared/ui/icon";
+import type { LucideIcon } from "lucide-react";
 import { PageTabs, type PageTab } from "./page-tabs";
 
 /**
@@ -11,6 +13,7 @@ export function PageHeader({
   title,
   description,
   actions,
+  icon,
   tabs,
   tabsLabel,
   back = true,
@@ -19,6 +22,8 @@ export function PageHeader({
   title: React.ReactNode;
   description?: React.ReactNode;
   actions?: React.ReactNode;
+  /** Semantic page icon, shown in a 40px muted tile before the title. */
+  icon?: LucideIcon | IconName;
   tabs?: readonly PageTab[];
   tabsLabel?: string;
   /** Back button left of the title (default: to the parent page from the breadcrumb; none on top-level pages). */
@@ -30,6 +35,11 @@ export function PageHeader({
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 items-start gap-3">
           {back ? <BackButton {...(typeof back === "object" ? back : {})} /> : null}
+          {icon ? (
+            <span aria-hidden className="mt-0.5 hidden size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground sm:flex">
+              <Icon icon={icon} size="md" />
+            </span>
+          ) : null}
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{title}</h1>
             {description ? <p className="mt-1 text-sm text-muted-foreground md:text-base">{description}</p> : null}

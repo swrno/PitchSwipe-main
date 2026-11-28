@@ -1,8 +1,9 @@
 "use client";
 
+import { IconLabel } from "@/shared/ui/icon";
 import * as React from "react";
 import Link from "next/link";
-import { Lock, Timer, MessageCircle, IndianRupee } from "lucide-react";
+import { RotateCcw, Lock, Timer, MessageCircle, IndianRupee } from "lucide-react";
 import { Button, buttonVariants } from "@/shared/ui/button";
 import { QUALITY } from "@/features/quality/rules";
 import { PAID_RATE_RS } from "@/features/swipe/validity";
@@ -34,8 +35,8 @@ export function WalletScreen() {
     return (
       <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-warning-soft p-4 text-sm text-warning">
         <span>{error}</span>
-        <button type="button" onClick={() => window.location.reload()} className="inline-flex min-h-11 items-center rounded-lg border border-warning px-4 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          Try again
+        <button type="button" onClick={() => window.location.reload()} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-warning px-4 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <RotateCcw className="size-4" aria-hidden /> Try again
         </button>
       </div>
     );
@@ -130,7 +131,7 @@ export function WalletScreen() {
           </section>
 
           <section aria-label="How you earn" className="rounded-xl border border-border bg-card p-5">
-            <h2 className="text-lg font-semibold">How you earn</h2>
+            <h2 className="text-lg font-semibold"><IconLabel icon="earnsMost">How you earn</IconLabel></h2>
             <ol className="mt-4 grid gap-4 sm:grid-cols-3">
               {steps.map(({ Icon, title, line }) => (
                 <li key={title} className="flex gap-3">
@@ -148,7 +149,7 @@ export function WalletScreen() {
         </div>
 
         <section aria-label="Recent activity" className="rounded-xl border border-border bg-card p-5 lg:sticky lg:top-20 lg:col-span-4">
-          <h2 className="text-lg font-semibold">Recent activity</h2>
+          <h2 className="text-lg font-semibold"><IconLabel icon="history">Recent activity</IconLabel></h2>
           {groups.length === 0 ? (
             <div className="py-8 text-center">
               <p className="text-sm font-medium">No activity yet</p>

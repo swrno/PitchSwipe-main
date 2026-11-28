@@ -1,5 +1,7 @@
 "use client";
 
+import { Icon } from "@/shared/ui/icon";
+import { INDUSTRY_ICONS } from "@/shared/ui/industry-icons";
 import * as React from "react";
 import { Check, Clock, Shuffle } from "lucide-react";
 import { WalletPill } from "./wallet-pill";
@@ -94,6 +96,7 @@ export function SwipeHome({
     <div className="rise-children space-y-6">
       <PageHeader
         className="mb-0"
+        icon="swipe"
         title="Swipe"
         description={`Read an idea, answer one question. Earn ${formatRs(PAID_RATE_RS)} on every paid card.`}
         actions={signedIn ? <WalletPill balanceRs={balanceRs} className="md:hidden" /> : null}
@@ -113,10 +116,11 @@ export function SwipeHome({
                 aria-pressed={on}
                 onClick={() => toggle(industry)}
                 className={cn(
-                  "pressable inline-flex min-h-11 cursor-pointer items-center rounded-lg border px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                  "pressable inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                   on ? "border-foreground bg-foreground text-background" : "border-border bg-transparent text-muted-foreground hover:bg-muted",
                 )}
               >
+                <Icon icon={INDUSTRY_ICONS[industry]} />
                 {industry}
               </button>
             );

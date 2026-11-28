@@ -1,16 +1,17 @@
+import { User } from "lucide-react";
 import { PageHeader } from "@/shared/shell/page-header";
 
 const TABS = [
-  { label: "Profile", href: "/profile" },
-  { label: "Appearance", href: "/appearance" },
-  { label: "Plan", href: "/settings/plan" },
+  { icon: User, label: "Profile", href: "/profile" },
+  { icon: "appearance", label: "Appearance", href: "/appearance" },
+  { icon: "plan", label: "Plan", href: "/settings/plan" },
 ] as const;
 
 /** Settings: Profile, Appearance and Plan share one header with tabs. */
 export default function SettingsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div>
-      <PageHeader title="Settings" description="Manage your profile, colours and test plan." tabs={TABS} tabsLabel="Settings sections" />
+      <PageHeader icon="settings" title="Settings" description="Manage your profile, colours and test plan." tabs={TABS} tabsLabel="Settings sections" />
       {children}
     </div>
   );

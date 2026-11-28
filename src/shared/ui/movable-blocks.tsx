@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { GripVertical } from "lucide-react";
 import {
   closestCenter,
@@ -83,9 +84,9 @@ function Card({
         transition: reduced ? undefined : transition,
       }}
       className={cn(
-        "group/block relative min-w-0",
+        "group/block relative flex h-full min-w-0 flex-col",
         SPAN[block.size ?? "full"],
-        isDragging && "opacity-40",
+        isDragging && "rounded-xl opacity-40 outline-2 -outline-offset-2 outline-dashed outline-muted-foreground/50",
         block.className,
       )}
     >
@@ -104,7 +105,7 @@ function Card({
       >
         <GripVertical className="size-4" aria-hidden />
       </button>
-      {block.node}
+      <div className="flex min-h-0 flex-1 flex-col [&>*]:flex-1">{block.node}</div>
     </div>
   );
 }
@@ -129,6 +130,7 @@ export function MovableBlocks({
   const [ready, setReady] = React.useState(false);
   const [announce, setAnnounce] = React.useState("");
   const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [activeSize, setActiveSize] = React.useState<{ width: number; height: number } | null>(null);
   const reduced = usePrefersReducedMotion();
   const dndId = React.useId();
   const byId = new Map(blocks.map((b) => [b.id, b]));
@@ -154,7 +156,7 @@ export function MovableBlocks({
   };
 
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
@@ -169,9 +171,14 @@ export function MovableBlocks({
     onDragCancel: ({ active }) => `Move cancelled. ${label(active.id)} returned to ${pos(active.id)}.`,
   };
 
-  const onDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id));
+  const onDragStart = (e: DragStartEvent) => {
+    setActiveId(String(e.active.id));
+    const r = e.active.rect.current.initial;
+    setActiveSize(r ? { width: r.width, height: r.height } : null);
+  };
   const onDragEnd = (e: DragEndEvent) => {
     setActiveId(null);
+    setActiveSize(null);
     const { active, over } = e;
     if (!over || active.id === over.id) return;
     const from = current.indexOf(String(active.id));
@@ -208,7 +215,10 @@ export function MovableBlocks({
         accessibility={{ announcements }}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
-        onDragCancel={() => setActiveId(null)}
+        onDragCancel={() => {
+          setActiveId(null);
+          setActiveSize(null);
+        }}
       >
         <SortableContext items={current} strategy={rectSortingStrategy}>
           <div className={groupClassName ?? "grid grid-cols-1 gap-3 md:grid-cols-4 md:gap-4"}>
@@ -217,11 +227,22 @@ export function MovableBlocks({
             ))}
           </div>
         </SortableContext>
-        <DragOverlay dropAnimation={reduced ? null : undefined}>
-          {active ? (
-            <div className="cursor-grabbing rounded-2xl shadow-lg ring-2 ring-accent/40">{active.node}</div>
-          ) : null}
-        </DragOverlay>
+        {/* Portalled to <body>: DragOverlay is position:fixed, and an ancestor with a transform or animation would offset it. */}
+        {ready
+          ? createPortal(
+              <DragOverlay dropAnimation={reduced ? null : undefined}>
+                {active ? (
+                  <div
+                    style={activeSize ?? undefined}
+                    className="flex cursor-grabbing flex-col overflow-hidden rounded-xl shadow-lg ring-2 ring-accent/40 [&>*]:flex-1"
+                  >
+                    {active.node}
+                  </div>
+                ) : null}
+              </DragOverlay>,
+              document.body,
+            )
+          : null}
       </DndContext>
       <div aria-live="polite" role="status" className="sr-only">
         {announce}

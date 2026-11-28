@@ -3,6 +3,7 @@ import { ChevronLeft } from "lucide-react";
 import { BrandMark } from "@/shared/shell/brand-mark";
 import type { Accent } from "@/features/decks/product";
 import type { StatusTone } from "@/features/decks/status";
+import { Icon, ICONS } from "@/shared/ui/icon";
 import { haptic } from "@/shared/lib/feel/haptics";
 import { cn } from "@/shared/lib/utils";
 
@@ -37,8 +38,22 @@ const TONE_CLASS: Record<StatusTone, string> = {
   finished: "text-muted-foreground",
 };
 
+const TONE_ICON: Record<StatusTone, keyof typeof ICONS> = {
+  won: "statusDecided",
+  leading: "statusLive",
+  live: "statusLive",
+  ready: "statusDecided",
+  draft: "statusDraft",
+  finished: "statusSoon",
+};
+
 export function StatusText({ tone, children, className }: { tone: StatusTone; children: React.ReactNode; className?: string }) {
-  return <span className={cn("text-sm font-bold", TONE_CLASS[tone], className)}>{children}</span>;
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 text-sm font-bold", TONE_CLASS[tone], className)}>
+      <Icon icon={TONE_ICON[tone]} />
+      {children}
+    </span>
+  );
 }
 
 /**

@@ -10,16 +10,20 @@ import type {
   SegmentRowView,
   SegmentView,
 } from "@/features/results/types";
+import { IconLabel } from "@/shared/ui/icon";
+import type { IconName } from "@/shared/ui/icon";
 import { cn } from "@/shared/lib/utils";
 
 /** Card shell used by every Who swiped panel. */
 export function Panel({
   title,
+  icon,
   subtitle,
   children,
   className,
 }: {
   title: string;
+  icon?: IconName;
   subtitle?: string;
   children: React.ReactNode;
   className?: string;
@@ -33,7 +37,7 @@ export function Panel({
     >
       <div className="hidden flex-wrap items-baseline justify-between gap-x-4 gap-y-1 md:flex">
         <h2 className="text-lg font-semibold tracking-tight text-xl md:text-2xl">
-          {title}
+          {icon ? <IconLabel icon={icon}>{title}</IconLabel> : title}
         </h2>
         {subtitle && (
           <p className="text-sm text-muted-foreground">{subtitle}</p>

@@ -37,7 +37,7 @@ export function IdeaStep({ onDrafted, onSkip }: { onDrafted: (r: IdeaResult) => 
 
   return (
     <div className="max-w-2xl space-y-6">
-      <PageHeader title="New test" description="Describe your idea. AI drafts the pitch and you edit it before anything goes live." className="mb-0" />
+      <PageHeader icon="newTest" title="New test" description="Describe your idea. AI drafts the pitch and you edit it before anything goes live." className="mb-0" />
       <StepProgress step={1} total={3} label="Describe your idea" />
       <Card className="space-y-4 p-5 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:p-0">
         <div>
