@@ -12,7 +12,7 @@ import type { ProductRecord } from "@/features/decks/views";
 import { cn } from "@/shared/lib/utils";
 import { api } from "./api";
 
-/** Header of every product page: name, Add deck, and the Overview · Tests · Website · Config tabs. */
+/** Header of every product page: name, Add test, and the Overview · Tests · Website · Settings tabs. */
 export function ProductHeader({ productId }: { productId: string }) {
   const pathname = usePathname();
   const [name, setName] = React.useState<{ id: string; name: string; category: string } | null>(null);
@@ -32,7 +32,7 @@ export function ProductHeader({ productId }: { productId: string }) {
     { label: "Overview", href: base, exact: true },
     { label: "Tests", href: `${base}/tests` },
     { label: "Website", href: `${base}/site`, alsoActive: [`${base}/connect`] },
-    { label: "Config", href: `${base}/config` },
+    { label: "Settings", href: `${base}/config` },
   ];
   const loaded = name?.id === productId ? name : null;
   const active = tabs.find((t) => isTabActive(pathname, t));

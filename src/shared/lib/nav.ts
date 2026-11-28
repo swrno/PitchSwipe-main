@@ -53,7 +53,7 @@ export function isItemActive(pathname: string, item: NavItem): boolean {
 }
 
 const PRODUCTS_CRUMB: Crumb = { label: "Products", href: "/products" };
-const PRODUCT_TABS: Record<string, string> = { tests: "Tests", site: "Website", connect: "Website", config: "Config" };
+const PRODUCT_TABS: Record<string, string> = { tests: "Tests", site: "Website", connect: "Website", config: "Settings" };
 const DECK_TABS: Record<string, string> = { "who-swiped": "Who swiped", waitlist: "Waitlist users", share: "Share" };
 const SETTINGS_CRUMB: Crumb = { label: "Settings", href: "/profile" };
 const EARNINGS_CRUMB: Crumb = { label: "Earnings", href: "/wallet" };

@@ -37,7 +37,7 @@ Phone tab bar: Swipe · Earnings · Products · Settings.
 | --- | --- | --- |
 | Overview | /overview | – |
 | Products | /products | – (list of products, each with its tests summary) |
-| Product | /products/[id] | **Overview** /products/[id] · **Tests** /products/[id]/tests · **Website** /products/[id]/site · **Config** /products/[id]/config |
+| Product | /products/[id] | **Overview** /products/[id] · **Tests** /products/[id]/tests · **Website** /products/[id]/site · **Settings** /products/[id]/config |
 | Test | /decks/[id] | **Results** /decks/[id] · **Who swiped** /decks/[id]/who-swiped (audience card on top) · **Waitlist** /decks/[id]/waitlist · **Share** /decks/[id]/share |
 | New test | /decks/new | – (wizard with step progress) |
 | Swipe | /swipe | – |
